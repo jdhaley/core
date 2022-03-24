@@ -1,6 +1,7 @@
-import {Actions, Commandable, Signal} from "../../core/base/core.js";
+import {Actions, Signal} from "../base/core.js";
+import {Commandable} from "../base/command.js";
 import {Viewer, Owner, text} from "./dom.js";
-import {Transformer} from "../../core/base/transform.js";
+import {Transformer} from "./transform.js";
 //import {Node, Element, Range} from "./domParts.js";
 
 export {Frame, Display, Article, UserEvent, ViewConf, FrameConf};

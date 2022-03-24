@@ -25,11 +25,6 @@ export interface Part extends Receiver {
 	parts: Iterable<Part>;
 }
 
-export interface Commandable<R> {
-	undo(): R;
-	redo(): R;
-}
-
 export class Message implements Signal {
 	constructor(subject: string, direction: direction) {
 		this.subject = subject;
@@ -37,12 +32,4 @@ export class Message implements Signal {
 	}
 	readonly direction: direction;
 	subject: string;
-}
-
-export abstract class Command<R> implements Commandable<R> {
-	prior: Command<R>;
-	next: Command<R>;
-	abstract get name(): string;
-	abstract undo(): R;
-	abstract redo(): R;
 }
