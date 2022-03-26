@@ -50,6 +50,12 @@ export class SOURCE extends Branch {
 		this.expr = expr;
 		return end;
 	}
+	get textContent(): string {
+		let facets = this.facets?.textContent;
+		let key = this.key?.textContent;
+		let expr = this.expr.textContent;
+		return `${facets ? facets + " ": ""}${key ? key + ": " : ""}${expr}`;
+	}
 }
 
 class EXPR extends Branch {
@@ -120,24 +126,24 @@ class EXPRS extends Branch {
 	parse(text: string, start?: number): number {
 		let end = start || 0;
 		if (text.at(end) != "(") return end;
-		end++;
-		let expr: Source = new SOURCE();
+
+		let expr = new SOURCE();
+		end = expr.parse(text, ++end);
 		this.children.push(expr);
 		while (end < text.length) {
-			end = expr.parse(text, end);
 			let ch = text.at(end);
 			if (ch == ",") {
-				expr = new SOURCE();
-				this.children.push(expr)
+				let expr = new SOURCE();
 				end = expr.parse(text, ++end);
+				this.children.push(expr)
 			} else if (ch == ")") {
 				return ++end;
 			} else {
 				break;
 			}
 		}
-		expr = new ERROR(`expecting ["," | ")"] but found "${text.at(end)}" instead.`, text.substring(end));
-		this.children.push(expr);
+		let error = new ERROR(`expecting ["," | ")"] but found "${text.at(end)}" instead.`, text.substring(end));
+		this.children.push(error);
 		return text.length;
 	}
 	get textContent(): string {
