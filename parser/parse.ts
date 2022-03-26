@@ -33,6 +33,18 @@ export class SOURCE extends Branch {
 	key: Source;
 	facets: Source;
 	expr: Source
+	get textContent(): string {
+		let facets = this.facets?.textContent;
+		let key = this.key?.textContent;
+		let expr = this.expr.textContent;
+		return `${facets ? facets + " ": ""}${key ? key + ": " : ""}${expr}`;
+	}
+	get outerHTML(): string {
+		let facets = this.facets ? this.facets.textContent : "";
+		let key = this.key ? this.key.textContent : "";
+		let expr = this.expr.outerHTML;
+		return `<s><facets>${facets}</facets><key>${key}</key>${expr}</s>`;
+	}
 	parse(text: string, start?: number): number {
 		let end = start || 0;
 		let expr = new EXPR();
@@ -50,17 +62,21 @@ export class SOURCE extends Branch {
 		this.expr = expr;
 		return end;
 	}
-	get textContent(): string {
-		let facets = this.facets?.textContent;
-		let key = this.key?.textContent;
-		let expr = this.expr.textContent;
-		return `${facets ? facets + " ": ""}${key ? key + ": " : ""}${expr}`;
-	}
 }
 
 class EXPR extends Branch {
 	get nodeName() {
 		return "expr";
+	}
+	get textContent(): string {
+		let text = "";
+		for (let node of this.children) {
+			let next = node.textContent;
+			let delim = text ? " " : "";
+			if (next.startsWith("(") || next.startsWith("[")) delim = "";
+			text += delim + next;
+		} 
+		return text;
 	}
 	parse(text: string, start?: number): number {
 		let end = start || 0;
@@ -86,22 +102,15 @@ class EXPR extends Branch {
 		}
 		return end;
 	}
-	get textContent(): string {
-		let text = "";
-		for (let node of this.children) {
-			let next = node.textContent;
-			let delim = text ? " " : "";
-			if (next.startsWith("(") || next.startsWith("[")) delim = "";
-			text += delim + next;
-		} 
-		return text;
-	}
 }
 
 
 class INDEX extends EXPR {
 	get nodeName() {
 		return "index";
+	}
+	get textContent(): string {
+		return "[" + super.textContent + "]"
 	}
 	parse(text: string, start?: number): number {
 		let end = start || 0;
@@ -114,14 +123,16 @@ class INDEX extends EXPR {
 		this.children.push(error);
 		return text.length;
 	}
-	get textContent(): string {
-		return "[" + super.textContent + "]"
-	}
 }
 
 class EXPRS extends Branch {
 	get nodeName() {
 		return "exprs";
+	}
+	get textContent(): string {
+		let text = "";
+		for (let node of this.children) text += ", " + node.textContent;
+		return text.length ? "(" + text.substring(2) + ")" : text;
 	}
 	parse(text: string, start?: number): number {
 		let end = start || 0;
@@ -145,11 +156,6 @@ class EXPRS extends Branch {
 		let error = new ERROR(`expecting ["," | ")"] but found "${text.at(end)}" instead.`, text.substring(end));
 		this.children.push(error);
 		return text.length;
-	}
-	get textContent(): string {
-		let text = "";
-		for (let node of this.children) text += ", " + node.textContent;
-		return text.length ? "(" + text.substring(2) + ")" : text;
 	}
 }
 

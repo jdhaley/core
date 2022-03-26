@@ -1,6 +1,7 @@
 export interface Source {
 	nodeName: string;
 	textContent: string;
+	outerHTML: string;
 	children: Source[];
 	error?: string;
 	/** return the end index. */
@@ -19,6 +20,11 @@ export class Branch implements Source {
 		let text = "";
 		for (let node of this.children) text += " " + node.textContent;
 		return text.length ? text.substring(1) : text;
+	}
+	get outerHTML(): string {
+		let text = "";
+		for (let node of this.children) text += node.outerHTML;
+		return `<${this.nodeName}>${text}</${this.nodeName}>`;
 	}
 	children: Source[];
 	parse(source: string, start?: number): number {
@@ -40,8 +46,24 @@ export class Leaf implements Source {
 	get children() {
 		return EMPTY_ARR as Source[];
 	}
+	get outerHTML(): string {
+		return `<${this.nodeName}>${markupText(this.textContent)}</${this.nodeName}>`;
+	}
 	textContent : string;
 	parse(text: string, start?: number): number {
 		return start || 0;
 	}
+}
+
+function markupText(text: string) {
+	let markup = "";
+	for (let ch of text) {
+		switch (ch) {
+			case ">": markup += "&gt;"; break;
+			case "<": markup += "&lt;"; break;
+			case "&": markup += "&amp;"; break;
+			default:  markup += ch; break;
+		}
+	}
+	return markup;
 }
