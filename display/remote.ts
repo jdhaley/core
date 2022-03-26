@@ -1,10 +1,6 @@
-import {Receiver, Message} from "../../core/base/core.js";
-
-type serial = string | number | boolean | null | serial[] | Serial;
-
-interface Serial {
-	[key: string]: serial
-}
+import {Receiver} from "../base/signal.js";
+import {Message} from "../base/control.js";
+import {serial} from "../base/util.js";
 
 interface RemoteRequest {
 	url: string;

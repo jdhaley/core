@@ -1,26 +1,20 @@
-import {Actions, Message, Part, Receiver, Signal} from "./core.js";
+import {Controller, direction, Part, Sensor, Signal, Transmitter} from "./signal.js";
 
-export interface Transmitter {
-	send(signal: Signal): void;
-}
-
-export interface Sensor {
-	sense(signal: Signal): void;
-}
+const EMPTY_ARR = Object.freeze([]);
 
 export class Control implements Part, Transmitter, Sensor {
-	constructor(actions: Actions) {
-		this.actions = actions || {};
+	constructor(controller: Controller) {
+		this.actions = controller || Object.create(null);
 	}
-	actions: Actions;
+	actions: Controller;
 	get owner() {
-		return this.partOf().owner;
+		return this.partOf?.owner;
 	}
 	get partOf() {
 		return null;
 	}
 	get parts() {
-		return null;
+		return EMPTY_ARR as Iterable<Part>;
 	}
 	receive(signal: Signal)  {
 		if (!signal) return;
@@ -63,4 +57,13 @@ export class Control implements Part, Transmitter, Sensor {
 			signal.from = sensor;
 		}
 	}
+}
+
+export class Message implements Signal {
+	constructor(subject: string, direction: direction) {
+		this.subject = subject;
+		if (direction) this.direction = direction;
+	}
+	readonly direction: direction;
+	subject: string;
 }

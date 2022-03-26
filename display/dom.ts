@@ -1,7 +1,7 @@
-import {Control, Transmitter} from "../../core/base/control.js";
-import {Actions, Part, Receiver} from "../../core/base/core.js";
+import {Controller, Part, Receiver, Transmitter} from "../base/signal.js";
+import {Control} from "../../core/base/control.js";
 import {Remote} from "./remote.js";
-import util from "../../core/base/util.js";
+import {formatDate} from "../base/util.js";
 
 interface Whole extends Receiver, Transmitter {
 	origin: Remote;
@@ -16,7 +16,7 @@ export class Owner extends Control implements Whole {
 	}
 	origin = new Remote();
 	#lastId: number = 0;
-	constructor(actions: Actions) {
+	constructor(actions: Controller) {
 		super(actions);
 	}
 	get document(): Document {
@@ -59,7 +59,7 @@ export class Owner extends Control implements Whole {
 	}
 	getFileName(contextPath?: string, extension?: string) {
 		if (!this.location.search) {
-			this.location.search = util.formatDate(new Date());
+			this.location.search = formatDate(new Date());
 			// this.location.search = `${contextPath}/${util.formatDate(new Date())}.${extension}`;
 			return;
 		}

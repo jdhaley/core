@@ -1,4 +1,4 @@
-import {Actions, Signal} from "../base/core.js";
+import {Controller, Signal} from "../base/signal.js";
 import {Commandable} from "../base/command.js";
 import {Viewer, Owner, text} from "./dom.js";
 import {Transformer} from "./transform.js";
@@ -27,8 +27,8 @@ interface UserEvent extends Signal, UIEvent {
 }
 
 interface FrameConf {
-	events: Actions;
-	actions: Actions;
+	events: Controller;
+	actions: Controller;
 	types: {
 		[key: string]: typeof Display
 	};
@@ -42,7 +42,7 @@ interface ViewConf {
 	shortcuts?: {
 		[key: string]: string
 	};
-	actions: Actions;
+	actions: Controller;
 	[key: string]: unknown;
 }
 
