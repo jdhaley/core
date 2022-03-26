@@ -39,11 +39,14 @@ export class SOURCE extends Branch {
 		let expr = this.expr.textContent;
 		return `${facets ? facets + " ": ""}${key ? key + ": " : ""}${expr}`;
 	}
-	get outerHTML(): string {
+	get innerHTML(): string {
 		let facets = this.facets ? this.facets.textContent : "";
-		let key = this.key ? this.key.textContent : "";
+		let key = this.key ? this.key.textContent + ":" : "";
 		let expr = this.expr.outerHTML;
-		return `<s><facets>${facets}</facets><key>${key}</key>${expr}</s>`;
+		return `<facets>${facets}</facets><key>${key}</key>${expr}`;
+	}
+	get outerHTML(): string {
+		return "<s>" + this.innerHTML + "</s>";
 	}
 	parse(text: string, start?: number): number {
 		let end = start || 0;
