@@ -1,6 +1,4 @@
-import {Token, Branch, Leaf} from "./token.js";
-
-const KEYWORD = ["if", "else", "while", "return"];
+import {Source, Branch, Leaf} from "./source.js";
 
 /*
 	CONSTRUCTS:
@@ -12,6 +10,7 @@ const KEYWORD = ["if", "else", "while", "return"];
 
 	punct: ': = [ ] ( ) ,'
  */
+const KEYWORD = ["if", "else", "while", "return"];
 
 const LETTER = "abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ_$";
 const DIGIT = "0123456789";
@@ -31,9 +30,9 @@ export class SOURCE extends Branch {
 	get nodeName(): string {
 		return "s";
 	}
-	key: Token;
-	facets: Token;
-	expr: Token
+	key: Source;
+	facets: Source;
+	expr: Source
 	parse(text: string, start?: number): number {
 		let end = start || 0;
 		let expr = new EXPR();
@@ -122,7 +121,7 @@ class EXPRS extends Branch {
 		let end = start || 0;
 		if (text.at(end) != "(") return end;
 		end++;
-		let expr: Token = new SOURCE();
+		let expr: Source = new SOURCE();
 		this.children.push(expr);
 		while (end < text.length) {
 			end = expr.parse(text, end);

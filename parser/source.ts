@@ -1,13 +1,13 @@
-export interface Token {
+export interface Source {
 	nodeName: string;
-	error?: string;
 	textContent: string;
-	children: Token[];
+	children: Source[];
+	error?: string;
 	/** return the end index. */
 	parse(source: string, start?: number): number;
 }
 
-export class Branch implements Token {
+export class Branch implements Source {
 	constructor() {
 		this.children = [];
 	}
@@ -20,11 +20,11 @@ export class Branch implements Token {
 		for (let node of this.children) text += " " + node.textContent;
 		return text.length ? text.substring(1) : text;
 	}
-	children: Token[];
+	children: Source[];
 	parse(source: string, start?: number): number {
 		return start || 0;
 	}
-	parseToken(token: Token, text: string, start: number): number {
+	parseToken(token: Source, text: string, start: number): number {
 		this.children.push(token)
 		return token.parse(text, start);
 	}
@@ -32,13 +32,13 @@ export class Branch implements Token {
 
 const EMPTY_ARR = Object.freeze([]);
 
-export class Leaf implements Token {
+export class Leaf implements Source {
 	error?: string;
 	get nodeName() {
 		return "LEAF";
 	}
 	get children() {
-		return EMPTY_ARR as Token[];
+		return EMPTY_ARR as Source[];
 	}
 	textContent : string;
 	parse(text: string, start?: number): number {
