@@ -15,9 +15,17 @@ const KEYWORD = ["if", "else", "while", "return"];
 
 const LETTER = "abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ_$";
 const DIGIT = "0123456789";
-const SYM = "=^";
-const TERM = ")],"
 
+const MATH = "+*-/%";
+const REL = "=<>&|^";
+
+const LETR = "$_";
+const GRP = "[]{}()";
+const PUNCT = ".,:;?!";
+const ACCESS = "@#";
+// "~\\\"'`"
+const TERM = ")],"
+const SYM = "=^"; 
 
 export class SOURCE extends Branch {
 	get nodeName(): string {
