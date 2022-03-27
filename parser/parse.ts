@@ -24,9 +24,9 @@ const PUNCT = ".,:;?!";
 const ACCESS = "@#";
 // "~\\\"'`"
 const TERM = ")],"
-const SYM = "=^"; 
+const SYM = ":=^";
 
-export class SOURCE extends Branch {
+class x extends Branch {
 	get nodeName(): string {
 		return "s";
 	}
@@ -67,7 +67,7 @@ export class SOURCE extends Branch {
 	}
 }
 
-class EXPR extends Branch {
+export class EXPR extends Branch {
 	get nodeName() {
 		return "expr";
 	}
@@ -86,6 +86,12 @@ class EXPR extends Branch {
 		while (end < text.length) {
 			let ch = text.at(end);
 			if (ch == "\t" || ch == " ") {
+				end++;
+			} else if (ch == ":") {
+				let decl = new DECL()
+				for (let child of this.children) decl.children.push(child);
+				this.children.length = 0;
+				this.children.push(decl);
 				end++;
 			} else if (DIGIT.indexOf(ch) >= 0 || ch == "-") {
 				end = this.parseToken(new NUMBER(), text, end);
@@ -107,7 +113,11 @@ class EXPR extends Branch {
 	}
 }
 
-
+class DECL extends Branch {
+	get nodeName(): string {
+		return "decl";
+	}
+}
 class INDEX extends EXPR {
 	get nodeName() {
 		return "index";
@@ -141,13 +151,13 @@ class EXPRS extends Branch {
 		let end = start || 0;
 		if (text.at(end) != "(") return end;
 
-		let expr = new SOURCE();
+		let expr = new EXPR();
 		end = expr.parse(text, ++end);
 		this.children.push(expr);
 		while (end < text.length) {
 			let ch = text.at(end);
 			if (ch == ",") {
-				let expr = new SOURCE();
+				let expr = new EXPR();
 				end = expr.parse(text, ++end);
 				this.children.push(expr)
 			} else if (ch == ")") {
