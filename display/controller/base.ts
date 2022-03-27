@@ -33,11 +33,11 @@ export const resourceActions = extend(displayActions, {
 	view(this: Article, msg: Signal) {
 		let div = this.owner.document.createElement("DIV");
 		div.innerHTML = this.model;
-		this.view.innerHTML = this.transform.toView(div).innerHTML;
+		this.view.innerHTML = this.transform.transform(div).innerHTML;
 	},
 	save(this: Article, event: UserEvent) {
 		event.subject = "";
-		let target = this.transform.fromView(this.view) as Element;
+		let target = this.transform.target(this.view) as Element;
 		this.owner.origin.save(this, this.dataset.file, target.outerHTML);
 	},
 	selectAll(this: Article, event: UserEvent) {

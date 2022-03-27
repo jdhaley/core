@@ -1,7 +1,8 @@
 export interface Source {
 	nodeName: string;
 	textContent: string;
-	outerHTML: string;
+	readonly outerHTML: string;
+	readonly innerHTML: string;
 	children: Source[];
 	error?: string;
 	/** return the end index. */
@@ -21,10 +22,13 @@ export class Branch implements Source {
 		for (let node of this.children) text += " " + node.textContent;
 		return text.length ? text.substring(1) : text;
 	}
+	get innerHTML(): string {
+		let markup = "";
+		for (let node of this.children) markup += node.outerHTML;
+		return markup;
+	}
 	get outerHTML(): string {
-		let text = "";
-		for (let node of this.children) text += node.outerHTML;
-		return `<${this.nodeName}>${text}</${this.nodeName}>`;
+		return `<${this.nodeName}>${this.innerHTML}</${this.nodeName}>`;
 	}
 	children: Source[];
 	parse(source: string, start?: number): number {
@@ -46,8 +50,11 @@ export class Leaf implements Source {
 	get children() {
 		return EMPTY_ARR as Source[];
 	}
+	get innerHTML(): string {
+		return markupText(this.textContent);
+	}
 	get outerHTML(): string {
-		return `<${this.nodeName}>${markupText(this.textContent)}</${this.nodeName}>`;
+		return `<${this.nodeName}>${this.innerHTML}</${this.nodeName}>`;
 	}
 	textContent : string;
 	parse(text: string, start?: number): number {

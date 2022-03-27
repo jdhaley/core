@@ -1,4 +1,16 @@
+import {Transformer} from "../base/transform.js";
 import {Source, Branch, Leaf} from "./source.js";
+
+export const parser: Transformer<string, Source> = {
+	transform(source: string): Source {
+		let expr = new EXPR();
+		expr.parse(source);
+		return expr;
+	},
+	target(source: Source): string {
+		return source.textContent;
+	}
+}
 
 /*
 	CONSTRUCTS:
@@ -10,6 +22,7 @@ import {Source, Branch, Leaf} from "./source.js";
 
 	punct: ': = [ ] ( ) ,'
  */
+
 const KEYWORD = ["if", "else", "while", "return"];
 
 const LETTER = "abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ_$";
@@ -26,48 +39,7 @@ const ACCESS = "@#";
 const TERM = ")],"
 const SYM = ":=^";
 
-class x extends Branch {
-	get nodeName(): string {
-		return "s";
-	}
-	key: Source;
-	facets: Source;
-	expr: Source
-	get textContent(): string {
-		let facets = this.facets?.textContent;
-		let key = this.key?.textContent;
-		let expr = this.expr.textContent;
-		return `${facets ? facets + " ": ""}${key ? key + ": " : ""}${expr}`;
-	}
-	get innerHTML(): string {
-		let facets = this.facets ? this.facets.textContent : "";
-		let key = this.key ? this.key.textContent + ":" : "";
-		let expr = this.expr.outerHTML;
-		return `<facets>${facets}</facets><key>${key}</key>${expr}`;
-	}
-	get outerHTML(): string {
-		return "<s>" + this.innerHTML + "</s>";
-	}
-	parse(text: string, start?: number): number {
-		let end = start || 0;
-		let expr = new EXPR();
-		end = expr.parse(text, end);
-		if (text.at(end) == ":") {
-			this.key = expr.children.pop();
-			this.facets = expr;
-			expr = new EXPR()
-			end = expr.parse(text, ++end);
-		} else if (TERM.indexOf(text.at(end)) < 0 && end != text.length) {
-			let error = new ERROR("Unexpected character", text.substring(end));
-			expr.children.push(error);
-			end = text.length;
-		}
-		this.expr = expr;
-		return end;
-	}
-}
-
-export class EXPR extends Branch {
+class EXPR extends Branch {
 	get nodeName() {
 		return "expr";
 	}
@@ -118,6 +90,7 @@ class DECL extends Branch {
 		return "decl";
 	}
 }
+
 class INDEX extends EXPR {
 	get nodeName() {
 		return "index";
