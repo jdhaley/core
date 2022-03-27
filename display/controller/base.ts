@@ -26,7 +26,7 @@ export const resourceActions = extend(displayActions, {
 	saved(this: Article, msg: any) {
 		console.log(msg);
 	},
-	draw(this: Article, msg: UserEvent) {
+	draw(this: Article, msg: Signal) {
 		this.view["$editor"] = this;
 		this.setEditable(true);
 	},

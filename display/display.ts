@@ -2,6 +2,7 @@ import {Controller, Signal} from "../base/signal.js";
 import {Commandable} from "../base/command.js";
 import {Transformer} from "../base/transform.js";
 import {Viewer, Owner, text} from "./dom.js";
+import {Parcel} from "../base/util.js";
 //import {Node, Element, Range} from "./domParts.js";
 
 export {Frame, Display, Article, UserEvent, ViewConf, FrameConf};
@@ -111,16 +112,14 @@ class Frame extends Owner {
 }
 
 class Display extends Viewer {
-	shortcuts: {
-		[key: string]: string
-	};
 	constructor(owner: Frame, conf: ViewConf) {
 		super(owner, conf);
 		if (conf.shortcuts) this.shortcuts = conf.shortcuts;
 		if (conf.styles) this.view.className = conf.styles;
 	}
+	shortcuts: Parcel<string>;
 	get owner(): Frame {
-		return <Frame> super.owner;
+		return super.owner as Frame;
 	}
 	get box() {
 		return (this.view as HTMLElement).getBoundingClientRect();
@@ -154,16 +153,17 @@ class Display extends Viewer {
 }
 
 /**
- * An Article is a higher-level component within a frame.
+ * An Article is a display for a whole entity/resource. A single Frame may have multiple
+ * independent Articles opened.
  */
 class Article extends Display {
-	protected commands: Commandable<Range>;
-	protected transform: Transformer<Node, Element>
 	constructor(owner: Frame, conf: ViewConf) {
 		super(owner, conf);
 		this.transform = conf.transform as Transformer<Node, HTMLElement>;
 		this.commands = conf.commands as Commandable<Range>;
 	}
+	protected commands: Commandable<Range>;
+	protected transform: Transformer<Node, Element>
 	navigateToText(range: Range, direction: "prior" | "next"): Range {
 		let node = range.commonAncestorContainer;
 		if (node == this.view) {
