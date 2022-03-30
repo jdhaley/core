@@ -1,3 +1,4 @@
+import { Expr } from "../../lang/compiler/compilers/expr.js";
 import {Transformer} from "../base/transform.js";
 import {Source, Branch, Leaf} from "./source.js";
 
@@ -28,15 +29,17 @@ const KEYWORD = ["if", "else", "while", "return"];
 const LETTER = "abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ_$";
 const DIGIT = "0123456789";
 
+// "~\\\"'`"
+const LETR = "$_";
+const DELIM= "\""
+
 const MATH = "+*-/%";
 const REL = "=<>&|^";
 
-const LETR = "$_";
 const GRP = "[]{}()";
 const PUNCT = ".,:;?!";
 const ACCESS = "@#";
-// "~\\\"'`"
-const TERM = ")],"
+const STOP = ")],"
 const SYM = ":=^";
 
 class EXPR extends Branch {
@@ -54,81 +57,62 @@ class EXPR extends Branch {
 		return text;
 	}
 	parse(text: string, start?: number): number {
-		let end = start || 0;
+		let end = parsePrimaries(this, text, start || 0);
 		while (end < text.length) {
 			let ch = text.at(end);
 			if (ch == "\t" || ch == " ") {
 				end++;
-			} else if (ch == ":") {
-				let decl = new DECL()
-				for (let child of this.children) decl.children.push(child);
-				this.children.length = 0;
-				this.children.push(decl);
-				end = this.parseToken(new TYPE(), text, ++end);
-			} else if (ch == "^") {
-				/*
-				The leading "^" is part of the expression (i.e. "cast operator")
-				and not the type expression.
-				*/
-				end = this.parseToken(new TYPE(), text, ++end);
-			} else if (DIGIT.indexOf(ch) >= 0 || ch == "-") {
-				end = this.parseToken(new NUMBER(), text, end);
-			} else if (LETTER.indexOf(ch) >= 0) {
-				end = this.parseToken(new ID(), text, end);
 			} else if (SYM.indexOf(ch) >= 0) {
-				end = this.parseToken(new SYMBOL(), text, end);
-			} else if (ch == "\"") {
-				end = this.parseToken(new STRING(), text, end);
-			} else if (ch == "(") {
-				end = this.parseToken(new EXPRS(), text, end);
-			} else if (ch == "[") {
-				end = this.parseToken(new INDEX(), text, end);
+				if (this.children.at(0)?.nodeName != "expr") {
+					let expr = new EXPR();
+					expr.children = this.children;
+					this.children = [];
+					this.children.push(expr);		
+				}
+				let expr = new EXPR();
+				this.children.push(expr);
+				let sym = new SYMBOL();
+				expr.children.push(sym);
+				end = sym.parse(text, end);
+				end = parsePrimaries(expr, text, end);
+			// } else if (ch == ":") {
+			// 	let decl = new DECL()
+			// 	for (let child of this.children) decl.children.push(child);
+			// 	this.children.length = 0;
+			// 	this.children.push(decl);
+			// 	end++;
 			} else {
-				break;
+				return end;
 			}
 		}
-		return end;
-	}
-}
-class TYPE extends Branch {
-	get nodeName() {
-		return "type";
-	}
-	get textContent(): string {
-		let text = "";
-		for (let node of this.children) {
-			let next = node.textContent;
-			let delim = text ? " " : "";
-			text += delim + next;
-		} 
-		return text;
-	}
-	parse(text: string, start?: number): number {
-		let end = start || 0;
-		while (end < text.length) {
-			let ch = text.at(end);
-			if (ch == "\t" || ch == " ") {
-				end++;
-			} else if (ch == "^") {
-				end = this.parseToken(new SYMBOL(), text, end);
-			} else if (LETTER.indexOf(ch) >= 0) {
-				end = this.parseToken(new ID(), text, end);
-			} else if (ch == "(") {
-				end = this.parseToken(new EXPRS(), text, end);
-			} else {
-				break;
-			}
-		}
-		return end;
 	}
 }
 
-class DECL extends Branch {
-	get nodeName(): string {
-		return "decl";
+function parsePrimaries(expr: EXPR, text: string, start: number): number {
+	let end = start || 0;
+	while (end < text.length) {
+		let ch = text.at(end);
+		if (ch == "\t" || ch == " ") {
+			end++;
+		} else if (DIGIT.indexOf(ch) >= 0 || ch == "-") {
+			end = expr.parseToken(new NUMBER(), text, end);
+		} else if (LETTER.indexOf(ch) >= 0) {
+			end = expr.parseToken(new ID(), text, end);
+		} else if (ch == "\"") {
+			end = expr.parseToken(new STRING(), text, end);
+		} else if (ch == "(") {
+			end = expr.parseToken(new EXPRS(), text, end);
+		} else if (ch == "[") {
+			end = expr.parseToken(new INDEX(), text, end);
+		} else {
+			return end;
+		}
 	}
-	get textContent(): string {
-		return super.textContent + ":";
+}
+
+class OP extends Branch {
+	get nodeName(): string {
+		return "op";
 	}
 }
 
@@ -276,3 +260,4 @@ class ERROR extends Leaf {
 		return "error";
 	}
 }
+
