@@ -26,11 +26,11 @@ function createItem(xml: Element, container: HTMLElement, level: number) {
 	container.append(view);
 	let doc = view.ownerDocument.createElement("section");
 	doc.innerHTML = "";
-	view.append(doc);
 	if (xml.firstElementChild?.nodeName == "section") {
 		doc.innerHTML = xml.firstElementChild.innerHTML || "<br>";
 	}
 	codeView(xml, view);
+	view.append(doc);
 }
 
 function createChildren(xml: Element, context: Context<HTMLElement>) {
