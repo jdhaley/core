@@ -1,5 +1,4 @@
-import {Signal} from "./signal";
-import {Parcel} from "./util";
+import { Parcel } from "./model";
 
 //Modelled after Express
 export interface Request /*extends Signal*/ {

@@ -4,7 +4,6 @@ export interface Source {
 	readonly outerHTML: string;
 	readonly innerHTML: string;
 	children: Source[];
-	error?: string;
 	/** return the end index. */
 	parse(source: string, start?: number): number;
 }

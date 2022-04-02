@@ -1,4 +1,9 @@
-import {Bag, Parcel} from "./model.js";
+import {Container, Parcel} from "./model.js";
+
+export abstract class Bag<T> extends Container<T> {
+	abstract put(key: string | number, value: T): void
+}
+
 
 export class Bundle<T> extends Bag<T> {
 	constructor(from?: Bundle<T> | Parcel<T>) {
@@ -6,9 +11,9 @@ export class Bundle<T> extends Bag<T> {
 		this.#members = from instanceof Bundle ? Object.create(from.#members) : (from || Object.create(null));
 	}
 	#members: Parcel<T>;
-	get keyedBy(): "string" {
-		return "string"
-	}
+	// get keyedBy(): "string" {
+	// 	return "string"
+	// }
 	get keys(): Iterable<string> {
 		return Object.keys(this.#members);
 	}

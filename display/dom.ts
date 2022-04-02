@@ -1,6 +1,6 @@
 import {Controller, Part, Receiver, Transmitter} from "../base/signal.js";
 import {Control} from "../../core/base/control.js";
-import {Remote} from "./remote.js";
+import {Remote} from "../base/remote.js";
 import {formatDate} from "../base/util.js";
 
 interface Whole extends Receiver, Transmitter {

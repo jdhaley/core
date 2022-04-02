@@ -2,7 +2,7 @@ import {Controller, Signal} from "../base/signal.js";
 import {Commandable} from "../base/command.js";
 import {Transformer} from "../base/transform.js";
 import {Viewer, Owner, text} from "./dom.js";
-import {Parcel} from "../base/util.js";
+import { Parcel } from "../base/model.js";
 //import {Node, Element, Range} from "./domParts.js";
 
 export {Frame, Display, Article, UserEvent, ViewConf, FrameConf};

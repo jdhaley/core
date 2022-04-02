@@ -1,6 +1,6 @@
-import {Receiver} from "../base/signal.js";
-import {Message} from "../base/control.js";
-import {serial} from "../base/util.js";
+import {serial} from "./model.js";
+import {Receiver} from "./signal.js";
+import {Message} from "./control.js";
 
 interface RemoteRequest {
 	url: string;

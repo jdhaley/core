@@ -2,19 +2,17 @@ export interface Parcel<T> {
 	[key: string]: T
 }
 
+export type serial = string | number | boolean | null | serial[] | Serial;
+
+interface Serial extends Parcel<serial> {
+	[key: string]: serial
+}
+
 export abstract class Container<T> {
-	abstract get keyedBy(): "string" | "number";
 	abstract at(key: string | number): T
 }
 
-export abstract class Bag<T> extends Container<T> {
-	abstract put(key: string | number, value: T): void
-}
-
 export class Type extends Container<Value> {
-	get keyedBy(): "string" {
-		return "string"
-	}
 	at(key: string): Value {
 		return undefined;
 	}

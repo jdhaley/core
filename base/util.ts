@@ -1,12 +1,3 @@
-export interface Parcel<T> {
-	[key: string]: T
-}
-
-export type serial = string | number | boolean | null | serial[] | Serial;
-
-interface Serial extends Parcel<serial> {
-	[key: string]: serial
-}
 
 export function extend(proto: Object, extension: Object) {
 	let object = Object.create(proto);
