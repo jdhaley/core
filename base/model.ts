@@ -2,10 +2,13 @@ export interface Parcel<T> {
 	[key: string]: T
 }
 
-export type serial = string | number | boolean | null | serial[] | Serial;
+export type serial = string | number | boolean | null | serial[] | Parcel<serial>;
 
-interface Serial extends Parcel<serial> {
-	[key: string]: serial
+//type _value_ = serial | Function | Value | Container
+
+export interface Value {
+	type: Type;
+	pure: any;
 }
 
 export abstract class Container<T> {
@@ -22,9 +25,4 @@ export class Type extends Container<Value> {
 	categorizes(value: any): boolean {
 		return value?.type ? this.generalizes(value.type) : false;
 	}
-}
-
-export interface Value {
-	type: Type;
-	pure: any;
 }

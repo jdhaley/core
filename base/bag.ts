@@ -1,16 +1,42 @@
-import {Container, Parcel} from "./model.js";
+import {Container, Parcel, Type, Value} from "./model.js";
 
-export abstract class Bag<T> extends Container<T> {
-	abstract put(key: string | number, value: T): void
+export interface Bag<T> extends Container<T> {
+	put(key: string | number, value: T): void;
 }
 
+abstract class X<T> implements Bag<T> {
+	keys: Iterable<string | number>;
+	get isClosed(): boolean {
+		return Object.isFrozen(this);
+	}
+	at(key: string | number): T {
+		throw new Error("Method not implemented.");
+	}
+	put(key: string | number, value: T): void {
+		if (this.isClosed) throw new Error("Object is frozen");
+	}
+	close(): void {
+		Object.freeze(this);
+	}
+}
+export interface Strand<T> extends Container<T> {
+	readonly length: number,
+	at(index: number): T,
+	indexOf(search: T, start?: number): number,
+	slice(start?: number, end?: number): Strand<T>,
+	concat(...values: T[]): Strand<T>
+}
 
-export class Bundle<T> extends Bag<T> {
-	constructor(from?: Bundle<T> | Parcel<T>) {
-		super();
+export class Bundle<T> implements Bag<T>, Value {
+	constructor(type: Type, from?: Bundle<T> | Parcel<T>) {
+		this.type = type;
 		this.#members = from instanceof Bundle ? Object.create(from.#members) : (from || Object.create(null));
 	}
 	#members: Parcel<T>;
+	type: Type;
+	get pure() {
+		return this;
+	}
 	// get keyedBy(): "string" {
 	// 	return "string"
 	// }
@@ -23,21 +49,31 @@ export class Bundle<T> extends Bag<T> {
 	put(name: string, value: T) {
 		this.#members[name] = value;
 	}
-	freeze() {
+	get isClosed() {
+		return Object.isFrozen(this.#members);
+	}
+	close() {
 		Object.freeze(this.#members);
 		Object.freeze(this);
 	}
 }
 
-export class Sequence<T> extends Bag<T> {
+export class Sequence<T> implements Bag<T>, Strand<T> {
 	constructor(from?: Sequence<T> | Array<T>) {
-		super();
 		this.#members = from instanceof Sequence ? Object.create(from.#members) : (from || []);
 	}
-	#members: Array<T>;
-	get keyedBy(): "number" {
-		return "number"
+	type: Type;
+	get pure() {
+		return this;
 	}
+	get isClosed() {
+		return Object.isFrozen(this.#members);
+	}
+	close() {
+		Object.freeze(this.#members);
+		Object.freeze(this);
+	}
+	#members: Array<T>;
 	get keys() {
 		return new Range(0, this.length);
 	}
@@ -49,6 +85,15 @@ export class Sequence<T> extends Bag<T> {
 	}
 	put(index: number, value: T) {
 		this.#members[index] = value;
+	}
+	indexOf(search: T, start?: number) {
+		return this.#members.indexOf(search, start || 0);
+	}
+	slice(start?: number, end?: number) {
+		return this.#members.slice(start, end);
+	}
+	concat(...values: T[]) {
+		return this.#members.concat(values);
 	}
 	freeze() {
 		Object.freeze(this.#members);
