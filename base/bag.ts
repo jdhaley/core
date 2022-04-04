@@ -5,6 +5,8 @@ export interface Bag<T> extends Container<T> {
 }
 
 abstract class X<T> implements Bag<T> {
+	type: Type;
+	pure: any;
 	keys: Iterable<string | number>;
 	get isClosed(): boolean {
 		return Object.isFrozen(this);
@@ -89,8 +91,8 @@ export class Sequence<T> implements Bag<T>, Strand<T> {
 	indexOf(search: T, start?: number) {
 		return this.#members.indexOf(search, start || 0);
 	}
-	slice(start?: number, end?: number) {
-		return this.#members.slice(start, end);
+	slice(start?: number, end?: number): Strand<T> {
+		return this.#members.slice(start, end) as Strand<T>
 	}
 	concat(...values: T[]) {
 		return this.#members.concat(values);
