@@ -12,6 +12,7 @@ export class Branch implements Source {
 	constructor() {
 		this.children = [];
 	}
+	children: Source[];
 	error?: string;
 	get nodeName(): string {
 		return "BRANCH";
@@ -29,7 +30,6 @@ export class Branch implements Source {
 	get outerHTML(): string {
 		return `<${this.nodeName}>${this.innerHTML}</${this.nodeName}>`;
 	}
-	children: Source[];
 	parse(source: string, start?: number): number {
 		return start || 0;
 	}
