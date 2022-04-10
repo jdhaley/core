@@ -21,7 +21,7 @@ abstract class X<T> implements Bag<T> {
 		Object.freeze(this);
 	}
 }
-export interface Strand<T> extends Container<T> {
+export interface Strand<T> extends Container<T>, Iterable<T> {
 	readonly length: number,
 	at(index: number): T,
 	indexOf(search: T, start?: number): number,
@@ -64,6 +64,11 @@ export class Sequence<T> implements Bag<T>, Strand<T> {
 	constructor(from?: Sequence<T> | Array<T>) {
 		this.#members = from instanceof Sequence ? Object.create(from.#members) : (from || []);
 	}
+	#members: T[];
+
+	[Symbol.iterator](): Iterator<T, any, undefined> {
+		return this.#members[Symbol.iterator]();
+	}
 	type: Type;
 	get pure() {
 		return this;
@@ -75,7 +80,6 @@ export class Sequence<T> implements Bag<T>, Strand<T> {
 		Object.freeze(this.#members);
 		Object.freeze(this);
 	}
-	#members: Array<T>;
 	get keys() {
 		return new Range(0, this.length);
 	}
