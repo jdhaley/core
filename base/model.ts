@@ -1,8 +1,23 @@
+export type serial = string | number | boolean | null | serial[] | Parcel<serial>;
+
 export interface Parcel<T> {
 	[key: string]: T
 }
 
-export type serial = string | number | boolean | null | serial[] | Parcel<serial>;
+export interface Aggregate<K, V> {
+	at(key: K): V;
+}
+
+export abstract class BUNDLE<V> implements Aggregate<string, V> {
+	at(key: string): V {
+		return undefined;
+	}
+}
+
+export abstract class Container<T> implements Aggregate<string | number, T> {
+	type?: Type;
+	abstract at(key: string | number): T;
+}
 
 //type _value_ = serial | Function | Value | Container
 
@@ -13,15 +28,7 @@ export interface Value {
 	pure?: any;
 }
 
-export abstract class Container<T> {
-	type?: Type;
-	abstract at(key: string | number): T
-}
-
-export class Type extends Container<Value> {
-	at(key: string): Value {
-		return undefined;
-	}
+export class Type extends BUNDLE<Value> {
 	generalizes(type: Type): boolean {
 		return type == this;
 	}

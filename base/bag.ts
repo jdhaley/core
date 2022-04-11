@@ -4,31 +4,6 @@ export interface Bag<T> extends Container<T> {
 	put(key: string | number, value: T): void;
 }
 
-abstract class X<T> implements Bag<T> {
-	type: Type;
-	pure: any;
-	keys: Iterable<string | number>;
-	get isClosed(): boolean {
-		return Object.isFrozen(this);
-	}
-	at(key: string | number): T {
-		throw new Error("Method not implemented.");
-	}
-	put(key: string | number, value: T): void {
-		if (this.isClosed) throw new Error("Object is frozen");
-	}
-	close(): void {
-		Object.freeze(this);
-	}
-}
-export interface Strand<T> extends Container<T>, Iterable<T> {
-	readonly length: number,
-	at(index: number): T,
-	indexOf(search: T, start?: number): number,
-	slice(start?: number, end?: number): Strand<T>,
-	concat(...values: T[]): Strand<T>
-}
-
 export class Bundle<T> implements Bag<T>, Value {
 	constructor(type: Type, from?: Bundle<T> | Parcel<T>) {
 		this.type = type;
@@ -60,7 +35,7 @@ export class Bundle<T> implements Bag<T>, Value {
 	}
 }
 
-export class Sequence<T> implements Bag<T>, Strand<T> {
+export class Sequence<T> implements Bag<T> {
 	constructor(from?: Sequence<T> | Array<T>) {
 		this.#members = from instanceof Sequence ? Object.create(from.#members) : (from || []);
 	}
@@ -81,7 +56,7 @@ export class Sequence<T> implements Bag<T>, Strand<T> {
 		Object.freeze(this);
 	}
 	get keys() {
-		return new Range(0, this.length);
+		return this.#members.keys();
 	}
 	get length() {
 		return this.#members.length;
@@ -92,30 +67,20 @@ export class Sequence<T> implements Bag<T>, Strand<T> {
 	put(index: number, value: T) {
 		this.#members[index] = value;
 	}
-	indexOf(search: T, start?: number) {
-		return this.#members.indexOf(search, start || 0);
-	}
-	slice(start?: number, end?: number): Strand<T> {
-		return this.#members.slice(start, end) as Strand<T>
-	}
-	concat(...values: T[]) {
-		return this.#members.concat(values);
-	}
 	freeze() {
 		Object.freeze(this.#members);
 		Object.freeze(this);
 	}
 }
 
-class Range {
-	constructor(start: number, end: number) {
-		this.start = start;
-		this.end = end;
-	}
-	start: number
-	end: number
-	*[Symbol.iterator](): Iterator<number, any, undefined> {
-		for (let i = this.start; i < this.end; i++) yield i;
-	}
-}
-
+// class Range {
+// 	constructor(start: number, end: number) {
+// 		this.start = start;
+// 		this.end = end;
+// 	}
+// 	start: number
+// 	end: number
+// 	*[Symbol.iterator](): Iterator<number, any, undefined> {
+// 		for (let i = this.start; i < this.end; i++) yield i;
+// 	}
+// }
