@@ -19,6 +19,10 @@ export abstract class Container<T> implements Aggregate<string | number, T> {
 	abstract at(key: string | number): T;
 }
 
+export interface Bag<T> extends Container<T> {
+	put(key: string | number, value: T): void;
+}
+
 //type _value_ = serial | Function | Value | Container
 
 export interface Value {

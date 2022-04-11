@@ -1,6 +1,5 @@
-import { Bag } from "./bag";
-import {Aggregate, Container, Type} from "./model";
-import { Receiver, Signal } from "./signal";
+import {Aggregate, Container, Type, Bag} from "./model.js";
+import { Receiver, Signal } from "./signal.js";
 
 abstract class X<T> implements Bag<T> {
 	type: Type;

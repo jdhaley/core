@@ -1,8 +1,4 @@
-import {Container, Parcel, Type, Value} from "./model.js";
-
-export interface Bag<T> extends Container<T> {
-	put(key: string | number, value: T): void;
-}
+import {Bag, Parcel, Type, Value} from "./model.js";
 
 export class Bundle<T> implements Bag<T>, Value {
 	constructor(type: Type, from?: Bundle<T> | Parcel<T>) {
