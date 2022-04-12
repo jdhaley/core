@@ -1,9 +1,9 @@
 import {Bag, Parcel, Type, Value} from "./model.js";
 
-export class Bundle<T> implements Bag<T>, Value {
-	constructor(type: Type, from?: Bundle<T> | Parcel<T>) {
+export class ParcelImpl<T> implements Bag<T>, Value {
+	constructor(type: Type, from?: ParcelImpl<T> | Parcel<T>) {
 		this.type = type;
-		this.#members = from instanceof Bundle ? Object.create(from.#members) : (from || Object.create(null));
+		this.#members = from instanceof ParcelImpl ? Object.create(from.#members) : (from || Object.create(null));
 	}
 	#members: Parcel<T>;
 	type: Type;
