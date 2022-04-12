@@ -1,4 +1,5 @@
-import {Aggregate, Bag, Bundle, Type, Value} from "./model.js";
+import {Aggregate, Bag, Bundle} from "./model.js";
+import {Value, Type} from "./value.js";
 
 abstract class X<T> implements Bag<T> {
 	type: Type;
