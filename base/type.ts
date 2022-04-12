@@ -1,4 +1,4 @@
-import {Bundle, Parcel, Consumer} from "./model.js";
+import {Bundle, Parcel, Consumer, literal} from "./model.js";
 import {Type, Value} from "./value.js";
 
 /*
@@ -183,11 +183,9 @@ export class Union extends Types {
 	}
 }
 
-export type Const = string | number | boolean
-
 export class Domain extends Types {
 	instance: Bundle<Type>
-	constructor(values: Const[]) {
+	constructor(values: literal[]) {
 		let types: ConstType[] = [];
 		for (let value of values) {
 			types.push(new ConstType(value));
@@ -202,12 +200,12 @@ export class Domain extends Types {
 }
 
 export class ConstType extends Type {
-	constructor(value: Const) {
+	constructor(value: literal) {
         super();
         this.value = value;
 		Object.freeze(this);
     }
-    value: Const;
+    value: literal;
 	generalizes(type: Type): boolean {
 		return type instanceof ConstType && type.value === this.value;
 	}

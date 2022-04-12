@@ -1,31 +1,6 @@
-import {Parcel} from "./model.js";
-import {Receiver, Signal} from "./signal.js";
+import {Sequence} from "../base/model.js";
+import {Receiver, Signal} from "../base/signal.js";
 
-/** A Sequence provides an ordinal (positional) collection of values.
-	There are no contracts on the mutability of the sequence.
-	Native strings and Arrays are assignable to Sequence.
-*/
-export interface Sequence<T> extends Parcel<number, T>, Iterable<T> {
-	length: number,
-	indexOf(search: T, start?: number): number,
-	slice(start?: number, end?: number): Sequence<T>,
-	concat(...values: T[]): Sequence<T>
-	//values(): Iterable<T>
-}
-
-/** A Strand contains a fixed sequence
-	The strand's sequence is immutable: the length and at-values are fixed.
-	This makes it possible to build flyweight sub-strands from a strand.
- */
-interface Strand<T> extends Sequence<T> {
-}
-
-interface String extends Strand<String> {
-}
-
-//strings & arrays are implementations of Sequences...
-const x: String = "hello";
-const y: Sequence<number> = [] as number[];
 
 /** Markup is an abstract node. Valid markup must be parseable through
 	HTML and XML parsers, i.e. it is case insensitive and no shortcut-closing "/>".
@@ -201,3 +176,17 @@ class ELE extends Branch {
 		return this.markup;
 	}
 }
+
+// /** A Strand contains a fixed sequence
+// 	The strand's sequence is immutable: the length and at-values are fixed.
+// 	This makes it possible to build flyweight sub-strands from a strand.
+//  */
+// 	interface Strand<T> extends Sequence<T> {
+// 	}
+	
+// 	interface String extends Strand<String> {
+// 	}
+	
+// 	//strings & arrays are implementations of Sequences...
+// 	const x: String = "hello";
+// 	const y: Sequence<number> = [] as number[];
