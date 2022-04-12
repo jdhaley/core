@@ -1,11 +1,11 @@
-import {Aggregate} from "./model.js";
+import {Parcel} from "./model.js";
 import {Receiver, Signal} from "./signal.js";
 
 /** A Sequence provides an ordinal (positional) collection of values.
 	There are no contracts on the mutability of the sequence.
 	Native strings and Arrays are assignable to Sequence.
 */
-export interface Sequence<T> extends Aggregate<number, T>, Iterable<T> {
+export interface Sequence<T> extends Parcel<number, T>, Iterable<T> {
 	length: number,
 	indexOf(search: T, start?: number): number,
 	slice(start?: number, end?: number): Sequence<T>,

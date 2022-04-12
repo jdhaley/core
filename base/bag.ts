@@ -1,5 +1,13 @@
-import {Aggregate, Bag, Bundle} from "./model.js";
+import {Bundle, Parcel, Consumer} from "./model.js";
 import {Value, Type} from "./value.js";
+
+
+export abstract class Container<T> implements Parcel<string | number, T> {
+	abstract at(key: string | number): T;
+}
+
+export interface Bag<T> extends Container<T>, Consumer<string | number, T> {
+}
 
 abstract class X<T> implements Bag<T> {
 	type: Type;
@@ -19,7 +27,7 @@ abstract class X<T> implements Bag<T> {
 	}
 }
 
-interface Collection<K, V> extends Aggregate<K, V> {
+interface Collection<K, V> extends Parcel<K, V> {
 	//type: ContainerType[key, value]
 	keys(): Iterable<K>;
 	values(): Iterable<V>;
