@@ -1,5 +1,5 @@
-import {Controller, Part, Receiver, Transmitter} from "../base/signal.js";
-import {Control} from "../../core/base/control.js";
+import {Controller, Receiver, Transmitter} from "../base/signal.js";
+import {Control, Part} from "../../core/base/control.js";
 import {Remote} from "../base/remote.js";
 import {formatDate} from "../base/util.js";
 

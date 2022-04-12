@@ -1,6 +1,12 @@
-import {Controller, direction, Part, Sensor, Signal, Transmitter} from "./signal.js";
+import {Signal, Receiver, Controller, direction, Sensor, Transmitter} from "./signal.js";
 
 const EMPTY_ARR = Object.freeze([]);
+
+
+export interface Part extends Receiver {
+	partOf?: Part;
+	parts: Iterable<Part>;
+}
 
 export class Control implements Part, Transmitter, Sensor {
 	constructor(controller: Controller) {

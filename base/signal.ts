@@ -16,16 +16,10 @@ export interface Controller {
 	[key: string]: (this: Receiver, signal: Signal) => void;
 }
 
-
 export interface Transmitter {
 	send(signal: Signal): void;
 }
 
 export interface Sensor {
 	sense(signal: Signal): void;
-}
-
-export interface Part extends Receiver {
-	partOf?: Part;
-	parts: Iterable<Part>;
 }
