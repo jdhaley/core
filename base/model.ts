@@ -1,6 +1,6 @@
-export type serial = string | number | boolean | null | serial[] | Parcel<serial>;
+export type serial = string | number | boolean | null | serial[] | Bundle<serial>;
 
-export interface Parcel<T> {
+export interface Bundle<T> {
 	[key: string]: T
 }
 

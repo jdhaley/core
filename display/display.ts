@@ -2,7 +2,7 @@ import {Controller, Signal} from "../base/signal.js";
 import {Commandable} from "../base/command.js";
 import {Transformer} from "../base/transform.js";
 import {Viewer, Owner, text} from "./dom.js";
-import { Parcel } from "../base/model.js";
+import { Bundle } from "../base/model.js";
 //import {Node, Element, Range} from "./domParts.js";
 
 export {Frame, Display, Article, UserEvent, ViewConf, FrameConf};
@@ -117,7 +117,7 @@ class Display extends Viewer {
 		if (conf.shortcuts) this.shortcuts = conf.shortcuts;
 		if (conf.styles) this.view.className = conf.styles;
 	}
-	shortcuts: Parcel<string>;
+	shortcuts: Bundle<string>;
 	get owner(): Frame {
 		return super.owner as Frame;
 	}

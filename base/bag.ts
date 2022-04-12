@@ -1,11 +1,11 @@
-import {Bag, Parcel, Type, Value} from "./model.js";
+import {Bag, Bundle, Type, Value} from "./model.js";
 
 export class ParcelImpl<T> implements Bag<T>, Value {
-	constructor(type: Type, from?: ParcelImpl<T> | Parcel<T>) {
+	constructor(type: Type, from?: ParcelImpl<T> | Bundle<T>) {
 		this.type = type;
 		this.#members = from instanceof ParcelImpl ? Object.create(from.#members) : (from || Object.create(null));
 	}
-	#members: Parcel<T>;
+	#members: Bundle<T>;
 	type: Type;
 	get pure() {
 		return this;
