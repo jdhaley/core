@@ -1,53 +1,25 @@
-import {Aggregate, Container, Type, Bag} from "./model.js";
-import { Receiver, Signal } from "./signal.js";
+import {Aggregate} from "./model.js";
+import {Receiver, Signal} from "./signal.js";
 
-abstract class X<T> implements Bag<T> {
-	type: Type;
-	pure: any;
-	keys: Iterable<string | number>;
-	get isClosed(): boolean {
-		return Object.isFrozen(this);
-	}
-	at(key: string | number): T {
-		throw new Error("Method not implemented.");
-	}
-	put(key: string | number, value: T): void {
-		if (this.isClosed) throw new Error("Object is frozen");
-	}
-	close(): void {
-		Object.freeze(this);
-	}
-}
-
-interface Collection<K, V> extends Aggregate<K, V> {
-	//type: ContainerType[key, value]
-	at(key: K): V;
-	keys(): Iterable<K>;
-	values(): Iterable<V>;
-	// entries(): Iterable<[K, V]>;
-}
 /** A Sequence provides an ordinal (positional) collection of values.
 	There are no contracts on the mutability of the sequence.
 	Native strings and Arrays are assignable to Sequence.
 */
-export interface Strandx<T> extends Container<T>, Iterable<T> {
-	readonly length: number,
-	at(index: number): T,
-	indexOf(search: T, start?: number): number,
-	slice(start?: number, end?: number): Strand<T>,
-	concat(...values: T[]): Strand<T>
-}
-
-export interface Sequence<T> extends Aggregate<number, T> {
-	at(index: number): T,
+export interface Sequence<T> extends Aggregate<number, T>, Iterable<T> {
 	length: number,
 	indexOf(search: T, start?: number): number,
 	slice(start?: number, end?: number): Sequence<T>,
 	concat(...values: T[]): Sequence<T>
 	//values(): Iterable<T>
 }
+
+/** A Strand contains a fixed sequence
+	The strand's sequence is immutable: the length and at-values are fixed.
+	This makes it possible to build flyweight sub-strands from a strand.
+ */
 interface Strand<T> extends Sequence<T> {
 }
+
 interface String extends Strand<String> {
 }
 
@@ -68,19 +40,28 @@ const y: Sequence<number> = [] as number[];
 
 	Markup allows for rooted tree, DAG, and cyclic graph implementations.
 */
-interface Markup extends Sequence<Markup>, Receiver {
-	name: String;				//DOM.Node.nodeName
-	markup: String;				//DOM.Node.outerHTML
-	markupContent: String;		//DOM.Node.innerHTML
-	textContent: String;
+interface Markup extends Receiver, Iterable<Markup> {
+	name: string;				//DOM.Node.nodeName
+	type: string;				//DOM.Node.nodeType
+	markup: string;				//DOM.Node.outerHTML
+	markupContent: string;		//DOM.Node.innerHTML
+	textContent: string;
 
-	at(index: number | String  | Markup): Markup;
-	/** when the search is a string, it returns the first child with the string name. */
-	indexOf(search: Markup | String, start?: number): number;
+//	at(index: number | String  | Markup): Markup;
+	/** when the search is a string, it returns the first child index with the string name. */
+//	indexOf(search: Markup | String, start?: number): number;
 }
 
-abstract class Abstr implements Markup {
-	abstract get name(): string;
+class MarkupImpl implements Markup {
+	[Symbol.iterator](): Iterator<Markup, any, undefined> {
+		return EMPTY_ARRAY[Symbol.iterator]();
+	}
+	get name(): string {
+		return "#text"
+	}
+	get type(): string {
+		return this.name.startsWith("#") ? this.name.substring(1) : "any";
+	}
 	get markup(): string {
 		return this.name.startsWith("#") 
 			? this.markupContent
@@ -96,16 +77,18 @@ abstract class Abstr implements Markup {
 		for (let content of this) text += content.textContent;
 		return text;
 	}
+	receive(signal: Signal): void {
+	}
+}
 
-	/* Strand */
-
-	[Symbol.iterator](): Iterator<Markup, any, undefined> {
+abstract class MarkupSequence extends MarkupImpl implements Sequence<MarkupSequence> {
+	[Symbol.iterator](): Iterator<MarkupSequence, any, undefined> {
 		return EMPTY_ARRAY[Symbol.iterator]();
 	}
 	get length(): number {
 		return 0;
 	}
-	at(index: number | string  | Markup): Markup {
+	at(index: number | string  | Markup): MarkupSequence {
 		return undefined;
 	}
 	indexOf(index: Markup | string, start?: number): number {
@@ -116,13 +99,13 @@ abstract class Abstr implements Markup {
 		}
 		return -1;
 	}
-	slice(start?: number, end?: number): Markup {
-		return new Branch(this.name, EMPTY_ARRAY as Markup[]);
-	}
-	concat(...values: (Markup | string)[]): Markup {
-		return new Branch(this.name, concat(EMPTY_ARRAY as Markup[], values));
-	}
 	receive(signal: Signal): void {
+	}
+	slice(start?: number, end?: number): Sequence<MarkupSequence> {
+		throw new Error("Method not implemented.");
+	}
+	concat(...values: Markup[]): Sequence<MarkupSequence> {
+		throw new Error("Method not implemented.");
 	}
 }
 
@@ -134,7 +117,7 @@ function concat(content: Markup[], values: (Markup | string)[]) {
 	return content;
 }
 
-class Branch extends Abstr {
+class Branch extends MarkupSequence {
 	constructor(name: string, content?: Markup[]) {
 		super();
 		this.#name = name;
@@ -150,18 +133,18 @@ class Branch extends Abstr {
 	get length(): number {
 		return this.#content.length;
 	}
-	at(index: number | string  | Markup): Markup {
-		return typeof index == "number" ? this.#content.at(index) : super.at(index);
-	}
-	slice(start?: number, end?: number): Markup {
-		return new Branch(this.name, this.#content.slice(start, end));
-	}
-	concat(...values: (Markup | string)[]): Markup {
-		return new Branch(this.name, concat(this.#content, values));
-	}
-	[Symbol.iterator](): Iterator<Markup, any, undefined> {
-		return this.#content[Symbol.iterator]();
-	}
+	// at(index: number | string  | Markup): Markup {
+	// 	return typeof index == "number" ? this.#content.at(index) : super.at(index);
+	// }
+	// slice(start?: number, end?: number): Markup {
+	// 	return new Branch(this.name, this.#content.slice(start, end));
+	// }
+	// concat(...values: (Markup | string)[]): Markup {
+	// 	return new Branch(this.name, concat(this.#content, values));
+	// }
+	// [Symbol.iterator](): Iterator<Markup, any, undefined> {
+	// 	return this.#content[Symbol.iterator]();
+	// }
 }
 
 class Leaf extends Branch {
@@ -170,7 +153,7 @@ class Leaf extends Branch {
 	}
 }
 
-class Txt extends Abstr {
+class Txt extends MarkupSequence {
 	constructor(content: String) {
 		super();
 		this.#content = "" + content;

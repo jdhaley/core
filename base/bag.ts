@@ -1,4 +1,29 @@
-import {Bag, Bundle, Type, Value} from "./model.js";
+import {Aggregate, Bag, Bundle, Type, Value} from "./model.js";
+
+abstract class X<T> implements Bag<T> {
+	type: Type;
+	pure: any;
+	keys: Iterable<string | number>;
+	get isClosed(): boolean {
+		return Object.isFrozen(this);
+	}
+	at(key: string | number): T {
+		throw new Error("Method not implemented.");
+	}
+	put(key: string | number, value: T): void {
+		if (this.isClosed) throw new Error("Object is frozen");
+	}
+	close(): void {
+		Object.freeze(this);
+	}
+}
+
+interface Collection<K, V> extends Aggregate<K, V> {
+	//type: ContainerType[key, value]
+	keys(): Iterable<K>;
+	values(): Iterable<V>;
+	// entries(): Iterable<[K, V]>;
+}
 
 export class ParcelImpl<T> implements Bag<T>, Value {
 	constructor(type: Type, from?: ParcelImpl<T> | Bundle<T>) {
