@@ -1,4 +1,4 @@
-import {Transformer} from "../../core/base/transform.js";
+import {Transformer} from "../base/transform.js";
 import {Markup} from "../base/model.js";
 import {MarkupContent, TextContent} from "../base/markup.js";
 
@@ -22,13 +22,8 @@ export const parser: Transformer<string, Markup> = {
 	exprs: '(' (token* ',')* token* ')'
 
 	punct: ': = [ ] ( ) ,'
- */
 
 const KEYWORD = ["if", "else", "while", "return"];
-
-const LETTER = "abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ_$";
-const DIGIT = "0123456789";
-
 const MATH = "+*-/%";
 const REL = "=<>&|^";
 
@@ -38,22 +33,25 @@ const PUNCT = ".,:;?!";
 const ACCESS = "@#";
 // "~\\\"'`"
 const TERM = ")],"
+ */
+
+const LETTER = "abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ_$";
+const DIGIT = "0123456789";
 const SYM = ":=^";
 
-const EMPTY_ARRAY = Object.freeze([]);
-
-export interface Source extends Markup {
+interface Source extends Markup {
+	error?: string;
 	parse(source: string, start?: number): number;
 }
 
-abstract class BR extends MarkupContent {
+abstract class Branch extends MarkupContent {
 	parseToken(token: Source, text: string, start: number): number {
 		this.add(token)
 		return token.parse(text, start);
 	}
 }
 
-class EXPR extends BR {
+class EXPR extends Branch {
 	get name() {
 		return "expr";
 	}
@@ -70,37 +68,45 @@ class EXPR extends BR {
 	parse(text: string, start?: number): number {
 		let end = start || 0;
 		while (end < text.length) {
-			let ch = text.at(end);
-			if (ch == "\t" || ch == " ") {
-				end++;
-			} else if (ch == ":") {
-				end = this.parseDecl(end, text);
-			} else if (ch == "^") {
-				/*
-				The leading "^" is part of the expression (i.e. "cast operator")
-				and not the type expression.
-				*/
-				end = this.parseToken(new TYPE(), text, ++end);
-			} else if (DIGIT.indexOf(ch) >= 0 || ch == "-") {
-				end = this.parseToken(new NUMBER(), text, end);
-			} else if (LETTER.indexOf(ch) >= 0) {
-				end = this.parseToken(new ID(), text, end);
-			} else if (SYM.indexOf(ch) >= 0) {
-				end = this.parseToken(new SYMBOL(), text, end);
-			} else if (ch == "\"") {
-				end = this.parseToken(new STRING(), text, end);
-			} else if (ch == "(") {
-				end = this.parseToken(new EXPRS(), text, end);
-			} else if (ch == "[") {
-				end = this.parseToken(new INDEX(), text, end);
-			} else {
-				break;
-			}
+			let next = this.parseNext(text, end);
+			if (next == end) return end;
+			end = next;
 		}
 		return end;
 	}
+	protected parseNext(text: string, end: number): number {
+		let ch = text.at(end);
+		switch (ch) {
+			case " ":
+			case "\t":
+				return ++end;
+			case ":":
+				return this.parseDecl(end, text);
+			case "^":
+				/*
+				The leading "^" is part of the expression (i.e. "cast operator")
+				and not the type expression, so advance the end first.
+				*/
+				return this.parseToken(new TYPE(), text, ++end);
+			case "\"":
+				return this.parseToken(new STRING(), text, end);
+			case "(":
+				return this.parseToken(new EXPRS(), text, end);
+			case "[":
+				return this.parseToken(new INDEX(), text, end);
+		}
 
-	private parseDecl(end: number, text: string) {
+		if (DIGIT.indexOf(ch) >= 0 || ch == "-") {
+			return this.parseToken(new NUMBER(), text, end);
+		} else if (LETTER.indexOf(ch) >= 0) {
+			return this.parseToken(new ID(), text, end);
+		} else if (SYM.indexOf(ch) >= 0) {
+			return this.parseToken(new SYMBOL(), text, end);
+		}
+
+		return end;
+	}
+	protected parseDecl(end: number, text: string) {
 		let decl = new DECL();
 		for (let child of this)
 			decl.add(child);
@@ -110,7 +116,17 @@ class EXPR extends BR {
 		return end;
 	}
 }
-class TYPE extends BR {
+
+class DECL extends MarkupContent {
+	get nodeName(): string {
+		return "decl";
+	}
+	get textContent(): string {
+		return super.textContent + ":";
+	}
+}
+
+class TYPE extends Branch {
 	get name() {
 		return "type";
 	}
@@ -143,15 +159,6 @@ class TYPE extends BR {
 	}
 }
 
-class DECL extends MarkupContent {
-	get nodeName(): string {
-		return "decl";
-	}
-	get textContent(): string {
-		return super.textContent + ":";
-	}
-}
-
 class INDEX extends EXPR {
 	error = "";
 	get nodeName() {
@@ -172,8 +179,7 @@ class INDEX extends EXPR {
 	}
 }
 
-
-class EXPRS extends BR {
+class EXPRS extends Branch {
 	error = ""
 	get nodeName() {
 		return "exprs";
