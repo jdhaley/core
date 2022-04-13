@@ -32,7 +32,7 @@ export class EmptyContent implements Markup {
 export class MarkupContent extends EmptyContent implements Sequence<Markup> {
 	constructor(content?: Markup[]) {
 		super();
-		this.#content = content;
+		this.#content = content || [];
 	}
 	#content: Markup[];
 	[Symbol.iterator](): Iterator<Markup, any, undefined> {
@@ -56,15 +56,23 @@ export class MarkupContent extends EmptyContent implements Sequence<Markup> {
 	indexOf(search: Markup, start?: number): number {
 		return this.#content.indexOf(search, start);
 	}
-	//NOTE: to support returning Markup for slice & concat, we need the name (at minimum) to be a data property.
-	slice(start?: number, end?: number): Sequence<Markup> {
-		return this.#content.slice(start, end);
+	slice(start?: number, end?: number): MarkupContent {
+		return new DerivedMarkupContent(this.name, this.#content.slice(start, end));
 	}
-	concat(...values: Markup[]): Sequence<Markup> {
-		return this.#content.concat(values);
+	concat(...values: Markup[]): MarkupContent {
+		return new DerivedMarkupContent(this.name, this.#content.concat(values));
 	}
 }
-
+class DerivedMarkupContent extends MarkupContent {
+	constructor(name: string, content?: Markup[]) {
+		super(content);
+		this.#name = name;
+	}
+	#name: string
+	get name(): string {
+		return this.#name;
+	}
+}
 export class TextContent extends EmptyContent {
 	#textContent: string;
 	get name(): string {
@@ -76,4 +84,19 @@ export class TextContent extends EmptyContent {
 	set textContent(text: string) {
 		this.#textContent = text;
 	}
+	get markupContent(): string {
+		let markup = "";
+		for (let ch of this.textContent) {
+			switch (ch) {
+				case ">": markup += "&gt;"; break;
+				case "<": markup += "&lt;"; break;
+				case "&": markup += "&amp;"; break;
+				default:  markup += ch; break;
+			}
+		}
+		return markup;			
+	}
+}
+
+function markupText(text: string) {
 }

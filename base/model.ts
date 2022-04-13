@@ -35,12 +35,12 @@ export interface Sequence<T> extends Parcel<number, T>, Iterable<T> {
 
 	Markup allows for rooted tree, DAG, and cyclic graph implementations.
 */
-export interface Markup extends Iterable<Markup> {
+export interface Markup /*extends Iterable<Markup>*/ {
+	//	type: string | Type;	//DOM.Node.nodeType
 	name: string;				//DOM.Node.nodeName
-//	type: string | Type;		//DOM.Node.nodeType
 	markup: string;				//DOM.Node.outerHTML
 	markupContent: string;		//DOM.Node.innerHTML
-	textContent: string;
+	textContent: string;		//DOM.Node.textContent
 }
 
 export type literal = string | number | boolean | null
