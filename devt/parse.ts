@@ -108,8 +108,7 @@ class EXPR extends Branch {
 	}
 	protected parseDecl(end: number, text: string) {
 		let decl = new DECL();
-		for (let child of this)
-			decl.add(child);
+		for (let child of this) decl.add(child);
 		this.clear();
 		this.add(decl);
 		end = this.parseToken(new TYPE(), text, ++end);

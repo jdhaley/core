@@ -1,4 +1,4 @@
-import {Markup} from "../base/model.js";
+import {Markup, Sequence} from "../base/model.js";
 
 const EMPTY_ARRAY = Object.freeze([]);
 
@@ -29,7 +29,7 @@ export class EmptyContent implements Markup {
 	}
 }
 
-export class MarkupContent extends EmptyContent {
+export class MarkupContent extends EmptyContent implements Sequence<Markup> {
 	constructor(content?: Markup[]) {
 		super();
 		this.#content = content;
@@ -38,11 +38,30 @@ export class MarkupContent extends EmptyContent {
 	[Symbol.iterator](): Iterator<Markup, any, undefined> {
 		return this.#content[Symbol.iterator]();
 	}
+	get length(): number {
+		return this.#content.length;
+	}
+	//NOTE: Add is safe from a flyweight Sequence viewpoint (add wont alter existing subsequences, nice.)
 	add(content: Markup): void {
 		this.#content.push(content);
 	}
-	clear(): void {
+	//TODO: Remove clear, see above.
+	protected clear(): void {
 		this.#content.length = 0;
+	}
+	//Sequence:
+	at(key: number): Markup {
+		return this.#content.at(key);
+	}
+	indexOf(search: Markup, start?: number): number {
+		return this.#content.indexOf(search, start);
+	}
+	//NOTE: to support returning Markup for slice & concat, we need the name (at minimum) to be a data property.
+	slice(start?: number, end?: number): Sequence<Markup> {
+		return this.#content.slice(start, end);
+	}
+	concat(...values: Markup[]): Sequence<Markup> {
+		return this.#content.concat(values);
 	}
 }
 
