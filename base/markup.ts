@@ -59,8 +59,12 @@ export class MarkupContent extends EmptyContent implements Sequence<Markup> {
 	slice(start?: number, end?: number): MarkupContent {
 		return new DerivedMarkupContent(this.name, this.#content.slice(start, end));
 	}
-	concat(...values: Markup[]): MarkupContent {
-		return new DerivedMarkupContent(this.name, this.#content.concat(values));
+	concat(...values: (string | Markup)[]): MarkupContent {
+		for (let i = 0; i < values.length; i++) {
+			let value = values[i];
+			if (typeof value == "string") values[i] = new TextContent(value);
+		}
+		return new DerivedMarkupContent(this.name, this.#content.concat(values as Markup[]));
 	}
 }
 class DerivedMarkupContent extends MarkupContent {
@@ -74,6 +78,10 @@ class DerivedMarkupContent extends MarkupContent {
 	}
 }
 export class TextContent extends EmptyContent {
+	constructor(text?: string) {
+		super();
+		this.#textContent = "" + text;
+	}
 	#textContent: string;
 	get name(): string {
 		return "#text"
