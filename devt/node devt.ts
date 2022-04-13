@@ -1,62 +1,7 @@
-import {Sequence} from "../base/model.js";
-import {Receiver, Signal} from "../base/signal.js";
+import {Sequence, Markup} from "../base/model.js";
+import {EmptyContent} from "../base/markup";
 
-
-/** Markup is an abstract node. Valid markup must be parseable through
-	HTML and XML parsers, i.e. it is case insensitive and no shortcut-closing "/>".
-	Tag names are canonically lowercase with the following grammar rule:
-		 [a-z] ([a-z] | [0-9] | '$' | '_')*
-	This promotes tag names to map directly to property names.  A Markup node can also
-	have a name starting with "#" in which case the node's enclosing tags are not converted
-	to markup strings.
-
-	DIFFERENCE WITH DOM: text nodes can have a tag name like an element.  You can have textContent
-	AND a non "#text" name with an empty Sequence<Markup>.
-
-	Markup allows for rooted tree, DAG, and cyclic graph implementations.
-*/
-interface Markup extends Receiver, Iterable<Markup> {
-	name: string;				//DOM.Node.nodeName
-	type: string;				//DOM.Node.nodeType
-	markup: string;				//DOM.Node.outerHTML
-	markupContent: string;		//DOM.Node.innerHTML
-	textContent: string;
-
-//	at(index: number | String  | Markup): Markup;
-	/** when the search is a string, it returns the first child index with the string name. */
-//	indexOf(search: Markup | String, start?: number): number;
-}
-
-class MarkupImpl implements Markup {
-	[Symbol.iterator](): Iterator<Markup, any, undefined> {
-		return EMPTY_ARRAY[Symbol.iterator]();
-	}
-	get name(): string {
-		return "#text"
-	}
-	get type(): string {
-		return this.name.startsWith("#") ? this.name.substring(1) : "any";
-	}
-	get markup(): string {
-		return this.name.startsWith("#") 
-			? this.markupContent
-			: `<${this.name}>${this.markupContent}</${this.name}>`
-	}
-	get markupContent(): string {
-		let markup = "";
-		for (let content of this) markup += content.markup;
-		return markup;
-	}
-	get textContent(): string {
-		let text = "";
-		for (let content of this) text += content.textContent;
-		return text;
-	}
-	receive(signal: Signal): void {
-	}
-}
-
-abstract class MarkupSequence extends MarkupImpl implements Sequence<MarkupSequence> {
+abstract class MarkupSequence extends EmptyContent implements Sequence<MarkupSequence> {
 	[Symbol.iterator](): Iterator<MarkupSequence, any, undefined> {
 		return EMPTY_ARRAY[Symbol.iterator]();
 	}
@@ -73,8 +18,6 @@ abstract class MarkupSequence extends MarkupImpl implements Sequence<MarkupSeque
 			if (index === content) return i;
 		}
 		return -1;
-	}
-	receive(signal: Signal): void {
 	}
 	slice(start?: number, end?: number): Sequence<MarkupSequence> {
 		throw new Error("Method not implemented.");

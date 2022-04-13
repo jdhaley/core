@@ -1,4 +1,5 @@
-import {Bundle, Parcel, Consumer, literal} from "./model.js";
+import {Container} from "./bag.js";
+import {Bundle, literal} from "./model.js";
 import {Type, Value} from "./value.js";
 
 /*
@@ -25,7 +26,7 @@ tuple:		Class
 domain:		Enum
 container:	Sequence/Array, Countable/Iterable, 
 */
-export class Contract extends Type implements Parcel<string, Value>, Consumer<string, Value>, Iterable<string> {
+export class Contract extends Type implements Container<Value>, Iterable<string> {
 	constructor(members: Bundle<Value> | Contract) {
 		super();
 		this.#members = members instanceof Contract ? members.#members : members
@@ -186,9 +187,9 @@ export class Union extends Types {
 export class Domain extends Types {
 	instance: Bundle<Type>
 	constructor(values: literal[]) {
-		let types: ConstType[] = [];
+		let types: LiteralType[] = [];
 		for (let value of values) {
-			types.push(new ConstType(value));
+			types.push(new LiteralType(value));
 		}
 		super(types, false);
 		this.instance = {};
@@ -199,7 +200,7 @@ export class Domain extends Types {
 	}
 }
 
-export class ConstType extends Type {
+export class LiteralType extends Type {
 	constructor(value: literal) {
         super();
         this.value = value;
@@ -207,11 +208,9 @@ export class ConstType extends Type {
     }
     value: literal;
 	generalizes(type: Type): boolean {
-		return type instanceof ConstType && type.value === this.value;
+		return type instanceof LiteralType && type.value === this.value;
 	}
-	categorizes(value: any): boolean {
-//		TODO shouldn't reference value module here...
-//		return value instanceof Eval && value.pure === this.value;
-		return false;
+	categorizes(value: literal): boolean {
+		return value === this.value;
 	}
 }

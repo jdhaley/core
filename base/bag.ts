@@ -1,15 +1,20 @@
-import {Bundle, Parcel, Consumer} from "./model.js";
+import {Bundle, Parcel} from "./model.js";
 import {Value, Type} from "./value.js";
 
 
 export abstract class Container<T> implements Parcel<string | number, T> {
 	abstract at(key: string | number): T;
+	abstract put(key: string | number, value: T): void;
 }
 
-export interface Bag<T> extends Container<T>, Consumer<string | number, T> {
+interface Collection<K, V> extends Parcel<K, V> {
+	//type: ContainerType[key, value]
+	keys(): Iterable<K>;
+	values(): Iterable<V>;
+	// entries(): Iterable<[K, V]>;
 }
 
-abstract class X<T> implements Bag<T> {
+abstract class X<T> implements Container<T> {
 	type: Type;
 	pure: any;
 	keys: Iterable<string | number>;
@@ -27,14 +32,7 @@ abstract class X<T> implements Bag<T> {
 	}
 }
 
-interface Collection<K, V> extends Parcel<K, V> {
-	//type: ContainerType[key, value]
-	keys(): Iterable<K>;
-	values(): Iterable<V>;
-	// entries(): Iterable<[K, V]>;
-}
-
-export class ParcelImpl<T> implements Bag<T>, Value {
+export class ParcelImpl<T> implements Container<T>, Value {
 	constructor(type: Type, from?: ParcelImpl<T> | Bundle<T>) {
 		this.type = type;
 		this.#members = from instanceof ParcelImpl ? Object.create(from.#members) : (from || Object.create(null));
@@ -65,7 +63,7 @@ export class ParcelImpl<T> implements Bag<T>, Value {
 	}
 }
 
-export class Sequence<T> implements Bag<T> {
+export class Sequence<T> implements Container<T> {
 	constructor(from?: Sequence<T> | Array<T>) {
 		this.#members = from instanceof Sequence ? Object.create(from.#members) : (from || []);
 	}
