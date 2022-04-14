@@ -17,10 +17,6 @@ export interface Sequence<T> extends Parcel<number, T>, Iterable<T> {
 	concat(...values: T[]): Sequence<T>
 }
 
-export interface Consumer<T> {
-	add(value: T): any;
-}
-
 /** Markup is an abstract node. Valid markup must be parseable through
 	HTML and XML parsers, i.e. it is case insensitive and no shortcut-closing "/>".
 	Tag names are canonically lowercase with the following grammar rule:
@@ -42,17 +38,8 @@ export interface Markup {
 	textContent: string;		//DOM.Node.textContent
 }
 
-export interface Content extends Markup, Sequence<Content> {
-	at(search: number | string | Markup): Content;
-	indexOf(search: string | Markup, start?: number): number,
-	slice(start?: number, end?: number): Content,
-	concat(...values: (string | Content)[]): Content
-}
-
-/* devt - currently unsupported */
-interface MarkupElement extends Markup {
-	attributes?: Bundle<string>
-	children: Sequence<MarkupElement>
+export interface Consumer<T> {
+	add(value: T): void;
 }
 
 export type literal = string | number | boolean | null

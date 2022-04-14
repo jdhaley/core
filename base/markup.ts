@@ -1,4 +1,4 @@
-import {Content, Markup, Sequence} from "../base/model.js";
+import {Markup, Sequence} from "../base/model.js";
 
 const EMPTY_ARRAY = Object.freeze([]);
 
@@ -31,7 +31,13 @@ export class EmptyMarkup implements Markup {
 	}
 }
 
-export class MarkupContent extends EmptyMarkup implements Content {
+// /* devt - currently unsupported */
+// interface MarkupElement extends Markup {
+// 	attributes?: Bundle<string>
+// 	children: Sequence<MarkupElement>
+// }
+
+export class Content extends EmptyMarkup implements Sequence<Content> {
 	constructor(content?: Sequence<Content>) {
 		super();
 		this.#content = content || EMPTY_ARRAY as Content[];
@@ -74,7 +80,7 @@ export class MarkupContent extends EmptyMarkup implements Content {
 		return this.#content;
 	}
 }
-export class MutableContent extends MarkupContent {
+export class MutableContent extends Content {
 	constructor() {
 		let content = [] as Content[];
 		super(content);
@@ -114,7 +120,7 @@ export class MutableContent extends MarkupContent {
 // 		return new NamedMarkupContent(this.name, this.#content.concat(values as Content[]));
 // 	}
 // }
-export class TextContent extends MarkupContent {
+export class TextContent extends Content {
 	constructor(text?: string) {
 		super();
 		this.#textContent = "" + text;
@@ -143,7 +149,7 @@ export class TextContent extends MarkupContent {
 	}
 }
 
-class NamedMarkupContent extends MarkupContent {
+class NamedMarkupContent extends Content {
 	constructor(name: string, content?: Sequence<Content>) {
 		super(content);
 		this.#name = name;
