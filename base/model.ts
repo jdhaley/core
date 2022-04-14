@@ -2,16 +2,13 @@ export interface Bundle<T> {
 	[key: string]: T;
 }
 
-export interface Parcel<K, V> {
-	at(key: K): V;
-}
-
 /** A Sequence provides an ordinal (positional) collection of values.
 	There are no contracts on the mutability of the sequence.
 	Native strings and Arrays are assignable to Sequence.
 */
-export interface Sequence<T> extends Parcel<number, T>, Iterable<T> {
+export interface Sequence<T> extends Iterable<T> {
 	length: number,
+	at(key: number): T;
 	indexOf(search: T, start?: number): number,
 	slice(start?: number, end?: number): Sequence<T>,
 	concat(...values: T[]): Sequence<T>
@@ -31,15 +28,20 @@ export interface Sequence<T> extends Parcel<number, T>, Iterable<T> {
 	Markup allows for rooted tree, DAG, and cyclic graph implementations.
 */
 export interface Markup {
-	//	type: string | Type;	//DOM.Node.nodeType
+	typeName: string;			//instead of DOM.Node.nodeType
 	name: string;				//DOM.Node.nodeName
 	markup: string;				//DOM.Node.outerHTML
 	markupContent: string;		//DOM.Node.innerHTML
 	textContent: string;		//DOM.Node.textContent
 }
 
-export interface Consumer<T> {
+// export interface Consumer<T> {
+// 	add(value: T): void;
+// }
+
+export interface Bag<T> {
 	add(value: T): void;
+	clear(): void;
 }
 
 export type literal = string | number | boolean | null

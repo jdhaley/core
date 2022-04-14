@@ -1,6 +1,9 @@
-import {Bundle, Parcel} from "./model.js";
+import {Bundle} from "./model.js";
 import {Value, Type} from "./value.js";
 
+export interface Parcel<K, V> {
+	at(key: K): V;
+}
 
 export abstract class Container<T> implements Parcel<string | number, T> {
 	abstract at(key: string | number): T;

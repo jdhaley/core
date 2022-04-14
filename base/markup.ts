@@ -1,4 +1,4 @@
-import {Markup, Sequence} from "../base/model.js";
+import {Bag, Markup, Sequence} from "../base/model.js";
 
 const EMPTY_ARRAY = Object.freeze([]);
 
@@ -6,7 +6,7 @@ export class EmptyMarkup implements Markup {
 	[Symbol.iterator](): Iterator<Markup, any, undefined> {
 		return EMPTY_ARRAY[Symbol.iterator]();
 	}
-	get type(): string /*| LiteralType */ {
+	get typeName(): string /*| LiteralType */ {
 		return this.name.startsWith("#") ? this.name.substring(1) : "any";
 	}
 	get name(): string {
@@ -30,12 +30,6 @@ export class EmptyMarkup implements Markup {
 		return text;
 	}
 }
-
-// /* devt - currently unsupported */
-// interface MarkupElement extends Markup {
-// 	attributes?: Bundle<string>
-// 	children: Sequence<MarkupElement>
-// }
 
 export class Content extends EmptyMarkup implements Sequence<Content> {
 	constructor(content?: Sequence<Content>) {
@@ -80,7 +74,7 @@ export class Content extends EmptyMarkup implements Sequence<Content> {
 		return this.#content;
 	}
 }
-export class MutableContent extends Content {
+export class MutableContent extends Content implements Bag<Content> {
 	constructor() {
 		let content = [] as Content[];
 		super(content);
@@ -89,11 +83,17 @@ export class MutableContent extends Content {
 	add(content: Content): void {
 		(this.content as Content[]).push(content);
 	}
-	//TODO: Remove clear, see above.
-	protected clear(): void {
+	clear(): void {
 		(this.content as Content[]).length = 0;
 	}
 }
+
+// /* devt - currently unsupported */
+// interface MarkupElement extends Markup {
+// 	attributes?: Bundle<string>
+// 	children: Sequence<MarkupElement>
+// }
+
 // class xxxMarkupContent extends MarkupContent {
 // 	//NOTE: Add is safe from a flyweight Sequence viewpoint (add wont alter existing subsequences, nice.)
 // 	add(content: Content): void {
