@@ -1,14 +1,9 @@
-
-export interface Parcel<K, V> {
-	at(key: K): V;
-}
-
 export interface Bundle<T> {
 	[key: string]: T;
 }
 
-export interface Consumer<T> {
-	add(value: T): any;
+export interface Parcel<K, V> {
+	at(key: K): V;
 }
 
 /** A Sequence provides an ordinal (positional) collection of values.
@@ -20,6 +15,10 @@ export interface Sequence<T> extends Parcel<number, T>, Iterable<T> {
 	indexOf(search: T, start?: number): number,
 	slice(start?: number, end?: number): Sequence<T>,
 	concat(...values: T[]): Sequence<T>
+}
+
+export interface Consumer<T> {
+	add(value: T): any;
 }
 
 /** Markup is an abstract node. Valid markup must be parseable through
@@ -35,12 +34,25 @@ export interface Sequence<T> extends Parcel<number, T>, Iterable<T> {
 
 	Markup allows for rooted tree, DAG, and cyclic graph implementations.
 */
-export interface Markup /*extends Iterable<Markup>*/ {
+export interface Markup {
 	//	type: string | Type;	//DOM.Node.nodeType
 	name: string;				//DOM.Node.nodeName
 	markup: string;				//DOM.Node.outerHTML
 	markupContent: string;		//DOM.Node.innerHTML
 	textContent: string;		//DOM.Node.textContent
+}
+
+export interface Content extends Markup, Sequence<Content> {
+	at(search: number | string | Markup): Content;
+	indexOf(search: string | Markup, start?: number): number,
+	slice(start?: number, end?: number): Content,
+	concat(...values: (string | Content)[]): Content
+}
+
+/* devt - currently unsupported */
+interface MarkupElement extends Markup {
+	attributes?: Bundle<string>
+	children: Sequence<MarkupElement>
 }
 
 export type literal = string | number | boolean | null

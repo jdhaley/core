@@ -1,8 +1,8 @@
-import {Markup, Sequence} from "../base/model.js";
+import {Content, Markup, Sequence} from "../base/model.js";
 
 const EMPTY_ARRAY = Object.freeze([]);
 
-export class EmptyContent implements Markup {
+export class EmptyMarkup implements Markup {
 	[Symbol.iterator](): Iterator<Markup, any, undefined> {
 		return EMPTY_ARRAY[Symbol.iterator]();
 	}
@@ -13,9 +13,11 @@ export class EmptyContent implements Markup {
 		return "#text"
 	}
 	get markup(): string {
-		return this.name.startsWith("#") 
-			? this.markupContent
-			: `<${this.name}>${this.markupContent}</${this.name}>`
+		let markup = this.markupContent;
+		if (!this.name.startsWith("#")) {
+			markup = `<${this.name}>${markup}</${this.name}>`
+		}
+		return markup;
 	}
 	get markupContent(): string {
 		let markup = "";
@@ -29,55 +31,90 @@ export class EmptyContent implements Markup {
 	}
 }
 
-export class MarkupContent extends EmptyContent implements Sequence<Markup> {
-	constructor(content?: Markup[]) {
+export class MarkupContent extends EmptyMarkup implements Content {
+	constructor(content?: Sequence<Content>) {
 		super();
-		this.#content = content || [];
+		this.#content = content || EMPTY_ARRAY as Content[];
 	}
-	#content: Markup[];
-	[Symbol.iterator](): Iterator<Markup, any, undefined> {
+	#content: Sequence<Content>;
+	[Symbol.iterator](): Iterator<Content, any, undefined> {
 		return this.#content[Symbol.iterator]();
 	}
 	get length(): number {
 		return this.#content.length;
 	}
+	at(key: number | string | Content): Content {
+		if (typeof key != "number") key = this.indexOf(key);
+		return this.#content.at(key);
+	}
+	indexOf(search: string | Content, start?: number): number {
+		if (typeof search == "string") {
+			for (let i = start || 0; i < this.length; i++) {
+				let content = this.at(i);
+				if (search === content.name) {
+					return i;
+				}
+			}
+			return -1;
+		}
+		return this.#content.indexOf(search, start);
+	}
+	slice(start?: number, end?: number): Content {
+		return new NamedMarkupContent(this.name, this.#content.slice(start, end));
+	}
+	concat(...values: (string | Content)[]): Content {
+		let content: Content[] = []
+		for (let value of values) {
+			if (typeof value == "string") value = new TextContent(value);
+			content.push(value);
+		}
+		return new NamedMarkupContent(this.name, this.#content.concat(...content));
+	}
+	protected get content() {
+		return this.#content;
+	}
+}
+export class MutableContent extends MarkupContent {
+	constructor() {
+		let content = [] as Content[];
+		super(content);
+	}
 	//NOTE: Add is safe from a flyweight Sequence viewpoint (add wont alter existing subsequences, nice.)
-	add(content: Markup): void {
-		this.#content.push(content);
+	add(content: Content): void {
+		(this.content as Content[]).push(content);
 	}
 	//TODO: Remove clear, see above.
 	protected clear(): void {
-		this.#content.length = 0;
-	}
-	//Sequence:
-	at(key: number): Markup {
-		return this.#content.at(key);
-	}
-	indexOf(search: Markup, start?: number): number {
-		return this.#content.indexOf(search, start);
-	}
-	slice(start?: number, end?: number): MarkupContent {
-		return new DerivedMarkupContent(this.name, this.#content.slice(start, end));
-	}
-	concat(...values: (string | Markup)[]): MarkupContent {
-		for (let i = 0; i < values.length; i++) {
-			let value = values[i];
-			if (typeof value == "string") values[i] = new TextContent(value);
-		}
-		return new DerivedMarkupContent(this.name, this.#content.concat(values as Markup[]));
+		(this.content as Content[]).length = 0;
 	}
 }
-class DerivedMarkupContent extends MarkupContent {
-	constructor(name: string, content?: Markup[]) {
-		super(content);
-		this.#name = name;
-	}
-	#name: string
-	get name(): string {
-		return this.#name;
-	}
-}
-export class TextContent extends EmptyContent {
+// class xxxMarkupContent extends MarkupContent {
+// 	//NOTE: Add is safe from a flyweight Sequence viewpoint (add wont alter existing subsequences, nice.)
+// 	add(content: Content): void {
+// 		this.#content.push(content);
+// 	}
+// 	//TODO: Remove clear, see above.
+// 	protected clear(): void {
+// 		this.#content.length = 0;
+// 	}
+	
+// 	//Sequence:
+
+// 	indexOf(search: Content, start?: number): number {
+// 		return this.#content.indexOf(search, start);
+// 	}
+// 	slice(start?: number, end?: number): MarkupContent {
+// 		return new NamedMarkupContent(this.name, this.#content.slice(start, end));
+// 	}
+// 	concat(...values: (string | Markup)[]): MarkupContent {
+// 		for (let i = 0; i < values.length; i++) {
+// 			let value = values[i];
+// 			if (typeof value == "string") values[i] = new TextContent(value);
+// 		}
+// 		return new NamedMarkupContent(this.name, this.#content.concat(values as Content[]));
+// 	}
+// }
+export class TextContent extends MarkupContent {
 	constructor(text?: string) {
 		super();
 		this.#textContent = "" + text;
@@ -106,5 +143,24 @@ export class TextContent extends EmptyContent {
 	}
 }
 
-function markupText(text: string) {
+class NamedMarkupContent extends MarkupContent {
+	constructor(name: string, content?: Sequence<Content>) {
+		super(content);
+		this.#name = name;
+	}
+	#name: string
+	get name(): string {
+		return this.#name;
+	}
+}
+
+export class NamedTextContent extends TextContent {
+	constructor(name: string, text?: string) {
+		super(text);
+		this.#name = name;
+	}
+	#name: string
+	get name(): string {
+		return this.#name;
+	}
 }

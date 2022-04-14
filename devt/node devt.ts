@@ -1,7 +1,7 @@
 import {Sequence, Markup} from "../base/model.js";
-import {EmptyContent} from "../base/markup";
+import {EmptyMarkup} from "../base/markup";
 
-abstract class MarkupSequence extends EmptyContent implements Sequence<MarkupSequence> {
+abstract class MarkupSequence extends EmptyMarkup implements Sequence<MarkupSequence> {
 	[Symbol.iterator](): Iterator<MarkupSequence, any, undefined> {
 		return EMPTY_ARRAY[Symbol.iterator]();
 	}
