@@ -7,7 +7,7 @@ export interface Parcel<K, V> {
 
 type Key = string | number;
 
-export abstract class Container<T> implements Parcel<Key, T> {
+export abstract class Container<T> {
 	abstract at(key: Key): T;
 	abstract put(key: Key, value: T): void;
 }
@@ -20,7 +20,7 @@ interface Entries<K, V> extends Parcel<K, V> {
 }
 interface Stream {
 	close(): void;
-	add()
+	add(): void;
 }
 abstract class X<T> implements Container<T> {
 	type: Type;

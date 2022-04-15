@@ -2,16 +2,39 @@ export interface Bundle<T> {
 	[key: string]: T;
 }
 
+interface Resource {
+	isClosed?: boolean;
+	/** close() is not required to do anything, i.e. isClosed may be true after close() */
+	close(): void;
+}
+
+interface Provider<T> extends Iterable<T>, Resource {
+}
+
+/*
+	NOTE: A Consumer can be a stable Sequence source, therefore
+	append() shouldn't alter the sub sequences created from this instance.
+*/
+interface Consumer<T> extends Resource {
+	add(value: T): void;
+	append(...data: T[]): void;
+}
+
+export interface Buffer<T> extends Consumer<T>, Provider<T> {
+	clear(): void; //clear is from Set semantic, possibly others.
+}
+
+
 /** A Sequence provides an ordinal (positional) collection of values.
 	There are no contracts on the mutability of the sequence.
 	Native strings and Arrays are assignable to Sequence.
 */
 export interface Sequence<T> extends Iterable<T> {
-	length: number,
+	get length(): number;
 	at(key: number): T;
-	indexOf(search: T, start?: number): number,
-	slice(start?: number, end?: number): Sequence<T>,
-	concat(...values: T[]): Sequence<T>
+	indexOf(search: T, start?: number): number;
+	slice(start?: number, end?: number): Sequence<T>;
+	concat(...values: T[]): Sequence<T>;
 }
 
 /** Markup is an abstract node. Valid markup must be parseable through
@@ -35,22 +58,11 @@ export interface Markup {
 	textContent: string;		//DOM.Node.textContent
 }
 
-// export interface Consumer<T> {
-// 	add(value: T): void;
-// }
-
-export interface Bag<T> {
-	isClosed?: boolean;
-	add(value: T): void;
-	clear(): void; //clear - Set semantic
-	close(): void;
-}
-
-export type literal = string | number | boolean | null
+export type constant = string | number | boolean | null
 
 /* Serialization */
 
-export type serial = literal | Object | Array;
+export type serial = constant | Object | Array;
 
 interface Object extends Bundle<serial> {
 }

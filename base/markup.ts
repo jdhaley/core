@@ -1,4 +1,4 @@
-import {Bag, Markup, Sequence} from "../base/model.js";
+import {Markup, Sequence, Buffer} from "../base/model.js";
 
 const EMPTY_ARRAY = Object.freeze([]);
 
@@ -38,14 +38,14 @@ export class Content extends EmptyMarkup implements Sequence<Content> {
 	}
 	#content: Sequence<Content>;
 	[Symbol.iterator](): Iterator<Content, any, undefined> {
-		return this.#content[Symbol.iterator]();
+		return this.content[Symbol.iterator]();
 	}
 	get length(): number {
-		return this.#content.length;
+		return this.content.length;
 	}
 	at(key: number | string | Content): Content {
 		if (typeof key != "number") key = this.indexOf(key);
-		return this.#content.at(key);
+		return this.content.at(key);
 	}
 	indexOf(search: string | Content, start?: number): number {
 		if (typeof search == "string") {
@@ -57,10 +57,10 @@ export class Content extends EmptyMarkup implements Sequence<Content> {
 			}
 			return -1;
 		}
-		return this.#content.indexOf(search, start);
+		return this.content.indexOf(search, start);
 	}
 	slice(start?: number, end?: number): Content {
-		return new NamedMarkupContent(this.name, this.#content.slice(start, end));
+		return new NamedContent(this.name, this.content.slice(start, end));
 	}
 	concat(...values: (string | Content)[]): Content {
 		let content: Content[] = []
@@ -68,64 +68,64 @@ export class Content extends EmptyMarkup implements Sequence<Content> {
 			if (typeof value == "string") value = new TextContent(value);
 			content.push(value);
 		}
-		return new NamedMarkupContent(this.name, this.#content.concat(...content));
+		return new NamedContent(this.name, this.content.concat(...content));
 	}
 	protected get content() {
 		return this.#content;
 	}
 }
-export class ContentBag extends Content implements Bag<Content> {
+
+class NamedContent extends Content {
+	constructor(name: string, content?: Sequence<Content>) {
+		super(content);
+		this.#name = name;
+	}
+	#name: string
+	get name(): string {
+		return this.#name;
+	}
+}
+
+export class Bag extends Content implements Buffer<Content> {
 	constructor() {
 		let content = [] as Content[];
 		super(content);
 	}
+	get children(): Content[] {
+		return this.content as Content[];
+	}
+	//Note: Should really have to override, is it a TS issue?
+	get textContent(): string {
+		return super.textContent;
+	}
+	set textContent(text: string) {
+		this.clear();
+		this.add(new TextContent(text));
+	}
 	get isClosed(): boolean  {
 		return Object.isFrozen(this.content);
 	}
-	//NOTE: Add is safe from a flyweight Sequence viewpoint (add wont alter existing subsequences, nice.)
+	append(...values: Content[]): void {
+		for (let value of values) {
+			//TODO make values "any" (or "string | Content")
+			this.children.push(value);
+		}
+	}
 	add(content: Content): void {
-		(this.content as Content[]).push(content);
+		this.children.push(content);
 	}
 	clear(): void {
-		(this.content as Content[]).length = 0;
+		this.children.length = 0;
 	}
 	close(): void {
 		Object.freeze(this.content);
 	}
+	parse(source: string, start: number): number {
+		this.add(new TextContent(source.substring(start)));
+		return source.length;
+	}
 }
 
-// /* devt - currently unsupported */
-// interface MarkupElement extends Markup {
-// 	attributes?: Bundle<string>
-// 	children: Sequence<MarkupElement>
-// }
-
-// class xxxMarkupContent extends MarkupContent {
-// 	//NOTE: Add is safe from a flyweight Sequence viewpoint (add wont alter existing subsequences, nice.)
-// 	add(content: Content): void {
-// 		this.#content.push(content);
-// 	}
-// 	//TODO: Remove clear, see above.
-// 	protected clear(): void {
-// 		this.#content.length = 0;
-// 	}
-	
-// 	//Sequence:
-
-// 	indexOf(search: Content, start?: number): number {
-// 		return this.#content.indexOf(search, start);
-// 	}
-// 	slice(start?: number, end?: number): MarkupContent {
-// 		return new NamedMarkupContent(this.name, this.#content.slice(start, end));
-// 	}
-// 	concat(...values: (string | Markup)[]): MarkupContent {
-// 		for (let i = 0; i < values.length; i++) {
-// 			let value = values[i];
-// 			if (typeof value == "string") values[i] = new TextContent(value);
-// 		}
-// 		return new NamedMarkupContent(this.name, this.#content.concat(values as Content[]));
-// 	}
-// }
 export class TextContent extends Content {
 	constructor(text?: string) {
 		super();
@@ -152,17 +152,6 @@ export class TextContent extends Content {
 			}
 		}
 		return markup;			
-	}
-}
-
-class NamedMarkupContent extends Content {
-	constructor(name: string, content?: Sequence<Content>) {
-		super(content);
-		this.#name = name;
-	}
-	#name: string
-	get name(): string {
-		return this.#name;
 	}
 }
 

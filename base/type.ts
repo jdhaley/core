@@ -1,5 +1,5 @@
 import {Container} from "./bag.js";
-import {Bundle, literal} from "./model.js";
+import {Bundle, constant} from "./model.js";
 import {Type, Value} from "./value.js";
 
 /*
@@ -186,7 +186,7 @@ export class Union extends Types {
 
 export class Domain extends Types {
 	instance: Bundle<Type>
-	constructor(values: literal[]) {
+	constructor(values: constant[]) {
 		let types: LiteralType[] = [];
 		for (let value of values) {
 			types.push(new LiteralType(value));
@@ -201,16 +201,16 @@ export class Domain extends Types {
 }
 
 export class LiteralType extends Type {
-	constructor(value: literal) {
+	constructor(value: constant) {
         super();
         this.value = value;
 		Object.freeze(this);
     }
-    value: literal;
+    value: constant;
 	generalizes(type: Type): boolean {
 		return type instanceof LiteralType && type.value === this.value;
 	}
-	categorizes(value: literal): boolean {
+	categorizes(value: constant): boolean {
 		return value === this.value;
 	}
 }
