@@ -25,8 +25,8 @@ export class Remote {
 	process(receiver: Receiver, subject: string, request: RemoteRequest) {
 		let xhr = this.createHttpRequest(receiver, subject, request);
 		this.prepare(xhr);
-		let content = request.body;
-		if (typeof content != "string") content = JSON.stringify(content);
+		let body = request.body;
+		let content = typeof body != "string" ? JSON.stringify(body) : body;
 		xhr.send(content);
 	}
 
