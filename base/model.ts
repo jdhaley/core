@@ -2,7 +2,7 @@ export interface Bundle<T> {
 	[key: string]: T;
 }
 
-export interface Array<T>  {
+export interface Array<T> extends Iterable<T> {
 	length: number;
 	[key: number]: T;
 }
@@ -33,9 +33,8 @@ interface Consumer<T> extends Resource {
 }
 
 export interface Buffer<T> extends Consumer<T>, Producer<T> {
-	clear(): void; //clear is from Set semantic, possibly others.
+	clear(): void; //clear is from Set semantic and possibly others.
 }
-
 
 /** A Sequence provides an ordinal (positional) collection of values.
 	There are no contracts on the mutability of the sequence.
@@ -49,23 +48,25 @@ export interface Sequence<T> extends Iterable<T> {
 	concat(...values: T[]): Sequence<T>;
 }
 
-/** Markup is an abstract node. Valid markup must be parseable through
-	HTML and XML parsers, i.e. it is case insensitive and no shortcut-closing "/>".
-	Tag names are canonically lowercase with the following grammar rule:
-		 [a-z] ([a-z] | [0-9] | '$' | '_')*
-	This promotes tag names to map directly to property names.  A Markup node can also
-	have a name starting with "#" in which case the node's enclosing tags are not converted
-	to markup strings.
+/** Markup provides a view into "markup" which is a simple subset of SGML (HTML & XML) markup.
+ 	Well-formed markup should be parseable through either an HTML or XML parser, therefore this view
+	always produces markup with an end tag.
+	- no shortcut tag closing through "<tag/>" (to support HTML)
+	- start tags always have a matching end tag (to support XML)
+	- when constructing Markup from XML, tags are always converted to lowercase.
 
-	DIFFERENCE WITH DOM: text nodes can have a tag name like an element.  You can have textContent
+	DIFFERENCE WITH DOM: Markup text nodes can have a tag name like an element.  You can have textContent
 	AND a non "#text" name with an empty Sequence<Markup>.
 
-	Markup allows for rooted tree, DAG, and cyclic graph implementations.
+	Markup allows for various graphs such as a rooted tree, DAG, and cyclic graphs.
 */
 export interface Markup {
-	typeName: string;			//instead of DOM.Node.nodeType
-	name: string;				//DOM.Node.nodeName
-	markup: string;				//DOM.Node.outerHTML
+	/** A valid name follows the grammar rule: '#'? [a-z] ([a-z] | [0-9] | '$' | '_')*
+		This promotes Markup names & typeNames to map directly to property names.
+	 */
+	readonly name: string;		//DOM.Node.nodeName
+	readonly typeName: string;	//instead of DOM.Node.nodeType
+	readonly markup: string;	//DOM.Node.outerHTML
 	markupContent: string;		//DOM.Node.innerHTML
 	textContent: string;		//DOM.Node.textContent
 }

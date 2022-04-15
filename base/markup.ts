@@ -2,15 +2,11 @@ import {Markup, Sequence, Buffer} from "../base/model.js";
 
 const EMPTY_ARRAY = Object.freeze([]);
 
-export class EmptyMarkup implements Markup {
-	[Symbol.iterator](): Iterator<Markup, any, undefined> {
-		return EMPTY_ARRAY[Symbol.iterator]();
-	}
-	get typeName(): string /*| LiteralType */ {
+export abstract class EmptyMarkup implements Markup {
+	abstract get name(): string
+	//type: LiteralType
+	get typeName(): string {
 		return this.name.startsWith("#") ? this.name.substring(1) : "any";
-	}
-	get name(): string {
-		return "#text"
 	}
 	get markup(): string {
 		let markup = this.markupContent;
@@ -20,14 +16,19 @@ export class EmptyMarkup implements Markup {
 		return markup;
 	}
 	get markupContent(): string {
-		let markup = "";
-		for (let content of this) markup += content.markup;
-		return markup;
+		return this.typeName == "text"
+			? markupText(this.content as string)
+			: markupContent(this.content as Iterable<Markup>);
 	}
 	get textContent(): string {
+		if (this.typeName == "text") return this.content as string;
 		let text = "";
-		for (let content of this) text += content.textContent;
+		let content = this.content as Iterable<Markup>
+		for (let item of content) text += item.textContent;
 		return text;
+	}
+	protected get content(): string | Iterable<Markup> {
+		return this.typeName == "text" ? "" : EMPTY_ARRAY;
 	}
 }
 
@@ -39,6 +40,9 @@ export class Content extends EmptyMarkup implements Sequence<Content> {
 	#content: Sequence<Content>;
 	[Symbol.iterator](): Iterator<Content, any, undefined> {
 		return this.content[Symbol.iterator]();
+	}
+	get name(): string {
+		return "content";
 	}
 	get length(): number {
 		return this.content.length;
@@ -94,7 +98,7 @@ export class Bag extends Content implements Buffer<Content> {
 	get children(): Content[] {
 		return this.content as Content[];
 	}
-	//Note: Should really have to override, is it a TS issue?
+	//Note: Shouldn't have to override, is it a TS issue because the setter was added?
 	get textContent(): string {
 		return super.textContent;
 	}
@@ -164,4 +168,23 @@ export class NamedTextContent extends TextContent {
 	get name(): string {
 		return this.#name;
 	}
+}
+
+function markupText(text: string): string {
+	let markup = "";
+	for (let ch of text) {
+		switch (ch) {
+			case ">": markup += "&gt;"; break;
+			case "<": markup += "&lt;"; break;
+			case "&": markup += "&amp;"; break;
+			default:  markup += ch; break;
+		}
+	}
+	return markup;			
+}
+
+function markupContent(content: Iterable<Markup>): string {
+	let markup = "";
+	for (let item of content) markup += item.markup;
+	return markup;
 }

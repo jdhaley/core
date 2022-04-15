@@ -1,31 +1,6 @@
-import {Sequence, Markup} from "../base/model.js";
+import {Markup, Array, Bundle, Sequence} from "../base/model.js";
 import {EmptyMarkup} from "../base/markup";
 
-abstract class MarkupSequence extends EmptyMarkup implements Sequence<MarkupSequence> {
-	[Symbol.iterator](): Iterator<MarkupSequence, any, undefined> {
-		return EMPTY_ARRAY[Symbol.iterator]();
-	}
-	get length(): number {
-		return 0;
-	}
-	at(index: number | string  | Markup): MarkupSequence {
-		return undefined;
-	}
-	indexOf(index: Markup | string, start?: number): number {
-		let i = 0;
-		for (let content of this) {
-			if (typeof index == "string" && index == content.name) return i;
-			if (index === content) return i;
-		}
-		return -1;
-	}
-	slice(start?: number, end?: number): Sequence<MarkupSequence> {
-		throw new Error("Method not implemented.");
-	}
-	concat(...values: Markup[]): Sequence<MarkupSequence> {
-		throw new Error("Method not implemented.");
-	}
-}
 
 function concat(content: Markup[], values: (Markup | string)[]) {
 	content = content.slice();
@@ -35,7 +10,7 @@ function concat(content: Markup[], values: (Markup | string)[]) {
 	return content;
 }
 
-class Branch extends MarkupSequence {
+class Branch extends EmptyMarkup {
 	constructor(name: string, content?: Markup[]) {
 		super();
 		this.#name = name;
@@ -71,11 +46,12 @@ class Leaf extends Branch {
 	}
 }
 
-class Txt extends MarkupSequence {
+class Txt extends EmptyMarkup {
 	constructor(content: String) {
 		super();
 		this.#content = "" + content;
 	}
+	
 	#content: string;
 
 	get name() {
@@ -119,17 +95,80 @@ class ELE extends Branch {
 		return this.markup;
 	}
 }
+const ARRAY_LIKE = {
+	set() {
+		throw new Error("Immutable Array");
+	}
+}
 
-// /** A Strand contains a fixed sequence
-// 	The strand's sequence is immutable: the length and at-values are fixed.
-// 	This makes it possible to build flyweight sub-strands from a strand.
-//  */
-// 	interface Strand<T> extends Sequence<T> {
-// 	}
-	
-// 	interface String extends Strand<String> {
-// 	}
-	
-// 	//strings & arrays are implementations of Sequences...
-// 	const x: String = "hello";
-// 	const y: Sequence<number> = [] as number[];
+class MarkupNode extends EmptyMarkup {
+	constructor(name: string) {
+		super();
+		this.#name = name;
+		if (this.isElement) {
+			let childNodes: MarkupNode[] = [];
+			this.#content = childNodes;
+			this.childNodes = new Proxy(childNodes, ARRAY_LIKE);
+		} else {
+			this.#content = "";
+			this.childNodes = new Proxy(EMPTY_ARRAY as MarkupNode[], ARRAY_LIKE);
+		}
+	}
+	#name: string
+	#content: string | Array<MarkupNode>
+	readonly childNodes: Array<MarkupNode>;
+	get isElement() {
+		return this.nodeType == Node.ELEMENT_NODE;
+	}
+	get name(): string {
+		return this.#name;
+	}
+	get nodeName(): string {
+		return this.#name;
+	}
+	get nodeType(): number {
+		switch (this.name) {
+			case "#document": return Node.DOCUMENT_NODE;
+			case "#text": return Node.TEXT_NODE;
+			case "#comment": return Node.COMMENT_NODE;
+			default: return Node.ELEMENT_NODE;
+		}
+	}
+	get textContent(): string {
+		return this.isElement ? super.textContent : this.#content as string;
+	}
+	set textContent(text: string) {
+		if (this.isElement) {
+			let node = new MarkupNode("#text");
+			node.textContent = text;
+			this.#content = [node];
+		} else {
+			this.#content = text;
+		}
+	}
+	// previousSibling: Node;
+	// nextSibling: Node;
+	// parentNode: Node;
+	// ownerDocument: Node;
+}
+
+class Element extends MarkupNode {
+	#nodes: MarkupNode[] = [];
+	#attributes: Bundle<string> = Object.create(null);
+
+	firstChild: Node;
+	lastChild: Node;
+	id: string;
+	className: string;
+	innerHTML: string;
+	// getAttribute(name: string): string;
+	// setAttribute(name: string, value: string): void;
+	// removeAttribute(name: string): void;
+	// append(value: string | Node): void;
+}
+
+interface Document {
+	//createElementNS(namespace, name);
+	createElement(name: string): Element;
+	createTextNode(): Node;
+}
