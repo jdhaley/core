@@ -40,8 +40,10 @@ export interface Markup {
 // }
 
 export interface Bag<T> {
+	isClosed?: boolean;
 	add(value: T): void;
-	clear(): void;
+	clear(): void; //clear - Set semantic
+	close(): void;
 }
 
 export type literal = string | number | boolean | null

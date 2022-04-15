@@ -3,31 +3,34 @@ import {Value, Type} from "./value.js";
 
 export interface Parcel<K, V> {
 	at(key: K): V;
+} 
+
+type Key = string | number;
+
+export abstract class Container<T> implements Parcel<Key, T> {
+	abstract at(key: Key): T;
+	abstract put(key: Key, value: T): void;
 }
 
-export abstract class Container<T> implements Parcel<string | number, T> {
-	abstract at(key: string | number): T;
-	abstract put(key: string | number, value: T): void;
-}
-
-interface Collection<K, V> extends Parcel<K, V> {
+interface Entries<K, V> extends Parcel<K, V> {
 	//type: ContainerType[key, value]
 	keys(): Iterable<K>;
 	values(): Iterable<V>;
-	// entries(): Iterable<[K, V]>;
+	entries(): Iterable<[K, V]>
 }
-
+interface Stream {
+	close(): void;
+	add()
+}
 abstract class X<T> implements Container<T> {
 	type: Type;
 	pure: any;
-	keys: Iterable<string | number>;
+	keys: Iterable<Key>;
 	get isClosed(): boolean {
 		return Object.isFrozen(this);
 	}
-	at(key: string | number): T {
-		throw new Error("Method not implemented.");
-	}
-	put(key: string | number, value: T): void {
+	abstract at(key: Key): T
+	put(key: Key, value: T): void {
 		if (this.isClosed) throw new Error("Object is frozen");
 	}
 	close(): void {

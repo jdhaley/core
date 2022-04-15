@@ -74,10 +74,13 @@ export class Content extends EmptyMarkup implements Sequence<Content> {
 		return this.#content;
 	}
 }
-export class MutableContent extends Content implements Bag<Content> {
+export class ContentBag extends Content implements Bag<Content> {
 	constructor() {
 		let content = [] as Content[];
 		super(content);
+	}
+	get isClosed(): boolean  {
+		return Object.isFrozen(this.content);
 	}
 	//NOTE: Add is safe from a flyweight Sequence viewpoint (add wont alter existing subsequences, nice.)
 	add(content: Content): void {
@@ -85,6 +88,9 @@ export class MutableContent extends Content implements Bag<Content> {
 	}
 	clear(): void {
 		(this.content as Content[]).length = 0;
+	}
+	close(): void {
+		Object.freeze(this.content);
 	}
 }
 
