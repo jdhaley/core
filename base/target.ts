@@ -1,4 +1,4 @@
-import {Notice, Notifier, Notifiable} from "../api/notice";
+import {Notice, Notifier, Notifiable} from "../api/notice.js";
 
 interface Transforms {
 	[key: string]: (context: Target) => any;
