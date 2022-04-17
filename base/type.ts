@@ -1,4 +1,4 @@
-import {Container} from "./bag.js";
+import {Container} from "./container.js";
 import {Bundle, constant} from "./model.js";
 import {Type, Value} from "./value.js";
 

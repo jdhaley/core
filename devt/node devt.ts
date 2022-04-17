@@ -1,5 +1,69 @@
-import {Markup, Array, Bundle, Sequence} from "../base/model.js";
-import {EmptyMarkup} from "../base/markup";
+import {Markup, Array, Bundle} from "../base/model.js";
+import {EmptyMarkup} from "../base/content";
+
+const IMMUTABLE_ARRAY = {
+	set() {
+		throw new Error("Immutable Array");
+	}
+}
+
+class MarkupNode extends EmptyMarkup {
+	constructor(name: string) {
+		super();
+		this.#name = name;
+		if (this.isNamed) {
+			let childNodes: MarkupNode[] = [];
+			this.#content = childNodes;
+			this.childNodes = new Proxy(childNodes, IMMUTABLE_ARRAY);
+		} else {
+			this.#content = "";
+			this.childNodes = new Proxy(EMPTY_ARRAY as MarkupNode[], IMMUTABLE_ARRAY);
+		}
+	}
+	#name: string
+	#content: string | MarkupNode[];
+	readonly childNodes: Array<MarkupNode>;
+	get name(): string {
+		return this.#name;
+	}
+	get nodeName(): string {
+		return this.#name;
+	}
+	get nodeType(): number {
+		switch (this.name) {
+			case "#document": return Node.DOCUMENT_NODE;
+			case "#text": return Node.TEXT_NODE;
+			case "#comment": return Node.COMMENT_NODE;
+			default: return Node.ELEMENT_NODE;
+		}
+	}
+	// previousSibling: Node;
+	// nextSibling: Node;
+	// parentNode: Node;
+	// ownerDocument: Node;
+}
+
+class Element extends MarkupNode {
+	#nodes: MarkupNode[] = [];
+	#attributes: Bundle<string> = Object.create(null);
+
+	firstChild: Node;
+	lastChild: Node;
+	id: string;
+	className: string;
+	innerHTML: string;
+	// getAttribute(name: string): string;
+	// setAttribute(name: string, value: string): void;
+	// removeAttribute(name: string): void;
+	// append(value: string | Node): void;
+}
+
+interface Document {
+	//createElementNS(namespace, name);
+	createElement(name: string): Element;
+	createTextNode(): Node;
+}
+
 
 
 function concat(content: Markup[], values: (Markup | string)[]) {
@@ -94,81 +158,4 @@ class ELE extends Branch {
 	get outerHTML() {
 		return this.markup;
 	}
-}
-const ARRAY_LIKE = {
-	set() {
-		throw new Error("Immutable Array");
-	}
-}
-
-class MarkupNode extends EmptyMarkup {
-	constructor(name: string) {
-		super();
-		this.#name = name;
-		if (this.isElement) {
-			let childNodes: MarkupNode[] = [];
-			this.#content = childNodes;
-			this.childNodes = new Proxy(childNodes, ARRAY_LIKE);
-		} else {
-			this.#content = "";
-			this.childNodes = new Proxy(EMPTY_ARRAY as MarkupNode[], ARRAY_LIKE);
-		}
-	}
-	#name: string
-	#content: string | Array<MarkupNode>
-	readonly childNodes: Array<MarkupNode>;
-	get isElement() {
-		return this.nodeType == Node.ELEMENT_NODE;
-	}
-	get name(): string {
-		return this.#name;
-	}
-	get nodeName(): string {
-		return this.#name;
-	}
-	get nodeType(): number {
-		switch (this.name) {
-			case "#document": return Node.DOCUMENT_NODE;
-			case "#text": return Node.TEXT_NODE;
-			case "#comment": return Node.COMMENT_NODE;
-			default: return Node.ELEMENT_NODE;
-		}
-	}
-	get textContent(): string {
-		return this.isElement ? super.textContent : this.#content as string;
-	}
-	set textContent(text: string) {
-		if (this.isElement) {
-			let node = new MarkupNode("#text");
-			node.textContent = text;
-			this.#content = [node];
-		} else {
-			this.#content = text;
-		}
-	}
-	// previousSibling: Node;
-	// nextSibling: Node;
-	// parentNode: Node;
-	// ownerDocument: Node;
-}
-
-class Element extends MarkupNode {
-	#nodes: MarkupNode[] = [];
-	#attributes: Bundle<string> = Object.create(null);
-
-	firstChild: Node;
-	lastChild: Node;
-	id: string;
-	className: string;
-	innerHTML: string;
-	// getAttribute(name: string): string;
-	// setAttribute(name: string, value: string): void;
-	// removeAttribute(name: string): void;
-	// append(value: string | Node): void;
-}
-
-interface Document {
-	//createElementNS(namespace, name);
-	createElement(name: string): Element;
-	createTextNode(): Node;
 }

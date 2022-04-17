@@ -1,19 +1,34 @@
+// export interface Bundle<T> {
+// 	[key: string]: T;
+// }
+// export interface Array<T> extends Iterable<T> {
+// 	length: number;
+// 	[key: number]: T;
+// }
+// export type constant = string | number | boolean | null
+// export type serial = constant | Bundle<serial> | Array<serial>;
+
+// export type value = serial | Function | Value;
 
 export interface Value {
 	/** undefined is equivalent to TS "any". A Type is a constraint on a value. */
-	type?: Type;
+	type: Type;
 	/** undefined is impure. Use null to indicate a valueless value. */
-	pure?: any;
+	pure?: any; //possibly value;
 }
 
-let TYPE_TYPE: Type;
+export class  Parcel<K, V> implements Value {
+	get type() {
+		return undefined;
+	}
+	at(key: K): V {
+		return undefined;
+	}
+}
 
-export class Type implements Value {
+export class Type extends Parcel<string, Value> {
 	get type() {
 		return TYPE_TYPE;
-	}
-	at(key: string): Value {
-		return undefined;
 	}
 	generalizes(type: Type): boolean {
 		return type == this;
@@ -23,4 +38,4 @@ export class Type implements Value {
 	}
 }
 
-TYPE_TYPE = Object.freeze(new Type());
+const TYPE_TYPE = Object.freeze(new Type());

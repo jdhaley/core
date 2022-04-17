@@ -17,7 +17,7 @@ class Process<I, P, O> {
 //	target: Transform<O, I>
 	transform(source: I): O {
 		let p = this.input(source);
-		 p = this.processor(p);
+		p = this.processor(p);
 		return this.output(p);
 	}
 	functionalize(): Transform<I, O> {

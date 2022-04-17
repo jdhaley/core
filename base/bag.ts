@@ -1,120 +1,124 @@
-import {Bundle} from "./model.js";
-import {Value, Type} from "./value.js";
+import {Bundle, Markup, content} from "./model.js";
+import {Consumer} from "./resource.js";
 
-export interface Parcel<K, V> {
-	at(key: K): V;
-} 
+const EMPTY_ARRAY = Object.freeze([]);
+const EMPTY_OBJECT = Object.freeze(Object.create(null));
 
-type Key = string | number;
-
-export abstract class Container<T> {
-	abstract at(key: Key): T;
-	abstract put(key: Key, value: T): void;
+export class EmptyMarkup implements Markup {
+	protected get value(): string {
+		return undefined;
+	}
+	get name(): string {
+		return typeof this.value == "string" ? "#text" : "markup";
+	}
+	get attributes(): Bundle<string> {
+		return EMPTY_OBJECT;
+	}
+	get content(): Iterable<Markup> {
+		return EMPTY_ARRAY;
+	}
+	get markup(): string {
+		let markup = this.markupContent;
+		if (this.isNamed) {
+			markup = `<${this.name}>${markup}</${this.name}>`
+		}
+		return markup;
+	}
+	get markupContent(): string {
+		if (this.isNamed) return markupContent(this.content)
+		return markupText(this.value);
+	}
+	get textContent(): string {
+		if (this.isNamed) {
+			let text = "";
+			for (let item of this.content) text += item.textContent;
+			return text;	
+		}
+		return this.value;
+	}
+	protected get isNamed(): boolean {
+		return this.name.startsWith("#") ? false : true;
+	}
 }
 
-interface Entries<K, V> extends Parcel<K, V> {
-	//type: ContainerType[key, value]
-	keys(): Iterable<K>;
-	values(): Iterable<V>;
-	entries(): Iterable<[K, V]>
-}
-interface Stream {
-	close(): void;
-	add(): void;
-}
-abstract class X<T> implements Container<T> {
-	type: Type;
-	pure: any;
-	keys: Iterable<Key>;
-	get isClosed(): boolean {
-		return Object.isFrozen(this);
+export class TextContent extends EmptyMarkup {
+	constructor(text: string) {
+		super();
+		this.textContent = text;
 	}
-	abstract at(key: Key): T
-	put(key: Key, value: T): void {
-		if (this.isClosed) throw new Error("Object is frozen");
+	#value: string
+	protected get value(): string {
+		return this.#value;
 	}
-	close(): void {
-		Object.freeze(this);
+	get textContent(): string {
+		return this.#value;
+	}
+	set textContent(text: string) {
+		this.#value = text;
+	}	
+}
+
+function toMarkup(...values: content[]): Markup[] {
+	let content: Markup[] = []
+	for (let value of values) {
+		if (typeof value == "string") value = new TextContent(value);
+		content.push(value);
+	}
+	return content;
+}
+
+function markupText(text: string): string {
+	let markup = "";
+	for (let ch of text) {
+		switch (ch) {
+			case ">": markup += "&gt;"; break;
+			case "<": markup += "&lt;"; break;
+			case "&": markup += "&amp;"; break;
+			default:  markup += ch; break;
+		}
+	}
+	return markup;			
+}
+
+function markupContent(content: Iterable<Markup>): string {
+	let markup = "";
+	for (let item of content) markup += item.markup;
+	return markup;
+}
+
+const IMMUTABLE_ARRAY = {
+	set() {
+		throw new Error("Immutable Array");
 	}
 }
 
-export class ParcelImpl<T> implements Container<T>, Value {
-	constructor(type: Type, from?: ParcelImpl<T> | Bundle<T>) {
-		this.type = type;
-		this.#members = from instanceof ParcelImpl ? Object.create(from.#members) : (from || Object.create(null));
-	}
-	#members: Bundle<T>;
-	type: Type;
-	get pure() {
-		return this;
-	}
-	// get keyedBy(): "string" {
-	// 	return "string"
+export class Bag extends EmptyMarkup implements Consumer<content> {
+	// constructor() {
+	// 	super();
+	// 	//create an immutable proxy for "content", overridding the TS/class inheritence
+	// 	//Object.defineProperty(this, "content", {value: new Proxy(this.#content, IMMUTABLE_ARRAY)})
 	// }
-	get keys(): Iterable<string> {
-		return Object.keys(this.#members);
+	#content: Markup[] = [];
+	get content(): Markup[] {
+		return this.#content;
 	}
-	at(name: string): T {
-		return this.#members[name];
+	get textContent(): string {
+		return super.textContent;
 	}
-	put(name: string, value: T) {
-		this.#members[name] = value;
+	set textContent(text: string) {
+		this.clear();
+		this.append(new TextContent(text));
 	}
-	get isClosed() {
-		return Object.isFrozen(this.#members);
+	append(...values: content[]): void {
+		for (let value of values) {
+			this.#content.push(typeof value == "string" ? new TextContent(value) : value);
+		}
 	}
-	close() {
-		Object.freeze(this.#members);
-		Object.freeze(this);
+	clear(): void {
+		this.#content.length = 0;
 	}
-}
-
-export class Sequence<T> implements Container<T> {
-	constructor(from?: Sequence<T> | Array<T>) {
-		this.#members = from instanceof Sequence ? Object.create(from.#members) : (from || []);
-	}
-	#members: T[];
-
-	[Symbol.iterator](): Iterator<T, any, undefined> {
-		return this.#members[Symbol.iterator]();
-	}
-	type: Type;
-	get pure() {
-		return this;
-	}
-	get isClosed() {
-		return Object.isFrozen(this.#members);
-	}
-	close() {
-		Object.freeze(this.#members);
-		Object.freeze(this);
-	}
-	get keys() {
-		return this.#members.keys();
-	}
-	get length() {
-		return this.#members.length;
-	}
-	at(index: number): T {
-		return this.#members[index];
-	}
-	put(index: number, value: T) {
-		this.#members[index] = value;
-	}
-	freeze() {
-		Object.freeze(this.#members);
-		Object.freeze(this);
+	parse(source: string, start: number): number {
+		this.append(new TextContent(source.substring(start)));
+		return source.length;
 	}
 }
-
-// class Range {
-// 	constructor(start: number, end: number) {
-// 		this.start = start;
-// 		this.end = end;
-// 	}
-// 	start: number
-// 	end: number
-// 	*[Symbol.iterator](): Iterator<number, any, undefined> {
-// 		for (let i = this.start; i < this.end; i++) yield i;
-// 	}
-// }
