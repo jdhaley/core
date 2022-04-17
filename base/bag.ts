@@ -1,8 +1,10 @@
-import {Bundle, Markup, content} from "../api/model.js";
+import {Bundle, Markup} from "../api/model.js";
 import {Consumer} from "../api/resource.js";
 
 const EMPTY_ARRAY = Object.freeze([]);
 const EMPTY_OBJECT = Object.freeze(Object.create(null));
+
+export type content = string | Markup;
 
 export class EmptyMarkup implements Markup {
 	protected get value(): string {

@@ -17,7 +17,7 @@ export interface Value {
 	pure?: any; //possibly value;
 }
 
-export class  Parcel<K, V> implements Value {
+export class Parcel<K, V> implements Value {
 	get type() {
 		return undefined;
 	}

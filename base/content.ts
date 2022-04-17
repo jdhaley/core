@@ -1,19 +1,7 @@
-import {Markup, Bundle} from "../api/model.js";
+import {Bundle, Markup, Sequence} from "../api/model.js";
 
 const EMPTY_ARRAY = Object.freeze([]);
 const EMPTY_OBJECT = Object.freeze(Object.create(null));
-
-/** A Sequence provides an ordinal (positional) collection of values.
-	There are no contracts on the mutability of the sequence.
-	Native strings and Arrays are assignable to Sequence.
-*/
-export interface Sequence<T> extends Iterable<T> {
-	get length(): number;
-	at(key: number): T;
-	indexOf(search: T, start?: number): number;
-	slice(start?: number, end?: number): Sequence<T>;
-	concat(...values: T[]): Sequence<T>;
-}
 
 export class EmptyMarkup implements Markup {
 	get content(): Iterable<Markup> {
@@ -52,9 +40,9 @@ export class EmptyMarkup implements Markup {
 	}
 }
 
-export type content = string | Content;
+export type content = string | MarkupSequence;
 
-export abstract class Content extends EmptyMarkup implements Sequence<Content> {
+export abstract class MarkupSequence extends EmptyMarkup implements Sequence<MarkupSequence> {
 	// constructor(content: string | Sequence<Content>) {
 	// 	super();
 	// 	this.#value = content;
@@ -67,16 +55,16 @@ export abstract class Content extends EmptyMarkup implements Sequence<Content> {
 	// 	return typeof this.#value == "string" ? EMPTY_ARRAY : this.#value;
 	// }
 	///////////
-	get content(): Sequence<Content> {
+	get content(): Sequence<MarkupSequence> {
 		return EMPTY_ARRAY;
 	}
-	[Symbol.iterator](): Iterator<Content, any, undefined> {
+	[Symbol.iterator](): Iterator<MarkupSequence, any, undefined> {
 		return this.content[Symbol.iterator]();
 	}
 	get length(): number {
 		return this.content.length;
 	}
-	at(key: number | content): Content {
+	at(key: number | content): MarkupSequence {
 		if (typeof key != "number") key = this.indexOf(key);
 		return this.content.at(key);	
 	}
@@ -93,19 +81,19 @@ export abstract class Content extends EmptyMarkup implements Sequence<Content> {
 			return this.content.indexOf(search, start);
 		}
 	}
-	slice(start?: number, end?: number): Content {
+	slice(start?: number, end?: number): MarkupSequence {
 		return this.create(...this.content.slice(start, end));
 	}
-	concat(...values: content[]): Content {
+	concat(...values: content[]): MarkupSequence {
 		return this.create(...this.content, ...values);
 	}
-	protected create(...values: content[]): Content {
+	protected create(...values: content[]): MarkupSequence {
 		let constr = Object.getPrototypeOf(this).constructor;
 		return new constr(toContent(...values));
 	}
 }
 
-export class TextContent extends Content {
+export class TextContent extends MarkupSequence {
 	constructor(text: string) {
 		super();
 		this.textContent = text;
@@ -122,8 +110,8 @@ export class TextContent extends Content {
 	}	
 }
 
-function toContent(...values: content[]): Content[] {
-	let content: Content[] = []
+function toContent(...values: content[]): MarkupSequence[] {
+	let content: MarkupSequence[] = []
 	for (let value of values) {
 		if (typeof value == "string") value = new TextContent(value);
 		content.push(value);
