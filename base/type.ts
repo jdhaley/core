@@ -1,6 +1,6 @@
 import {Container} from "./container.js";
-import {Bundle, constant} from "./model.js";
-import {Type, Value} from "./value.js";
+import {Bundle, constant} from "../api/model.js";
+import {Type, Value} from "../api/value.js";
 
 /*
 Type expressions:

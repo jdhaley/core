@@ -1,4 +1,4 @@
-import { Bundle } from "./model";
+import { Bundle } from "../api/model";
 
 //Modelled after Express
 export interface Request /*extends Signal*/ {

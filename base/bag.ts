@@ -1,5 +1,5 @@
-import {Bundle, Markup, content} from "./model.js";
-import {Consumer} from "./resource.js";
+import {Bundle, Markup, content} from "../api/model.js";
+import {Consumer} from "../api/resource.js";
 
 const EMPTY_ARRAY = Object.freeze([]);
 const EMPTY_OBJECT = Object.freeze(Object.create(null));

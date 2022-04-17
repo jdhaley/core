@@ -29,7 +29,7 @@ export interface Markup {
 		This promotes Markup names & typeNames to map directly to property names.
 	 */
 	readonly name: string;					//DOM.Node.nodeName
-	readonly attributes: Bundle<string>
+	//readonly attributes: Bundle<string>
 	readonly content: Iterable<Markup>
 	readonly markup: string;				//DOM.Node.outerHTML
 	readonly markupContent: string;			//DOM.Node.innerHTML

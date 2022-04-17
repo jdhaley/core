@@ -1,4 +1,4 @@
-import {Signal} from "../../base/signal.js";
+import {Signal} from "../../api/signal.js";
 import {Display, Article, UserEvent} from "../display.js"
 
 import {extend} from "../../base/util.js";

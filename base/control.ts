@@ -1,4 +1,4 @@
-import {Signal, Receiver, Controller, direction, Sensor, Transmitter} from "./signal.js";
+import {Signal, Receiver, Controller, direction, Sensor, Transmitter} from "../api/signal.js";
 
 const EMPTY_ARR = Object.freeze([]);
 

@@ -1,4 +1,4 @@
-import {Markup, Array, Bundle} from "../base/model.js";
+import {Markup, Array, Bundle} from "../api/model.js";
 import {EmptyMarkup} from "../base/content";
 
 const IMMUTABLE_ARRAY = {

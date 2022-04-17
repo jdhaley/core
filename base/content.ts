@@ -1,4 +1,4 @@
-import {Markup, Bundle} from "./model.js";
+import {Markup, Bundle} from "../api/model.js";
 
 const EMPTY_ARRAY = Object.freeze([]);
 const EMPTY_OBJECT = Object.freeze(Object.create(null));

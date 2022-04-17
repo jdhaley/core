@@ -1,5 +1,5 @@
-import {Bundle} from "./model.js";
-import {Value, Type} from "./value.js";
+import {Bundle} from "../api/model.js";
+import {Value, Type} from "../api/value.js";
 
 export interface Parcel<K, V> {
 	at(key: K): V;
