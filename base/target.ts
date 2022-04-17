@@ -4,7 +4,7 @@ interface Transforms {
 	[key: string]: (context: Target) => any;
 }
 
-export abstract class Transformer extends Notifier {
+export abstract class Targeter extends Notifier {
 	abstract transform(context: Target): any
 }
 
