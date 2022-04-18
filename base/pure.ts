@@ -1,10 +1,33 @@
-import {Bundle, runtime} from "../api/model";
+import {Bundle} from "../api/model";
 import {Value, Type} from "../api/value";
-
-type pure = runtime | Type
+import {pure} from "./data";
 
 export class Pure implements Value {
-	static call(method: Value, receiver: Value, args: Value[]): any {
+	static typeOf(value: any): string {
+		switch (typeof value) {
+			case "undefined":
+				return "void"
+			case "number":
+				if (value === NaN) return "unknown";
+			case "boolean":
+			case "string":
+			case "function":
+				return typeof value;
+			case "object":
+				if (value === null) return "any";
+				if (typeof value.valueOf == "function") value = value.valueOf();
+				if (typeof value != "object") return this.typeOf(value);
+				if (value instanceof Array) return "array";
+				if (value instanceof Type) return "type";
+				return "object";
+			case "bigint":
+			case "symbol":
+			default:
+				return "unknown";
+		}
+	}
+	
+	static call(method: Value, receiver: Value, args: Value[]): pure {
 		let pure = Pure.array(args);
 		let fn = method.pure as Function;
 		if (fn && !(fn instanceof Function)) return undefined;
@@ -51,29 +74,5 @@ export class Pure implements Value {
 	}
 	get pure(): pure {
 		return this.#pure;
-	}
-}
-
-export function typeOf(value: any): string {
-	switch (typeof value) {
-		case "undefined":
-			return "void"
-		case "number":
-			if (value === NaN) return "unknown";
-		case "boolean":
-		case "string":
-		case "function":
-			return typeof value;
-		case "object":
-			if (value === null) return "any";
-			if (typeof value.valueOf == "function") value = value.valueOf();
-			if (typeof value != "object") return typeOf(value);
-			if (value instanceof Array) return "array";
-			if (value instanceof Type) return "type";
-			return "object";
-		case "bigint":
-		case "symbol":
-		default:
-			return "unknown";
 	}
 }

@@ -1,6 +1,7 @@
-import {Container} from "./container.js";
-import {Bundle, constant} from "../api/model.js";
+import {Collection} from "./container.js";
+import {Bundle} from "../api/model.js";
 import {Type, Value} from "../api/value.js";
+import {constant} from "./data.js";
 
 /*
 Type expressions:
@@ -26,7 +27,7 @@ tuple:		Class
 domain:		Enum
 container:	Sequence/Array, Countable/Iterable, 
 */
-export class Contract extends Type implements Container<string, Value>, Iterable<string> {
+export class Contract extends Type implements Collection<string, Value>, Iterable<string> {
 	constructor(members: Bundle<Value> | Contract) {
 		super();
 		this.#members = members instanceof Contract ? members.#members : members

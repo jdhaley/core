@@ -1,17 +1,9 @@
+/**	A Bundle (aka "dictionary") is a collection of <string, T> entries. 
+	A Bundle isn't required to have prototype (other than null).
+*/
 export interface Bundle<T> {
 	[key: string]: T;
 }
-
-export interface Array<T> {
-	length: number;
-	[key: number]: T;
-}
-
-export type constant = string | number | boolean | null;
-
-export type serial = constant | Bundle<serial> | Array<serial>;
-
-export type runtime = serial | Function;
 
 /** A Sequence declares an ordinal (positional) collection of values.
 	There are no contracts on the mutability of the sequence.

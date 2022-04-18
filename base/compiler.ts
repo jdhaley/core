@@ -2,7 +2,7 @@
 import {Bundle} from "../api/model.js";
 import {Parcel, Type, Value} from "../api/value.js";
 import {level} from "../api/notice.js";
-import {Pure, typeOf} from "./pure.js";
+import {Pure} from "./pure.js";
 import {NoticeValue} from "./target.js";
 
 export interface Compilable {
@@ -13,9 +13,12 @@ export abstract class Receivable implements Compilable {
 	abstract compile(scope: Scope, receiver: Value): Value
 }
 
-export class Scope extends Parcel<string, Value> {
+export class Scope implements Parcel<string, Value> {
 	protected get scope(): Bundle<Value> {
 		return null;
+	}
+	get type() {
+		return undefined;
 	}
 	at(name: string): Value {
 		if (Object.getOwnPropertyDescriptor(this.scope, name)) return this.scope[name];
@@ -33,7 +36,7 @@ export class Scope extends Parcel<string, Value> {
 		if (type?.pure instanceof Type) return type.pure;
 	}
 	createPure(value: any): Pure {
-		let type = this.getType(typeOf(value));
+		let type = this.getType(Pure.typeOf(value));
 		return new Pure(type, value);
 	}
 	notice(level: level, message: string, value: Value): Value {

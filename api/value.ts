@@ -6,16 +6,17 @@ export interface Value {
 	pure?: any; //possibly value;
 }
 
-export class Parcel<K, V> implements Value {
+export interface Parcel<K, V> extends Value {
+	at(key: K): V 
+}
+
+export class Type implements Parcel<string, Value> {
 	get type() {
 		return undefined;
 	}
-	at(key: K): V {
+	at(key: string): Value {
 		return undefined;
 	}
-}
-
-export class Type extends Parcel<string, Value> {
 	generalizes(type: Type): boolean {
 		return type == this;
 	}

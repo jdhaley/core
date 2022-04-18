@@ -1,26 +1,30 @@
 import {Bundle} from "../api/model.js";
 import {Value, Type, Parcel} from "../api/value.js";
+import { ContainerType } from "./type.js";
 
 type Key = string | number;
 
-export abstract class Container<K, T> extends Parcel<K, T> {
-	abstract put(key: K, value: T): void;
-}
-
-
-interface Entries<K, V> extends Parcel<K, V> {
-	//type: ContainerType[key, value]
-	keys(): Iterable<K>;
-	values(): Iterable<V>;
-	entries(): Iterable<[K, V]>
-}
 interface Stream {
 	close(): void;
 	add(): void;
 }
 
-abstract class X<T> implements Container<Key, T> {
-	type: Type;
+interface Container<K, V> extends Parcel<K, V> {
+	type: ContainerType;
+	put(key: K, value: V): void;
+	// keys(): Iterable<K>;
+	// values(): Iterable<V>;
+//	entries(): Iterable<[K, V]>
+}
+
+export abstract class Collection<K, T> implements Container<K, T> {
+	abstract get type(): ContainerType;
+	abstract at(key: K): T;
+	abstract put(key: K, value: T): void;
+}
+
+abstract class X<T> implements Collection<Key, T> {
+	type: ContainerType;
 	pure: any;
 	keys: Iterable<Key>;
 	get isClosed(): boolean {
@@ -35,13 +39,13 @@ abstract class X<T> implements Container<Key, T> {
 	}
 }
 
-export class ParcelImpl<T> implements Container<string, T>, Value {
-	constructor(type: Type, from?: ParcelImpl<T> | Bundle<T>) {
+export class ParcelImpl<T> implements Collection<string, T>, Value {
+	constructor(type: ContainerType, from?: ParcelImpl<T> | Bundle<T>) {
 		this.type = type;
 		this.#members = from instanceof ParcelImpl ? Object.create(from.#members) : (from || Object.create(null));
 	}
 	#members: Bundle<T>;
-	type: Type;
+	type: ContainerType;
 	get pure() {
 		return this;
 	}
@@ -66,7 +70,7 @@ export class ParcelImpl<T> implements Container<string, T>, Value {
 	}
 }
 
-export class Sequence<T> implements Container<number, T> {
+export class Sequence<T> implements Collection<number, T> {
 	constructor(from?: Sequence<T> | Array<T>) {
 		this.#members = from instanceof Sequence ? Object.create(from.#members) : (from || []);
 	}
@@ -75,7 +79,7 @@ export class Sequence<T> implements Container<number, T> {
 	[Symbol.iterator](): Iterator<T, any, undefined> {
 		return this.#members[Symbol.iterator]();
 	}
-	type: Type;
+	type: ContainerType;
 	get pure() {
 		return this;
 	}
