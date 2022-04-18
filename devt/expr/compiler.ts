@@ -2,7 +2,6 @@
 import {Bundle} from "../../api/model.js";
 import {Parcel, Type, Value} from "../../api/value.js";
 import {level} from "../../api/notice.js";
-import {Container} from "../../base/container.js";
 import {Eval, Pure, NoticeValue} from "./values.js";
 
 export interface Compilable {
@@ -13,7 +12,7 @@ export abstract class Receivable implements Compilable {
 	abstract compile(scope: Scope, receiver: Value): Value
 }
 
-export class Scope extends Parcel<string, Value> implements Container<Value> /*implements Value*/ {
+export class Scope extends Parcel<string, Value> {
 	constructor(from: Scope | object) {
 		super();
 		if (from instanceof Scope) {
@@ -25,7 +24,7 @@ export class Scope extends Parcel<string, Value> implements Container<Value> /*i
 	#members: Bundle<Value>;
 	at(name: string): Value {
 		if (Object.getOwnPropertyDescriptor(this.#members, name)) return this.#members[name];
-		return Eval.err(`"${name}" is not in scope`);	
+		return new NoticeValue("error", `"${name}" is not in scope`, null);
 	}
 	put(key: string, value: Value): void {
 		let member: any = this.#members[key]

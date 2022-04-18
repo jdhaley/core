@@ -2,52 +2,31 @@ import {Bundle} from "../../api/model.js";
 import {Parcel, Type, Value} from "../../api/value.js";
 import {level, Notice} from "../../api/notice.js";
 import {ContainerType, Signature} from "../../base/type.js";
-import {Target, Targeter} from "../../base/target.js";
+import { Target, Targeter } from "../../base/target.js";
 
-const EMPTY_ARRAY = Object.freeze([]);
-
-export class Eval /*extends Targeter*/ implements Value {
-	static err(message: string) {
-		return new NoticeValue("error", message, null);
-	}
+export abstract class Eval implements Value {
 	get type(): Type {
-		return undefined;
-	}
-	get value(): any {
 		return undefined;
 	}
 	get pure(): any {
 		return undefined;
 	}
 	get error(): string {
-		return "";
-	}
-	get facets(): string[] {
-		return EMPTY_ARRAY as string[];
-	}
-	// transform(target: Target): any {
-	// 	return JSON.stringify(this.value);
-	// }
-	notice(level: level, message: string) {
-		return new NoticeValue(level, message, this);
+		return undefined;
 	}
 }
 
-export class Box<T> extends Eval {
-	constructor(value: T) {
+export class NoticeValue extends Eval implements Notice {
+	constructor(level: level, message: string, value: Value) {
 		super();
-		this.#value = value;
+		console[level](message, value);
+		this.value = value;
+		this.level = level;
+		this.message = message;
 	}
-	#value: T
-	get value(): T {
-		return this.#value;
-	}
-}
-
-class Decorator extends Box<Value>  {
-	constructor(value: Value) {
-		super(value);
-	}
+	level: level
+	message: string;
+	value: Value
 	get type() {
 		return this.value?.type;
 	}
@@ -55,28 +34,8 @@ class Decorator extends Box<Value>  {
 		return this.value?.pure;
 	}
 	get error(): string {
-		return this.value instanceof Eval ? this.value.error : "";
-	}
-	get facets(): string[] {
-		return this.value instanceof Eval ? this.value.facets : super.facets;
-	}
-	// transform(target: Target) {
-	// 	return this.value instanceof Eval ? this.value.transform(target) : "";
-	// }
-}
-
-export class NoticeValue extends Decorator implements Notice {
-	constructor(level: level, message: string, value: Value) {
-		console[level](message, value);
-		super(value);
-		this.level = level;
-		this.message = message;
-	}
-	get error(): string {
 		if (this.level == "error") return this.message
 	}
-	level: level
-	message: string;
 }
 
 export class Lval extends Eval {
@@ -124,8 +83,8 @@ export class Modify extends Eval {
 	get pure(): any {
 		return this.value?.pure;
 	}
-	// transform(target: any): string {
-	// 	return this.receiver.transform(target) + " = " + this.expr.transform(target);
+	// transform(target: Target): string {
+	// 	return target.transform(this.receiver) + " = " + this.expr.transform(target);
 	// }
 }
 
@@ -152,20 +111,22 @@ export class Lookup extends Lval {
 }
 
 export class Get extends Lookup {
-	constructor(receiver: Eval, subject: string) {
+	constructor(receiver: Value, subject: string) {
 		super(receiver.type, subject);
 		this.receiver = receiver;
 	}
-	receiver: Eval;
+	receiver: Value;
 	// transform(target: Target) {
 	// 	return this.receiver.transform(target) + "." + this.subject;
 	// }
 }
 
-export class ExprList extends Box<Value[]> {
+export class ExprList extends Eval {
 	constructor(value: Value[]) {
-		super(value);
+		super();
+		value = value;
 	}
+	value: Value[]
 	get type() {
 		return this.value[this.value.length - 1].type;
 	}
@@ -203,11 +164,13 @@ export class Call extends Eval {
 	// }
 }
 
-export class Cast extends Box<Value> {
+export class Cast extends Eval {
 	//Something has to check the validity of the cast (either upcast or downcast);
 	constructor(type: Value, value: Value) {
-		super(value);
+		super();
+		this.value = value;
 	}
+	value: Value;
 	#type: Value
 	get type(): Type {
 		return this.#type.pure instanceof Type ? this.#type.pure : undefined;
@@ -231,8 +194,8 @@ export class Cast extends Box<Value> {
 type Literal =  string | number | boolean | Function | Array<Literal> | Bundle<Literal> | Type
 
 export class Pure  {
-	static call(method: Eval, receiver: Eval, args: Box<Eval[]>): any {
-		let pure = Pure.array(args.value);
+	static call(method: Value, receiver: Value, args: Value[]): any {
+		let pure = Pure.array(args);
 		let fn = method.pure as Function;
 		if (fn && !(fn instanceof Function)) return undefined;
 		let self = receiver ? receiver.pure : undefined;

@@ -68,18 +68,18 @@ export class Msg extends Receivable {
 		this.value = subject;
 	}
 	value: string
-	compile(scope: Scope, receiver: Eval): Eval {
+	compile(scope: Scope, receiver: Value): Value {
 		let expr: Lookup
 		if (receiver) {
 			if (!receiver.type) {
-				return receiver.notice("error", "Receiver value has no type.");
+				return scope.notice("error", "Receiver value has no type.", receiver);
 			}
 			expr = new Get(receiver, this.value);
 		} else {
 			expr = new Lookup(scope, this.value);
 		}
 		if (!expr.value) {
-			return expr.notice("error", `"${expr.subject}" is not defined.`);
+			return scope.notice("error", `"${expr.subject}" is not defined.`, expr);
 		}
 		return expr;
 	}
@@ -101,7 +101,7 @@ export class Exprs extends Receivable {
 		if (receiver) {
 			let call = new Call(receiver, exprs);
 			if (!(receiver.type instanceof Signature)) {
-				return call.notice("error", "Receiver is not callable.");
+				return scope.notice("error", "Receiver is not callable.", call);
 			}
 			return call;
 		}
