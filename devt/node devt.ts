@@ -1,5 +1,5 @@
-import {Markup, Array, Bundle} from "../api/model.js";
-import {EmptyMarkup} from "../base/content";
+import {Markup, Array, Bundle, Sequence, Content} from "../api/model.js";
+import {EmptyMarkup} from "../base/bag.js";
 
 const IMMUTABLE_ARRAY = {
 	set() {
@@ -43,7 +43,7 @@ class MarkupNode extends EmptyMarkup {
 	// ownerDocument: Node;
 }
 
-class Element extends MarkupNode {
+class MINI_ELE extends MarkupNode {
 	#nodes: MarkupNode[] = [];
 	#attributes: Bundle<string> = Object.create(null);
 
@@ -60,7 +60,7 @@ class Element extends MarkupNode {
 
 interface Document {
 	//createElementNS(namespace, name);
-	createElement(name: string): Element;
+	createElement(name: string): MINI_ELE;
 	createTextNode(): Node;
 }
 

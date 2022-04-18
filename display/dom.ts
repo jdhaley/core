@@ -123,7 +123,6 @@ export class Viewer extends Control {
 		return this.view.parentNode["$control"];
 	}
 	get parts() {
-		let x: ChildNode;
 		const nodes = this.view.childNodes;
 		let to = Object.create(null);
 		to[Symbol.iterator] = function*() {
