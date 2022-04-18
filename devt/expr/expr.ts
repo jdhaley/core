@@ -1,9 +1,8 @@
-import {Parcel, Type, Value} from "../../api/value.js";
+import {Value} from "../../api/value.js";
 import {Scope, Compilable, Receivable} from "./compiler.js";
-import {ContainerType, Signature} from "../../base/type.js";
-import {Target} from "../../base/target.js";
+import {Signature} from "../../base/type.js";
 
-import {Box, Eval, Pure} from "./eval.js";
+import {Access, Call, Cast, Eval, ExprList, Get, Lookup, Lval, Modify, Pure} from "./values.js";
 
 //expr: primary msg* ^ cast)*
 export class Expr implements Compilable {
@@ -11,7 +10,7 @@ export class Expr implements Compilable {
 		this.value = value;
 	}
 	value: Compilable[];
-	compile(scope: Scope): Eval {
+	compile(scope: Scope): Value {
 		if (!this.value.length) return new Pure(scope.getType("any"), null);
 		let expr = this.value[0].compile(scope);
 		for (let i = 1; i < this.value.length; i++) {
@@ -19,7 +18,7 @@ export class Expr implements Compilable {
 			if (source instanceof Receivable) {
 				expr = source.compile(scope, expr);
 			} else {
-				expr = expr.notice("error", "Expecting: Message | Arguments | Cast.")
+				expr = scope.notice("error", "Expecting: Message | Arguments | Cast.", expr);
 			}
 		}
 		return expr;
@@ -43,9 +42,9 @@ export class At extends Receivable {
 		this.index = index;
 	}
 	index: Compilable;
-	compile(scope: Scope, receiver: Eval): Eval {
+	compile(scope: Scope, receiver: Value): Value {
 		let index = this.index.compile(scope);
-		if (!receiver) return index.notice("error", "@ cannot be primary.");
+		if (!receiver) return scope.notice("error", `"[]" cannot be primary.`, index);
 		return new Access(receiver, index);
 	}
 }
@@ -55,11 +54,11 @@ export class Put extends Receivable {
 		this.expr = expr;
 	}
 	expr: Compilable;
-	compile(scope: Scope, receiver: Eval): Eval {
+	compile(scope: Scope, receiver: Value): Value {
 		let expr = this.expr.compile(scope);
 		expr = new Modify(receiver, expr);
-		if (!receiver) return expr.notice("error", "= cannot be primary.");
-		if (!(receiver instanceof Lval)) return expr.notice("error", "expression is not assignable.");
+		if (!receiver) return scope.notice("error", `"=" cannot be primary.`, expr);
+		if (!(receiver instanceof Lval)) return scope.notice("error", "expression is not assignable.", expr);
 		return expr;
 	}
 }
@@ -92,8 +91,8 @@ export class Exprs extends Receivable {
 		this.value = args;
 	}
 	value: Compilable[]
-	compile(scope: Scope, receiver: Eval): Eval {
-		let values: Eval[] = [];
+	compile(scope: Scope, receiver: Value): Value {
+		let values: Value[] = [];
 		for (let source of this.value) {
 			let value = source.compile(scope);
 			values.push(value);
@@ -116,158 +115,9 @@ export class As extends Receivable {
 		this.type = type;
 	}
 	type: Compilable;
-	compile(scope: Scope, expr: Eval): Eval {
+	compile(scope: Scope, expr: Value): Value {
 		let type = this.type.compile(scope);
-		if (type.error) return type;
+		if (!type.pure) return type;
 		return new Cast(type, expr)
-	}
-}
-
-class Lval extends Eval {
-}
-
-class Access extends Lval {
-	constructor(receiver: Value, expr: Eval) {
-		super();
-		this.receiver = receiver;
-		this.expr = expr;
-	}
-	receiver: Value;
-	expr: Eval;
-	get contract(): Parcel<string, Value> {
-		return this.receiver.type;
-	}
-	get type(): Type {
-		return (this.receiver.type as ContainerType).output;
-	}
-	get value(): Value {
-		if (this.expr.pure) return this.contract.at(this.expr.pure);
-	}
-	get pure(): any {
-		return this.value?.pure;
-	}
-}
-
-class Modify extends Eval {
-	constructor(receiver: Eval, expr: Eval) {
-		super();
-		this.receiver = receiver;
-		this.expr = expr;
-	}
-	receiver: Eval;
-	expr: Eval;
-	get contract(): Parcel<string, Value> {
-		return this.receiver.type;
-	}
-	get type(): Type {
-		return (this.receiver.type as ContainerType).output;
-	}
-	get value(): Value {
-		if (this.expr.pure) return this.contract.at(this.expr.pure);
-	}
-	get pure(): any {
-		return this.value?.pure;
-	}
-	transform(target: any): string {
-		return this.receiver.transform(target) + " = " + this.expr.transform(target);
-	}
-}
-
-class Lookup extends Lval {
-	constructor(context: Parcel<string, Value>, subject: string) {
-		super();
-		this.context = context;
-		this.subject = subject;
-	}
-	context: Parcel<string, Value>
-	subject: string;
-	get type() {
-		return this.value?.type;
-	}
-	get pure(): any {
-		return this.value?.pure;
-	}
-	get value(): Value {
-		return this.context.at(this.subject);
-	}
-	transform(target: any): string {
-		return this.subject;
-	}
-}
-
-class Get extends Lookup {
-	constructor(receiver: Eval, subject: string) {
-		super(receiver.type, subject);
-		this.receiver = receiver;
-	}
-	receiver: Eval;
-	transform(target: Target) {
-		return this.receiver.transform(target) + "." + this.subject;
-	}
-}
-
-class ExprList extends Box<Eval[]> {
-	constructor(value: Eval[]) {
-		super(value);
-	}
-	get type() {
-		return this.value[this.value.length - 1].type;
-	}
-	get pure() {
-		return Pure.array(this.value);
-	}
-	transform(target: Target): string {
-		let out = "";
-		for (let value of this.value) {
-			if (out != "") out += ", ";
-			out += value.transform(target);
-		}
-		return "(" + out + ")";
-	}
-}
-
-class Call extends Eval {
-	constructor(callable: Eval, args: ExprList) {
-		super();
-		this.callable = callable;
-		this.args = args;
-	}
-	callable: Eval
-	args: ExprList;
-	get type(): Type {
-		return (this.callable.type as Signature)?.output;
-	}
-	get value(): any {
-		return this;
-	}
-	// get pure(): any {
-	// }
-	transform(target: Target) {
-		return this.callable.transform(target) + this.args.transform(target);
-	}
-}
-
-class Cast extends Box<Eval> {
-	//Something has to check the validity of the cast (either upcast or downcast);
-	constructor(type: Eval, value: Eval) {
-		super(value);
-	}
-	#type: Eval
-	get type(): Type {
-		return this.#type.pure instanceof Type ? this.#type.pure : undefined;
-	}
-	get pure(): any {
-		return this.value.pure;
-	}
-	isDowncast() {
-		return this.value.type.generalizes(this.type)
-	}
-	transform(context: Target) {
-		let out = this.value.transform(context);
-		//If the value is impure & downcast add a runtime check.
-		if (this.pure === undefined && this.isDowncast) {
-			out = "(" + out + ").cast(" + this.#type.transform(context) + ")"
-		}
-		return out;
 	}
 }
