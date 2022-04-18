@@ -1,9 +1,22 @@
-import {Value} from "../../api/value.js";
+import {Type, Value} from "../../api/value.js";
 import {Scope, Compilable, Receivable} from "./compiler.js";
 import {Signature} from "../../base/type.js";
 
 import {Access, Call, Cast, ExprList, Get, Lookup, Lval, Modify, Pure} from "./values.js";
+import { constant, Markup } from "../../api/model.js";
 
+export class Err implements Compilable, Value {
+	constructor(message: string, source: Markup) {
+		this.value = message;
+	}
+	type: Type;
+	pure?: any;
+	value: string;
+	compile(scope: Scope): Value {
+		scope.notice("error", this.value, this);
+		return this;
+	}
+}
 //expr: primary msg* ^ cast)*
 export class Expr implements Compilable {
 	constructor(value: Compilable[]) {
@@ -22,6 +35,16 @@ export class Expr implements Compilable {
 			}
 		}
 		return expr;
+	}
+}
+
+export class Const implements Compilable {
+	constructor(value: constant) {
+		this.value = value;
+	}
+	value: constant
+	compile(scope: Scope): Value {
+		return scope.createPure(this.value);
 	}
 }
 

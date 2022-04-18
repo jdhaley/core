@@ -2,7 +2,7 @@
 import {Bundle} from "../../api/model.js";
 import {Parcel, Type, Value} from "../../api/value.js";
 import {level} from "../../api/notice.js";
-import {Eval, Pure, NoticeValue} from "./values.js";
+import {Pure, NoticeValue} from "./values.js";
 
 export interface Compilable {
 	compile(scope: Scope, receiver?: Value): Value
@@ -13,25 +13,19 @@ export abstract class Receivable implements Compilable {
 }
 
 export class Scope extends Parcel<string, Value> {
-	constructor(from: Scope | object) {
-		super();
-		if (from instanceof Scope) {
-			this.#members = Object.create(from.#members);
-		} else {
-			this.#members = Object.create(null);
-		}
+	protected get scope(): Bundle<Value> {
+		return null;
 	}
-	#members: Bundle<Value>;
 	at(name: string): Value {
-		if (Object.getOwnPropertyDescriptor(this.#members, name)) return this.#members[name];
+		if (Object.getOwnPropertyDescriptor(this.scope, name)) return this.scope[name];
 		return new NoticeValue("error", `"${name}" is not in scope`, null);
 	}
 	put(key: string, value: Value): void {
-		let member: any = this.#members[key]
+		let member: any = this.scope[key]
 		if (member?.facets?.reserved) {
 			value = this.notice("error", `"${key}" is a reserved name.`, value);
 		}
-		this.#members[key] = value;
+		this.scope[key] = value;
 	}
 	getType(name: string): Type {
 		let type = this.at(name);
