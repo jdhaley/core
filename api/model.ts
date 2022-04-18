@@ -13,9 +13,9 @@ export type serial = constant | Bundle<serial> | Array<serial>;
 
 export type runtime = serial | Function;
 
-/** A Sequence provides an ordinal (positional) collection of values.
+/** A Sequence declares an ordinal (positional) collection of values.
 	There are no contracts on the mutability of the sequence.
-	Native strings and Arrays are assignable to Sequence.
+	Runtime strings and Arrays are assignable to Sequence.
 */
 export interface Sequence<T> extends Iterable<T> {
 	get length(): number;
