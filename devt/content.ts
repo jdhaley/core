@@ -1,46 +1,9 @@
-import {Bundle, Markup, Sequence} from "../api/model.js";
+import {Markup, Sequence} from "../api/model.js";
+import {EmptyMarkup} from "../base/markup.js";
 
 const EMPTY_ARRAY = Object.freeze([]);
-const EMPTY_OBJECT = Object.freeze(Object.create(null));
 
-export class EmptyMarkup implements Markup {
-	get content(): Iterable<Markup> {
-		return EMPTY_ARRAY;
-	}
-	protected get value(): string {
-		return "";
-	}
-	get name(): string {
-		return typeof this.value == "string" ? "#text" : "markup";
-	}
-	get attr(): Bundle<string> {
-		return EMPTY_OBJECT;
-	}
-	get markup(): string {
-		let markup = this.markupContent;
-		if (this.isNamed) {
-			markup = `<${this.name}>${markup}</${this.name}>`
-		}
-		return markup;
-	}
-	get markupContent(): string {
-		if (this.isNamed) return markupContent(this.content)
-		return markupText(this.value);
-	}
-	get textContent(): string {
-		if (this.isNamed) {
-			let text = "";
-			for (let item of this.content) text += item.textContent;
-			return text;	
-		}
-		return this.value;
-	}
-	protected get isNamed(): boolean {
-		return this.name.startsWith("#") ? false : true;
-	}
-}
-
-export type content = string | MarkupSequence;
+type content = string | MarkupSequence;
 
 export abstract class MarkupSequence extends EmptyMarkup implements Sequence<MarkupSequence> {
 	// constructor(content: string | Sequence<Content>) {
@@ -117,23 +80,4 @@ function toContent(...values: content[]): MarkupSequence[] {
 		content.push(value);
 	}
 	return content;
-}
-
-function markupText(text: string): string {
-	let markup = "";
-	for (let ch of text) {
-		switch (ch) {
-			case ">": markup += "&gt;"; break;
-			case "<": markup += "&lt;"; break;
-			case "&": markup += "&amp;"; break;
-			default:  markup += ch; break;
-		}
-	}
-	return markup;			
-}
-
-function markupContent(content: Iterable<Markup>): string {
-	let markup = "";
-	for (let item of content) markup += item.markup;
-	return markup;
 }

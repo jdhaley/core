@@ -1,5 +1,5 @@
 import {Markup, Array, Bundle, Sequence, Content} from "../api/model.js";
-import {EmptyMarkup} from "../base/bag.js";
+import { EmptyMarkup } from "../base/markup.js";
 
 const IMMUTABLE_ARRAY = {
 	set() {

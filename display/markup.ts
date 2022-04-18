@@ -1,5 +1,5 @@
 import {Bundle} from "../api/model.js";
-import {EmptyMarkup} from "../base/bag.js";
+import {EmptyMarkup} from "../base/markup.js";
 
 class NodeModel extends EmptyMarkup {
 	constructor(view: Node) {
