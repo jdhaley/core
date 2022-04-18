@@ -25,6 +25,19 @@ export interface Sequence<T> extends Iterable<T> {
 	concat(...values: T[]): Sequence<T>;
 }
 
+/*
+	NOTE: A Consumer can be a stable Sequence source, therefore
+	append() shouldn't alter the sub sequences created from this instance.
+
+	close() is not required to do anything, however the intent is enable
+	freezing the underlying buffer, optimizing the data for access, clearing data, etc.
+*/
+export interface Consumer<T>  {
+	append(...data: T[]): void;
+	close(): void;	
+	isClosed?: boolean;
+}
+
 export interface Content<T> {
 	name: string;
 	attr: Bundle<string>;

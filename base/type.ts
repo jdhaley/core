@@ -26,7 +26,7 @@ tuple:		Class
 domain:		Enum
 container:	Sequence/Array, Countable/Iterable, 
 */
-export class Contract extends Type implements Container<Value>, Iterable<string> {
+export class Contract extends Type implements Container<string, Value>, Iterable<string> {
 	constructor(members: Bundle<Value> | Contract) {
 		super();
 		this.#members = members instanceof Contract ? members.#members : members

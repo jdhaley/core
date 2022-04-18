@@ -1,4 +1,4 @@
-import {Bundle, Markup} from "../api/model.js";
+import {Bundle, Consumer, Markup, Sequence} from "../api/model.js";
 
 const EMPTY_ARRAY = Object.freeze([]);
 const EMPTY_OBJECT = Object.freeze(Object.create(null));
@@ -57,6 +57,48 @@ export class TextContent extends EmptyMarkup {
 	set textContent(text: string) {
 		this.#value = text;
 	}	
+}
+
+const IMMUTABLE_ARRAY = {
+	set() {
+		throw new Error("Immutable Array");
+	}
+}
+
+export class Bag extends EmptyMarkup implements Consumer<Markup> {
+	#content: Markup[] = [];
+	get content(): Sequence<Markup> {
+		return this.#content;
+	}
+	get textContent(): string {
+		return super.textContent;
+	}
+	set textContent(text: string) {
+		this.#content.length = 0;
+		this.append(new TextContent(text));
+	}
+	append(...values: content[]): void {
+		for (let value of values) {
+			this.#content.push(typeof value == "string" ? new TextContent(value) : value);
+		}
+	}
+	get isClosed(): boolean {
+		return Object.isFrozen(this.content);
+	}
+	close(): void {
+		Object.freeze(this.content);
+	}
+}
+
+export class Source extends Bag  {
+	error?: string;
+	get content(): Markup[] {
+		return super.content as Markup[];
+	}
+	parse(text: string, start: number): number {
+		this.append(new TextContent(text.substring(start)));
+		return text.length;
+	}
 }
 
 function toMarkup(...values: content[]): Markup[] {

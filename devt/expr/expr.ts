@@ -2,7 +2,7 @@ import {Value} from "../../api/value.js";
 import {Scope, Compilable, Receivable} from "./compiler.js";
 import {Signature} from "../../base/type.js";
 
-import {Access, Call, Cast, Eval, ExprList, Get, Lookup, Lval, Modify, Pure} from "./values.js";
+import {Access, Call, Cast, ExprList, Get, Lookup, Lval, Modify, Pure} from "./values.js";
 
 //expr: primary msg* ^ cast)*
 export class Expr implements Compilable {

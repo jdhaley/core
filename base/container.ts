@@ -1,16 +1,12 @@
 import {Bundle} from "../api/model.js";
-import {Value, Type} from "../api/value.js";
-
-export interface Parcel<K, V> {
-	at(key: K): V;
-} 
+import {Value, Type, Parcel} from "../api/value.js";
 
 type Key = string | number;
 
-export abstract class Container<T> {
-	abstract at(key: Key): T;
-	abstract put(key: Key, value: T): void;
+export abstract class Container<K, T> extends Parcel<K, T> {
+	abstract put(key: K, value: T): void;
 }
+
 
 interface Entries<K, V> extends Parcel<K, V> {
 	//type: ContainerType[key, value]
@@ -22,7 +18,8 @@ interface Stream {
 	close(): void;
 	add(): void;
 }
-abstract class X<T> implements Container<T> {
+
+abstract class X<T> implements Container<Key, T> {
 	type: Type;
 	pure: any;
 	keys: Iterable<Key>;
@@ -38,7 +35,7 @@ abstract class X<T> implements Container<T> {
 	}
 }
 
-export class ParcelImpl<T> implements Container<T>, Value {
+export class ParcelImpl<T> implements Container<string, T>, Value {
 	constructor(type: Type, from?: ParcelImpl<T> | Bundle<T>) {
 		this.type = type;
 		this.#members = from instanceof ParcelImpl ? Object.create(from.#members) : (from || Object.create(null));
@@ -69,7 +66,7 @@ export class ParcelImpl<T> implements Container<T>, Value {
 	}
 }
 
-export class Sequence<T> implements Container<T> {
+export class Sequence<T> implements Container<number, T> {
 	constructor(from?: Sequence<T> | Array<T>) {
 		this.#members = from instanceof Sequence ? Object.create(from.#members) : (from || []);
 	}
