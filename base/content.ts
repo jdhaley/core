@@ -13,7 +13,7 @@ export class EmptyMarkup implements Markup {
 	get name(): string {
 		return typeof this.value == "string" ? "#text" : "markup";
 	}
-	get attributes(): Bundle<string> {
+	get attr(): Bundle<string> {
 		return EMPTY_OBJECT;
 	}
 	get markup(): string {

@@ -13,7 +13,7 @@ export class EmptyMarkup implements Markup {
 	get name(): string {
 		return typeof this.value == "string" ? "#text" : "markup";
 	}
-	get attributes(): Bundle<string> {
+	get attr(): Bundle<string> {
 		return EMPTY_OBJECT;
 	}
 	get content(): Iterable<Markup> {
@@ -22,7 +22,7 @@ export class EmptyMarkup implements Markup {
 	get markup(): string {
 		let markup = this.markupContent;
 		if (this.isNamed) {
-			markup = `<${this.name}>${markup}</${this.name}>`
+			markup = `<${this.name}${markupAttrs(this.attr)}>${markup}</${this.name}>`
 		}
 		return markup;
 	}
@@ -69,13 +69,22 @@ function toMarkup(...values: content[]): Markup[] {
 	return content;
 }
 
-function markupText(text: string): string {
+function markupAttrs(attrs: Bundle<string>) {
+	let markup = "";
+	for (let key in attrs) {
+		markup += ` ${key}="${markupText(attrs[key], true)}"`;
+	}
+	return markup;
+}
+
+function markupText(text: string, quote?: boolean): string {
 	let markup = "";
 	for (let ch of text) {
 		switch (ch) {
 			case ">": markup += "&gt;"; break;
 			case "<": markup += "&lt;"; break;
 			case "&": markup += "&amp;"; break;
+			case "\"": markup += quote ? "&quot;" : ch; break;
 			default:  markup += ch; break;
 		}
 	}

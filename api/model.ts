@@ -27,13 +27,12 @@ export interface Sequence<T> extends Iterable<T> {
 
 export interface Content<T> {
 	name: string;
-	attributes: Bundle<string>;
+	attr: Bundle<string>;
 	content: Iterable<T>;
 }
 
 export interface Markup extends Content<Markup> {
-	content: Iterable<Markup>;
-	markup: string;					//DOM outerHTML
-	markupContent: string;			//DOM innerHTML
-	textContent: string;			//DOM textContent
+	markup: string;			//DOM outerHTML
+	markupContent: string;	//DOM innerHTML
+	textContent: string;	//DOM textContent
 }
