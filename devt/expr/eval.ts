@@ -1,44 +1,9 @@
-import {Bundle} from "../../api/model.js";
 import {Parcel, Type, Value} from "../../api/value.js";
-import {level, Notice} from "../../api/notice.js";
 import {ContainerType, Signature} from "../../base/type.js";
-import { Target, Targeter } from "../../base/target.js";
+import {Pure} from "../../base/pure.js";
 
-export abstract class Eval implements Value {
-	get type(): Type {
-		return undefined;
-	}
-	get pure(): any {
-		return undefined;
-	}
-	get error(): string {
-		return undefined;
-	}
-}
-
-export class NoticeValue extends Eval implements Notice {
-	constructor(level: level, message: string, value: Value) {
-		super();
-		console[level](message, value);
-		this.value = value;
-		this.level = level;
-		this.message = message;
-	}
-	level: level
-	message: string;
-	value: Value
-	get type() {
-		return this.value?.type;
-	}
-	get pure() {
-		return this.value?.pure;
-	}
-	get error(): string {
-		if (this.level == "error") return this.message
-	}
-}
-
-export class Lval extends Eval {
+export abstract class Lval implements Value {
+	abstract get type(): Type;
 }
 
 export class Access extends Lval {
@@ -63,9 +28,8 @@ export class Access extends Lval {
 	}
 }
 
-export class Modify extends Eval {
+export class Modify implements Value {
 	constructor(receiver: Value, expr: Value) {
-		super();
 		this.receiver = receiver;
 		this.expr = expr;
 	}
@@ -88,9 +52,8 @@ export class Modify extends Eval {
 	// }
 }
 
-export class Lookup extends Lval {
+export class Lookup implements Value {
 	constructor(context: Parcel<string, Value>, subject: string) {
-		super();
 		this.context = context;
 		this.subject = subject;
 	}
@@ -121,10 +84,9 @@ export class Get extends Lookup {
 	// }
 }
 
-export class ExprList extends Eval {
+export class ExprList implements Value {
 	constructor(value: Value[]) {
-		super();
-		value = value;
+		this.value = value;
 	}
 	value: Value[]
 	get type() {
@@ -143,9 +105,8 @@ export class ExprList extends Eval {
 	// }
 }
 
-export class Call extends Eval {
+export class Call implements Value {
 	constructor(callable: Value, args: ExprList) {
-		super();
 		this.callable = callable;
 		this.args = args;
 	}
@@ -164,11 +125,11 @@ export class Call extends Eval {
 	// }
 }
 
-export class Cast extends Eval {
+export class Cast implements Value {
 	//Something has to check the validity of the cast (either upcast or downcast);
 	constructor(type: Value, value: Value) {
-		super();
 		this.value = value;
+		this.#type = type;
 	}
 	value: Value;
 	#type: Value
@@ -191,59 +152,3 @@ export class Cast extends Eval {
 	// }
 }
 
-type Literal =  string | number | boolean | Function | Array<Literal> | Bundle<Literal> | Type
-
-export class Pure  {
-	static call(method: Value, receiver: Value, args: Value[]): any {
-		let pure = Pure.array(args);
-		let fn = method.pure as Function;
-		if (fn && !(fn instanceof Function)) return undefined;
-		let self = receiver ? receiver.pure : undefined;
-		if (fn  && pure && self !== undefined) {
-			try {
-				let output = fn.apply(self, pure);
-				if (output === undefined) output = null;
-				return output;
-			} catch (err) {
-				//if there was an exception purifying the call it will just be
-				//treated as an impure.
-				console.error(err);
-			}
-		}
-	}
-	
-	static object(parcel: Bundle<Value>): Bundle<Literal> {	
-		let obj = {};
-		for (let key in parcel) {
-			let value = parcel[key].pure
-			if (value === undefined) return undefined;
-			obj[key] = value;
-		}
-		return obj;
-	}
-	static array(values: Array<Value>): Array<Literal> {
-		let arr = [];
-		for (let ele of values) {
-			let value = ele.pure;
-			if (value === undefined) return undefined;
-			arr.push(value);
-		}
-		return arr;	
-	}
-	constructor(type: Type, value: Literal) {
-		this.#type = type;
-		this.#pure = value;
-		Object.freeze(this);
-	}
-	#type: Type
-	#pure: Literal;
-	get type(): Type {
-		return this.#type;
-	}
-	get pure(): Literal {
-		return this.#pure;
-	}
-	// transform(target: any): string {
-	// 	return JSON.stringify(this.pure);
-	// }
-}

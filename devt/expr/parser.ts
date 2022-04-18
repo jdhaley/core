@@ -1,5 +1,5 @@
 import {Bundle, Markup} from "../../api/model";
-import {Compilable} from "./compiler";
+import {Compilable} from "../../base/compiler";
 import {At, Const, Err, Expr, Exprs, Msg} from "./expr";
 
 export default function parse(source: Markup): Compilable {

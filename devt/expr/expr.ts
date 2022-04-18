@@ -1,9 +1,10 @@
 import {Type, Value} from "../../api/value.js";
-import {Scope, Compilable, Receivable} from "./compiler.js";
+import {Scope, Compilable, Receivable} from "../../base/compiler.js";
 import {Signature} from "../../base/type.js";
 
-import {Access, Call, Cast, ExprList, Get, Lookup, Lval, Modify, Pure} from "./values.js";
+import {Access, Call, Cast, ExprList, Get, Lookup, Lval, Modify} from "./eval.js";
 import { constant, Markup } from "../../api/model.js";
+import { Pure } from "../../base/pure.js";
 
 export class Err implements Compilable, Value {
 	constructor(message: string, source: Markup) {

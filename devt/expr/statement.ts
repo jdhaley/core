@@ -1,6 +1,6 @@
 import {Markup} from "../../api/model.js";
 import {Value, Type} from "../../api/value.js";
-import {Compilable, Scope } from "./compiler.js";
+import {Compilable, Scope } from "../../base/compiler.js";
 
 export class Statement extends Scope implements Compilable, Value {
 	parent: Statement;
