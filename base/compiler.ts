@@ -1,8 +1,9 @@
 
-import {Bundle} from "../../api/model.js";
-import {Parcel, Type, Value} from "../../api/value.js";
-import {level} from "../../api/notice.js";
-import {Pure, NoticeValue} from "./values.js";
+import {Bundle} from "../api/model.js";
+import {Parcel, Type, Value} from "../api/value.js";
+import {level} from "../api/notice.js";
+import {Pure, typeOf} from "./pure.js";
+import {NoticeValue} from "./target.js";
 
 export interface Compilable {
 	compile(scope: Scope, receiver?: Value): Value
@@ -35,31 +36,7 @@ export class Scope extends Parcel<string, Value> {
 		let type = this.getType(typeOf(value));
 		return new Pure(type, value);
 	}
-	notice(level: level, message: string, value: Value) {
+	notice(level: level, message: string, value: Value): Value {
 		return new NoticeValue(level, message, value);
-	}
-}
-
-function typeOf(value: any): string {
-	switch (typeof value) {
-		case "undefined":
-			return "void"
-		case "number":
-			if (value === NaN) return "unknown";
-		case "boolean":
-		case "string":
-		case "function":
-			return typeof value;
-		case "object":
-			if (value === null) return "any";
-			if (typeof value.valueOf == "function") value = value.valueOf();
-			if (typeof value != "object") return typeOf(value);
-			if (value instanceof Array) return "array";
-			if (value instanceof Type) return "type";
-			return "object";
-		case "bigint":
-		case "symbol":
-		default:
-			return "unknown";
 	}
 }
