@@ -1,14 +1,22 @@
-import {Markup} from "../../api/model.js";
 import {Value, Type} from "../../api/value.js";
-import {Compilable, Scope } from "../../base/compiler.js";
+import {EMPTY} from "../../base/data.js";
+import {Compilable, Scope} from "../../base/compiler.js";
+import {Markup} from "../../api/model.js";
+import lex from "./lexer.js";
+import parse from "./parser.js";
 
 export class Statement extends Scope implements Compilable, Value {
-	parent: Statement;
+	constructor(source: Element, parent?: Statement) {
+		super();
+		this.source = source;
+		this.parent = parent;
+	}
+	readonly source: Element;
+	readonly parent: Statement;
+	
 	content: Statement[]
-	model: Element;
 	comment: string;
-	source: Markup;
-	expr: Compilable;
+	// expr: Markup;
 	get scope() {
 		return this.parent?.scope || null;
 	}
@@ -21,34 +29,25 @@ export class Statement extends Scope implements Compilable, Value {
 	compile(scope: Scope): Value {
 		throw new Error("Method not implemented.");
 	}
-	add(element: Element) {
-		let stmt = new Statement();
-		stmt.parent = this;
-		stmt.model = element;
-		stmt.source = lex(element.getAttribute("value") || "");
-		stmt.expr = parse(stmt.source);
-		this.content.push(stmt);
+	initialize() {
+		let source = this.source;
+		this.content = source.children.length ? [] : EMPTY.array as any[];
+		// this.source = lex(source.getAttribute("value") || "");
+		// this.expr = parse(stmt.source);
+
 		//if (stmt instanceof Declaration) ...
-		for (let child of element.children) parseChild(child, stmt);	
-	}
-}
-
-import lex from "./lexer.js";
-import parse from "./parser.js";
-
-export default function load(xml: Element): Statement {
-	let module = new Statement();
-	for (let child of xml.children) parseChild(child, module);
-	return module;
-}
-
-function parseChild(child: Element, stmt: Statement) {
-	if (child.nodeName == "s") {
-		stmt.add(child);
-	} else if (child.nodeName == "section") {
-		//add check that comment isn't already assigned.
-		stmt.comment = child.innerHTML;
-	} else {
-		stmt.notice("error", `invalid child node "<${child.nodeName}>"`, stmt);
+		for (let child of source.children) {
+			if (child.nodeName == "s") {
+				let stmt = new Statement(child, this);
+				this.content.push(stmt);
+				stmt.initialize();
+			} else if (child.nodeName == "section") {
+				//add check that comment isn't already assigned.
+				this.comment = child.innerHTML;
+			} else {
+				let err = new Statement(child, this);
+				this.notice("error", `invalid child node "<${child.nodeName}>"`, err);
+			}
+		}
 	}
 }
