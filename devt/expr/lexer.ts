@@ -1,4 +1,4 @@
-import {Source} from "../../base/markup";
+import {Source} from "../../base/markup.js";
 
 export default function parse(text: string): Source {
 	let expr = new EXPR();

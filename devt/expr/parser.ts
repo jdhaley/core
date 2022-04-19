@@ -1,6 +1,6 @@
-import {Bundle, Markup} from "../../api/model";
-import {Compilable} from "../../base/compiler";
-import {At, Const, Err, Expr, Exprs, Msg} from "./expr";
+import {Bundle, Markup} from "../../api/model.js";
+import {Compilable} from "../../base/compiler.js";
+import {At, Const, Err, Expr, Exprs, Msg} from "./expr.js";
 
 export default function parse(source: Markup): Compilable {
 	let xform = parsers[source.name];

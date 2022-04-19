@@ -4,32 +4,29 @@ import {Parcel, Type, Value} from "../api/value.js";
 import {level} from "../api/notice.js";
 import {Pure} from "./pure.js";
 import {NoticeValue} from "./target.js";
+import { Container } from "./container.js";
 
 export interface Compilable {
 	compile(scope: Scope, receiver?: Value): Value
 }
 
-export abstract class Receivable implements Compilable {
-	abstract compile(scope: Scope, receiver: Value): Value
-}
-
-export class Scope implements Parcel<string, Value> {
-	protected get scope(): Bundle<Value> {
+export class Scope implements Container<string, Value> {
+	protected get members(): Bundle<Value> {
 		return null;
 	}
 	get type() {
 		return undefined;
 	}
 	at(name: string): Value {
-		if (Object.getOwnPropertyDescriptor(this.scope, name)) return this.scope[name];
+		if (Object.getOwnPropertyDescriptor(this.members, name)) return this.members[name];
 		return new NoticeValue("error", `"${name}" is not in scope`, null);
 	}
 	put(key: string, value: Value): void {
-		let member: any = this.scope[key]
+		let member: any = this.members[key]
 		if (member?.facets?.reserved) {
 			value = this.notice("error", `"${key}" is a reserved name.`, value);
 		}
-		this.scope[key] = value;
+		this.members[key] = value;
 	}
 	getType(name: string): Type {
 		let type = this.at(name);
