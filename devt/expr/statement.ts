@@ -33,9 +33,11 @@ export class Statement  {
 			default:
 				break;
 		}
-		for (let stmt of this.content) stmt.compile();
-		let source = lex(this.source.getAttribute("value"));
-		let compilable = parse(source);
+		for (let stmt of this.content) {
+			stmt.compile();
+		}
+		let value = this.source.getAttribute("value") || "";
+		let compilable = parse(lex(value));
 		this.#value = compilable.compile(this.scope);
 	}
 	initialize() {
@@ -62,7 +64,16 @@ export class Statement  {
 		this.#state = "initialized";
 	}
 }
-
+export class Module extends Statement {
+	constructor(source: Element) {
+		super(source);
+		this.#scope = new Scope();
+	}
+	#scope: Scope;
+	get scope(): any {
+		return this.#scope;
+	}
+}
 export class Declaration extends Statement {
 	initialize() {
 		let source = this.source;

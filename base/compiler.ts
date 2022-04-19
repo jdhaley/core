@@ -11,9 +11,10 @@ export interface Compilable {
 }
 
 export class Scope implements Container<string, Value> {
-	protected get members(): Bundle<Value> {
-		return null;
+	constructor(scope?: Scope) {
+		this.members = Object.create(scope ? scope.members : null);
 	}
+	members: Bundle<Value>
 	get type() {
 		return undefined;
 	}
