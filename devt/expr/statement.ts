@@ -18,12 +18,14 @@ export class Statement  {
 	readonly source: Element;
 	readonly parent: Statement;
 	readonly content: Statement[];
-
-	//readonly comment: Element;
-	// expr: Markup;
+	
+	get comment() {
+		return this.source.getElementsByTagName("section").item(0);
+	}
 	get scope() {
 		return this.parent?.scope || null;
 	}
+
 	compile() {
 		switch (this.#state) {
 			case "compiling":
@@ -53,9 +55,6 @@ export class Statement  {
 				 	: new Statement(child, this);
 				this.content.push(stmt);
 				stmt.initialize();
-			} else if (child.nodeName == "section") {
-				//add check that comment isn't already assigned.
-				//this.comment = child;
 			} else {
 				let err = new Statement(child, this);
 				this.scope.notice("error", `invalid child node "<${child.nodeName}>"`, err);
@@ -82,6 +81,7 @@ export class Declaration extends Statement {
 		this.facets = facets ? facets.split(" ") : EMPTY.array as string[];
 		super.initialize();
 	}
-	key: string;
 	facets: string[];
+	key: string;
+	type: Type;
 }
