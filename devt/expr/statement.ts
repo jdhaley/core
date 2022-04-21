@@ -23,7 +23,7 @@ export class Statement  {
 	get scope() {
 		return this.parent?.scope || null;
 	}
-	get value() {
+	getValue(): Value {
 		if (this.#value === undefined) {
 			this.#value = COMPILING;
 			this.#value = this.compile();
@@ -51,6 +51,14 @@ export class Statement  {
 		return new ExpressionStatement(child, this);
 	}
 	protected compile(): any {
+		for (let stmt of this.content) {
+			if (stmt.getValue() == COMPILING) {
+				throw new Error("compiling cycle");
+			}
+		}
+		let value = this.source.getAttribute("value") || "";
+		let compilable = parse(lex(value));
+		return compilable.compile(this.scope);
 	}
 }
 export class Module extends Statement {
@@ -59,8 +67,18 @@ export class Module extends Statement {
 		this.#scope = new Scope();
 	}
 	#scope: Scope;
-	get scope(): any {
+	get scope(): Scope {
 		return this.#scope;
+	}
+	protected compile() {
+		for (let stmt of this.content) {
+			if (stmt instanceof Declaration) this.scope.put(stmt.key, stmt);
+		}
+		for (let stmt of this.content) {
+			if (stmt.getValue() == COMPILING) {
+				throw new Error("compiling cycle");
+			}
+		}
 	}
 }
 export class Declaration extends Statement {
@@ -74,18 +92,13 @@ export class Declaration extends Statement {
 	facets: string[];
 	key: string;
 	type: Type;
+	compile(): any {
+	}
+
 }
 
 export class KeywordStatement extends Statement {
 	compile(): any {
-		for (let stmt of this.content) {
-			if (stmt.value == COMPILING) {
-				throw new Error("compiling cycle");
-			}
-		}
-		let value = this.source.getAttribute("value") || "";
-		let compilable = parse(lex(value));
-		return compilable.compile(this.scope);
 	}
 }
 
