@@ -51,11 +51,17 @@ export class Statement  {
 		return new ExpressionStatement(child, this);
 	}
 	protected compile(): any {
+		this.compileStatements();
+		return this.compileExpr();
+	}
+	protected compileStatements(): void {
 		for (let stmt of this.content) {
 			if (stmt.getValue() == COMPILING) {
 				throw new Error("compiling cycle");
 			}
 		}
+	}
+	protected compileExpr(): Value {
 		let value = this.source.getAttribute("value") || "";
 		let compilable = parse(lex(value));
 		return compilable.compile(this.scope);
@@ -81,20 +87,30 @@ export class Module extends Statement {
 		}
 	}
 }
-export class Declaration extends Statement {
+export class Declaration extends Statement implements Value {
 	initialize() {
 		let source = this.source;
-		this.key = source.getAttribute("key");
-		let facets = source.getAttribute("facets");
+		this.key = source.getAttribute("key") || "";
+		let facets = source.getAttribute("facets") || "";
 		this.facets = facets ? facets.split(" ") : EMPTY.array as string[];
 		super.initialize();
 	}
-	facets: string[];
 	key: string;
-	type: Type;
-	compile(): any {
+	facets: string[];
+	get type(): Type {
+		return this.getValue().type;
 	}
-
+	get pure(): any {
+		return this.getValue().pure;
+	}
+	compile(): any {
+		//compile expr: ge
+		/*	The declaration type is the source attribute "type".
+			The decl type is either used to cast the expr, type a function, or
+			used as the supers for an interface or class.
+		*/
+		//compare types: expr.type & source.attribute.type (declared type)
+	}
 }
 
 export class KeywordStatement extends Statement {
