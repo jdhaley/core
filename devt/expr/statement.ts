@@ -45,7 +45,7 @@ export class Statement  {
 		let source = this.source;
 		for (let child of source.children) {
 			if (child.nodeName == "s") {
-				let stmt = createChild(this, child);
+				let stmt = createStatement(this, child);
 				this.content.push(stmt);
 				stmt.initialize();
 			} else if (child.nodeName == "note") {
@@ -81,16 +81,22 @@ export class Statement  {
 	}
 }
 
-function createChild(statement: Statement, child: Element) {
-	if (child.getAttribute("key")) return new Declaration(child, this);
-	if (child.getAttribute("keyword")) return new KeywordStatement(child, this);
-	return new ExpressionStatement(child, this);
+function createStatement(parent: Statement, child: Element) {
+	if (child.getAttribute("key")) return new Declaration(child, parent);
+	if (child.getAttribute("keyword")) return new KeywordStatement(child, parent);
+	return new ExpressionStatement(child, parent);
 }
 
 export class ExpressionStatement extends Statement {
+	protected compile(): Value {
+		throw new Error("Not implemented.");
+	}
 }
 
 export class KeywordStatement extends Statement {
+	protected compile(): Value {
+		throw new Error("Not implemented.");
+	}
 }
 
 export class Module extends Statement {
@@ -102,7 +108,7 @@ export class Module extends Statement {
 	get scope(): Scope {
 		return this.#scope;
 	}
-	protected compile() {
+	protected compile(): Value {
 		for (let stmt of this.content) {
 			if (stmt instanceof Declaration) this.scope.put(stmt.key, stmt);
 		}
@@ -133,7 +139,7 @@ export class Declaration extends Statement implements Value {
 		let value = this.getValue();
 		return value == this ? undefined : value.pure;
 	}
-	compile(): any {
+	protected compile(): Value {
 		let expr = this.compileExpr();
 		if (expr) {
 			if (this.content.length) {
@@ -148,6 +154,43 @@ export class Declaration extends Statement implements Value {
 	}
 }
 
-function compileBlock(stmt: Statement) {
-	return stmt;
+function compileBlock(stmt: Statement): Value {
+	switch (stmt.blockType) {
+		case "object":
+			return compileObject(stmt);
+		case "fn":
+		case "expr":
+		case "":
+	}
+	return stmt as Value;
 }
+
+function compileObject(source: Statement): Value {
+	let object = Object.create(null);
+	for (let stmt of source.content) {
+		if (stmt instanceof Declaration) {
+			if (object[stmt.key]) {
+				source.scope.notice("error", `Duplicate name "${stmt.key}"`, stmt)
+			} else {
+				object[stmt.key] = stmt;
+			}
+		} else {
+			source.scope.notice("error", "Not a declaration", stmt as Value);
+		}
+	}
+	for (let name in object) {
+		let stmt: Declaration = object[name];
+		if (stmt.getValue() == COMPILING) {
+			source.scope.notice("error", `compilation cycle in "${stmt.key}"`, stmt);
+		}
+	}
+	let type = source.scope.getType("object");
+	let pure = Pure.object(object);
+	return pure ? new Pure(type, pure) : new Impure(type, object);
+}
+
+function compileFunction(stmt: Statement) {
+}
+/*
+	Target:
+*/

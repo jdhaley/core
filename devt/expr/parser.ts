@@ -2,9 +2,11 @@ import {Bundle, Markup} from "../../api/model.js";
 import {Compilable} from "../../base/compiler.js";
 import {At, Const, Err, Expr, Exprs, Msg} from "./expr.js";
 
+type parser = (source: Markup) => Compilable;
+
 export default function parse(source: Markup): Compilable {
-	let xform = parsers[source.name];
-	return xform ? xform(source) : new Err(`Unknown source node "${source.name}"`, source);
+	let parse = parsers[source.name];
+	return parse ? parse(source) : new Err(`Unknown source node "${source.name}"`, source);
 }
 
 function parseSources(source: Iterable<Markup>): Compilable[] {
@@ -15,8 +17,6 @@ function parseSources(source: Iterable<Markup>): Compilable[] {
 	}
 	return target;
 }
-
-type parser = (source: Markup) => Compilable;
 
 const parsers: Bundle<parser> = {
 	expr(source: Markup) {

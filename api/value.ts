@@ -1,7 +1,7 @@
 
 export interface Value {
 	/** undefined is equivalent to TS "any". A Type is a constraint on a value. */
-	type: Type;
+	type?: Type;
 	/** undefined is impure. Use null to indicate a valueless value. */
 	pure?: any; //possibly value;
 }
