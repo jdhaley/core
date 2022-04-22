@@ -76,3 +76,12 @@ export class Pure implements Value {
 		return this.#pure;
 	}
 }
+
+export class Impure implements Value {
+	constructor(type: Type, value: any) {
+		this.type = type;
+		this.value = value;
+	}
+	type: Type;
+	value: any;
+}

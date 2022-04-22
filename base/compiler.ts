@@ -37,7 +37,7 @@ export class Scope implements Container<string, Value> {
 		let type = this.getType(Pure.typeOf(value));
 		return new Pure(type, value);
 	}
-	notice(level: level, message: string, value: Value): Value {
+	notice(level: level, message: string, value?: Value): Value {
 		return new NoticeValue(level, message, value);
 	}
 }

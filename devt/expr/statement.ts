@@ -3,8 +3,11 @@ import {EMPTY} from "../../base/data.js";
 import {Scope} from "../../base/compiler.js";
 import lex from "./lexer.js";
 import parse from "./parser.js";
+import { Impure, Pure } from "../../base/pure.js";
 
 const COMPILING = Object.freeze(Object.create(null));
+
+type blockType = "object" | /*"array" |*/ "fn" | "expr" | "";
 
 export class Statement  {
 	constructor(source: Element, parent?: Statement) {
@@ -17,40 +20,49 @@ export class Statement  {
 	readonly parent: Statement;
 	readonly content: Statement[];
 	
-	get note() {
+	get note(): Element {
 		return this.source.getElementsByTagName("note").item(0);
 	}
-	get scope() {
+	get scope(): Scope {
 		return this.parent?.scope || null;
 	}
-	getValue(): Value {
-		if (this.#value === undefined) {
-			this.#value = COMPILING;
-			this.#value = this.compile();
+	get blockType(): blockType {
+		let type: blockType = "";
+		for (let stmt of this.content) {
+			if (stmt instanceof Declaration) {
+				if (type == "expr") return "fn";
+				type = "object";
+			} else if (stmt instanceof KeywordStatement) {
+				return "fn"
+			} else {
+				if (type) return "fn";
+				type = "expr";
+			}
 		}
-		return this.#value;
+		return type;
 	}
 	initialize() {
 		let source = this.source;
 		for (let child of source.children) {
 			if (child.nodeName == "s") {
-				let stmt = this.createChild(child);
+				let stmt = createChild(this, child);
 				this.content.push(stmt);
 				stmt.initialize();
 			} else if (child.nodeName == "note") {
 			} else {
-				let err = new Statement(child, this);
-				this.scope.notice("error", `invalid child node "<${child.nodeName}>"`, err);
+				this.scope.notice("error", `invalid child node "<${child.nodeName}>"`);
 			}
 		}
 	}
-
-	private createChild(child: Element) {
-		if (child.getAttribute("key")) return new Declaration(child, this);
-		if (child.getAttribute("keyword")) return new KeywordStatement(child, this);
-		return new ExpressionStatement(child, this);
+	getValue(): Value {
+		if (this.#value === undefined) {
+			this.#value = COMPILING;
+			this.#value = this.compile();
+			if (this.#value === undefined) throw new Error();
+		}
+		return this.#value;
 	}
-	protected compile(): any {
+	protected compile(): Value {
 		this.compileStatements();
 		return this.compileExpr();
 	}
@@ -63,10 +75,24 @@ export class Statement  {
 	}
 	protected compileExpr(): Value {
 		let value = this.source.getAttribute("value") || "";
+		if (!value) return;
 		let compilable = parse(lex(value));
 		return compilable.compile(this.scope);
 	}
 }
+
+function createChild(statement: Statement, child: Element) {
+	if (child.getAttribute("key")) return new Declaration(child, this);
+	if (child.getAttribute("keyword")) return new KeywordStatement(child, this);
+	return new ExpressionStatement(child, this);
+}
+
+export class ExpressionStatement extends Statement {
+}
+
+export class KeywordStatement extends Statement {
+}
+
 export class Module extends Statement {
 	constructor(source: Element) {
 		super(source);
@@ -85,6 +111,9 @@ export class Module extends Statement {
 				throw new Error("compiling cycle");
 			}
 		}
+		let type = this.scope.getType("object");
+		let pure = Pure.object(this.scope.members);
+		return pure ? new Pure(type, pure) : new Impure(type, this.scope.members);
 	}
 }
 export class Declaration extends Statement implements Value {
@@ -101,22 +130,24 @@ export class Declaration extends Statement implements Value {
 		return this.getValue().type;
 	}
 	get pure(): any {
-		return this.getValue().pure;
+		let value = this.getValue();
+		return value == this ? undefined : value.pure;
 	}
 	compile(): any {
-		//compile expr: ge
-		/*	The declaration type is the source attribute "type".
-			The decl type is either used to cast the expr, type a function, or
-			used as the supers for an interface or class.
-		*/
-		//compare types: expr.type & source.attribute.type (declared type)
+		let expr = this.compileExpr();
+		if (expr) {
+			if (this.content.length) {
+				return this.scope.notice("warn", "Both content & expression are not allowed.", expr);
+			}
+			return expr;
+		}
+		if (this.content.length) {
+			return compileBlock(this);
+		}
+		return this;
 	}
 }
 
-export class KeywordStatement extends Statement {
-	compile(): any {
-	}
-}
-
-export class ExpressionStatement extends Statement {
+function compileBlock(stmt: Statement) {
+	return stmt;
 }
