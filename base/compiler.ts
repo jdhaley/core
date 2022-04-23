@@ -1,10 +1,10 @@
 
 import {Bundle} from "../api/model.js";
-import {Parcel, Type, Value} from "../api/value.js";
+import {Type, Value} from "../api/value.js";
 import {level} from "../api/notice.js";
 import {Pure} from "./pure.js";
 import {NoticeValue} from "./target.js";
-import { Container } from "./container.js";
+import {Container} from "./container.js";
 
 export interface Compilable {
 	compile(scope: Scope, receiver?: Value): Value

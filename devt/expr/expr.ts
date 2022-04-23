@@ -8,8 +8,14 @@ import {Access, Call, Cast, ExprList, Get, Lookup, Lval, Modify} from "./eval.js
 import {Markup} from "../../api/model.js";
 import {Pure} from "../../base/pure.js";
 
-export abstract class Receivable implements Compilable {
-	abstract compile(scope: Scope, receiver: Value): Value
+export class Const implements Compilable {
+	constructor(value: constant) {
+		this.value = value;
+	}
+	value: constant
+	compile(scope: Scope): Value {
+		return scope.createPure(this.value);
+	}
 }
 
 export class Err implements Compilable, Value {
@@ -45,27 +51,10 @@ export class Expr implements Compilable {
 	}
 }
 
-export class Const implements Compilable {
-	constructor(value: constant) {
-		this.value = value;
-	}
-	value: constant
-	compile(scope: Scope): Value {
-		return scope.createPure(this.value);
-	}
+export abstract class Receivable implements Compilable {
+	abstract compile(scope: Scope, receiver: Value): Value
 }
 
-//  export class Asgn extends Receivable {
-// 	constructor(lvalue: Eval) {
-// 		super();
-// 		this.lvalue = lvalue;
-// 	}
-// 	lvalue: Eval
-// 	compile(scope: Scope, receiver: Eval): Eval {
-// 		if (this.lval)
-// 		throw new Error("Method not implemented.");
-// 	}
-// }
 export class At extends Receivable {
 	constructor(index: Compilable) {
 		super();
