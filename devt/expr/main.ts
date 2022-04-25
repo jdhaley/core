@@ -1,2 +1,2 @@
-import {Statement} from "./statement.js";
+import {Statement} from "../../base/compiler";
 import {Transformer} from "../../api/transform";
