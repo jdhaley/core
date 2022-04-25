@@ -5,6 +5,7 @@ import {level} from "../api/notice.js";
 import {Pure} from "./pure.js";
 import {NoticeValue} from "./target.js";
 import {Container} from "./container.js";
+import {EMPTY} from "./data.js";
 
 export interface Compilable {
 	compile(scope: Scope, receiver?: Value): Value
@@ -40,4 +41,33 @@ export class Scope implements Container<string, Value> {
 	notice(level: level, message: string, value?: Value): Value {
 		return new NoticeValue(level, message, value);
 	}
+}
+
+export abstract class Statement  {
+	static readonly COMPILING = Object.freeze(Object.create(null));
+	constructor(source: Element, parent?: Statement) {
+		this.source = source;
+		this.parent = parent;
+		this.content = source.children.length ? [] : EMPTY.array as any[];
+	}
+	#value: Value;
+	readonly source: Element;
+	readonly parent: Statement;
+	readonly content: Statement[];
+	
+	get scope(): Scope {
+		return this.parent?.scope || null;
+	}
+	get note(): Element {
+		return this.source.getElementsByTagName("note").item(0);
+	}
+	getValue(): Value {
+		if (this.#value === undefined) {
+			this.#value = Statement.COMPILING;
+			this.#value = this.compile();
+			if (this.#value === undefined) throw new Error();
+		}
+		return this.#value;
+	}
+	protected abstract compile(): Value;
 }
