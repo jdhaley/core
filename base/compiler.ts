@@ -57,8 +57,5 @@ export abstract class Statement  {
 	get scope(): Scope {
 		return this.parent?.scope || null;
 	}
-	get note(): Element {
-		return this.source.getElementsByTagName("note").item(0);
-	}
 	abstract getValue(): Value ;
 }
