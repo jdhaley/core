@@ -1,5 +1,5 @@
+import {serial} from "../api/model.js";
 import {Receiver} from "../api/signal.js";
-import {serial} from "../base/data.js";
 import {Message} from "./control.js";
 
 interface RemoteRequest {

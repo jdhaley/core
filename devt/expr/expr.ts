@@ -1,12 +1,11 @@
 import {Type, Value} from "../../api/value.js";
-import {constant} from "../../base/data.js";
+import {Markup, constant} from "../../api/model.js";
 
 import {Scope, Compilable} from "../../base/compiler.js";
 import {Signature} from "../../base/type.js";
+import {Pure} from "../../base/pure.js";
 
 import {Access, Call, Cast, ExprList, Get, Lookup, Lval, Modify} from "./eval.js";
-import {Markup} from "../../api/model.js";
-import {Pure} from "../../base/pure.js";
 
 export class Const implements Compilable {
 	constructor(value: constant) {

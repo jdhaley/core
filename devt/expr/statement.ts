@@ -1,7 +1,8 @@
 import {Value, Type} from "../../api/value.js";
+import {EMPTY} from "../../api/model.js";
+
 import {Scope, Statement} from "../../base/compiler.js";
 import {Impure, Pure} from "../../base/pure.js";
-import {EMPTY} from "../../base/data.js";
 import {Interface} from "../../base/type.js";
 
 import lex from "./lexer.js";

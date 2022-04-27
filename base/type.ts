@@ -1,7 +1,6 @@
-import {Collection, Container} from "./container.js";
-import {Bundle} from "../api/model.js";
+import {Bundle, constant} from "../api/model.js";
 import {Type, Value} from "../api/value.js";
-import {constant} from "./data.js";
+import {Container} from "./container.js";
 
 /*
 Type expressions:
