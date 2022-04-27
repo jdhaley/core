@@ -55,14 +55,6 @@ export class Module extends Stmt {
 		for (let stmt of this.content) {
 			if (stmt instanceof Declaration) this.scope.members[stmt.key] = stmt;
 		}
-		// for (let stmt of this.content) {
-		// 	if (stmt.getValue() == COMPILING) {
-		// 		throw new Error("compiling cycle");
-		// 	}
-		// }
-		// let type = this.scope.getType("object");
-		// let pure = Pure.object(this.scope.members);
-		// return pure ? new Pure(type, pure) : new Impure(type, this.scope.members);
 		return compileObject(this);
 	}
 }
@@ -86,6 +78,11 @@ export class Declaration extends Stmt implements Value {
 		let value = this.getValue();
 		return value == this ? undefined : value.pure;
 	}
+	getFacet(facet: string) {
+		for (let f of this.facets) {
+			if (facet === f) return f;
+		}
+	}
 	getValue(): Value {
 		if (this.#value === undefined) {
 			this.#value = COMPILING;
@@ -94,48 +91,9 @@ export class Declaration extends Stmt implements Value {
 		}
 		return this.#value;
 	}
-	getFacet(facet: string) {
-		for (let f of this.facets) {
-			if (facet === f) return f;
-		}
-	}
 }
 
-type blockType = "object" | /*"array" |*/ "fn" | "expr" | "";
-function blockType(stmt: Statement): blockType {
-	let type: blockType = "";
-	for (let content of stmt.content) {
-		if (content instanceof Declaration) {
-			if (type == "expr") return "fn";
-			type = "object";
-		} else if (content instanceof KeywordStatement) {
-			return "fn"
-		} else {
-			if (type) return "fn";
-			type = "expr";
-		}
-	}
-	return type;
-}
-	// protected compileStatements(): void {
-	// 	for (let stmt of this.content) {
-	// 		if (stmt.getValue() == Statement.COMPILING) {
-	// 			throw new Error("compiling cycle");
-	// 		}
-	// 	}
-	// }
-
-function compileBlock(stmt: Stmt): Value {
-	switch (blockType(stmt)) {
-		case "object":
-			return compileObject(stmt);
-		case "fn":
-		case "expr":
-		case "":
-	}
-	return stmt as Value;
-}
-
+// 
 //expr or object ONLY
 function compile(stmt: Stmt): Value {
 	let expr = compileExpr(stmt);
@@ -189,3 +147,31 @@ function compileFunction(stmt: Statement) {
 /* 
 	Target:
 */
+
+//type blockType = "object" | /*"array" |*/ "fn" | "expr" | "";
+// function blockType(stmt: Statement): blockType {
+// 	let type: blockType = "";
+// 	for (let content of stmt.content) {
+// 		if (content instanceof Declaration) {
+// 			if (type == "expr") return "fn";
+// 			type = "object";
+// 		} else if (content instanceof KeywordStatement) {
+// 			return "fn"
+// 		} else {
+// 			if (type) return "fn";
+// 			type = "expr";
+// 		}
+// 	}
+// 	return type;
+// }
+
+// function compileBlock(stmt: Stmt): Value {
+// 	switch (blockType(stmt)) {
+// 		case "object":
+// 			return compileObject(stmt);
+// 		case "fn":
+// 		case "expr":
+// 		case "":
+// 	}
+// 	return stmt as Value;
+// }
