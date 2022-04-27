@@ -20,11 +20,11 @@ export class Access extends Lval {
 	get type(): Type {
 		return (this.receiver.type as ContainerType)?.output;
 	}
-	get value(): Value {
-		if (this.expr.pure) return this.contract.at(this.expr.pure);
-	}
 	get pure(): any {
 		return this.value?.pure;
+	}
+	get value(): Value {
+		if (this.expr.pure) return this.contract.at(this.expr.pure);
 	}
 }
 

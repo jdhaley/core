@@ -59,39 +59,3 @@ const parsers: Bundle<parser> = {
 		return new Err(source.textContent, source);
 	}
 }
-
-
-
-// function compilableDecl(source: Markup): Markup {
-// 	let content = source.content as Source[];
-// 	let decl = content.shift();
-// 	let children = compilableSources(content.slice(1));
-// 	let keyword = keywordOf(decl);
-// 	if (keyword) return new KeyStmt(keyword, new Expr(children));
-
-// 	let key = decl.content.at(-1).textContent;
-// 	let facet = parseFacets(decl);
-// 	let type: any = children.at(0) instanceof TYPE ? children.shift() : null;
-// 	return new Declaration(key, facet, type as TYPE, new Expr(children));
-// }
-
-// function parseFacets(value: Markup): string[] {
-// 	let facets = [];
-// 	for (let facet of value.content) facets.push(facet.textContent);
-// 	return facets;
-// }
-
-// function keywordOf(lhs: Markup) {
-// 	switch (lhs.textContent) {
-// 		case "if":
-// 		case "else":
-// 		case "while":
-// 		case "return":
-// 		case "switch":
-// 		case "case":
-// 			return lhs.textContent;
-// 		case "else if":
-// 			return "else_if";
-// 	}
-// 	return "";
-// }

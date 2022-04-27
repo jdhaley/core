@@ -1,7 +1,8 @@
 
 import {Bundle, EMPTY} from "../api/model.js";
-import {Parcel, Type, Value} from "../api/value.js";
+import {Type, Value} from "../api/value.js";
 import {level} from "../api/notice.js";
+
 import {Pure} from "./pure.js";
 import {NoticeValue} from "./target.js";
 
@@ -9,7 +10,7 @@ export interface Compilable {
 	compile(scope: Scope, receiver?: Value): Value
 }
 
-export class Scope implements Parcel<string, Value> {
+export class Scope {
 	constructor(scope?: Scope) {
 		this.members = Object.create(scope ? scope.members : null);
 	}
@@ -57,5 +58,5 @@ export abstract class Statement  {
 	get scope(): Scope {
 		return this.parent?.scope || null;
 	}
-	abstract getValue(): Value ;
+	abstract getValue(): Value;
 }
