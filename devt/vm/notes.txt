@@ -1,0 +1,64 @@
+3-bit type field allows for 8 data types.
+0 = bits (unsigned long, bit fields, ints, shorts, bytes, ...)
+1 = integer (long)
+2 = number (double)
+3 = second (double)
+4 = chars (UTF 16 * 4, nul terminated)
+5 = symbol (type & value encoded on the word.)
+6 = object header
+7 = pointer (if pointer is to block header, it's a block chain pointer)
+	* usually point to an object header, but can point to anything.
+  021 020 019 018 017 016 015 014 013 012 011 010 009 008 007 006 005 004 003 002 001
+F XXX XXX XXX XXX XXX XXX XXX XXX XXX XXX XXX XXX XXX XXX XXX XXX XXX XXX XXX XXX XXX
+7 777 777 766 666 666 555 555 554 444 444 433 333 333 222 222 221 111 111 100 000 000
+21 * 64-bit words = 21 * 8 bytes = 168 bytes
+Block size is 176 bytes (8b header + 168b data)
+Block headers are approx. 5% overhead.
+The F bit is the Free bit.
+
+176 * 48 blocks = 8448
+
+If page size is 16kib (2^14 = 16,384):
+93 blocks * 176 bytes = 16,368.
+93 blocks + 16 bytes can be held in a 16k page.
+
+Notes: Generally you don't need to update the header when writing data as 
+changing the data type isn't expected to be a normal use case.
+We should have the facility to specify that a block is read-only. Marking an object 
+as read-only implies it may need to be re-created in a new read-only block.
+This gets into ideas about privledged vs. non-priviledged code.
+
+
+------------------------------
+
+
+/*
+
+string
+number
+true | false | null
+arr(type, ...any)
+obj(type, {})
+fn({sig}, ...statement)
+	- statement may be based on facets, e.g. string = function ref, fn = function.
+
+expression:
+[ any (string|[args])... ]
+cast(type, ...any)
+	- (expr, ...) is not yet supported.
+
+class, tuple, interface, object
+{
+	$type | $prototype
+	$super: class
+	$implements: ...interface
+	[faceted_key]: any
+}
+	- object (of any) is the default.
+	- isDefined($super or $implements)
+	$([facets] | facet, any)
+
+type(type..., {decls})
+	"name.of.Type"
+	{tuple}
+*/
