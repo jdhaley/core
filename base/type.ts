@@ -1,4 +1,4 @@
-import {Collection} from "./container.js";
+import {Collection, Container} from "./container.js";
 import {Bundle} from "../api/model.js";
 import {Type, Value} from "../api/value.js";
 import {constant} from "./data.js";
@@ -27,7 +27,7 @@ tuple:		Class
 domain:		Enum
 container:	Sequence/Array, Countable/Iterable, 
 */
-export class Contract extends Type implements Collection<string, Value>, Iterable<string> {
+export class Contract extends Type implements Container<string, Value> {
 	constructor(members: Bundle<Value> | Contract) {
 		super();
 		this.#members = members instanceof Contract ? members.#members : members
@@ -62,8 +62,8 @@ export class Contract extends Type implements Collection<string, Value>, Iterabl
 }
 
 export class Interface extends Contract {
-	constructor(name?: string) {
-		super(Object.create(null));
+	constructor(name?: string, members?: Bundle<Value>) {
+		super(members || Object.create(null));
 		this.name = name || "";
 	}
 	name: string
@@ -77,9 +77,6 @@ export class Interface extends Contract {
 }
 
 export class Class extends Interface {
-	constructor(name?: string) {
-		super(name);
-	}
 	extend: Class;
 	generalizes(type: Type) {
 		return type instanceof Class /*&& this.super.generalizes(type.super)*/ && super.generalizes(type);

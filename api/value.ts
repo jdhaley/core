@@ -11,9 +11,6 @@ export interface Parcel<K, V> extends Value {
 }
 
 export class Type implements Parcel<string, Value> {
-	get type() {
-		return undefined;
-	}
 	at(key: string): Value {
 		return undefined;
 	}

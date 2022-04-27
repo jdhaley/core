@@ -2,17 +2,12 @@ import {Value, Type} from "../../api/value.js";
 import {Scope, Statement} from "../../base/compiler.js";
 import {Impure, Pure} from "../../base/pure.js";
 import {EMPTY} from "../../base/data.js";
+import {Interface} from "../../base/type.js";
 
 import lex from "./lexer.js";
 import parse from "./parser.js";
 
-export class Stmt extends Statement {
-	protected compile(): Value {
-		let value = this.source.getAttribute("value") || "";
-		if (!value) return;
-		let compilable = parse(lex(value));
-		return compilable.compile(this.scope);
-	}
+export abstract class Stmt extends Statement {
 	initialize() {
 		let source = this.source;
 		for (let child of source.children) {
@@ -27,6 +22,7 @@ export class Stmt extends Statement {
 		}
 	}
 }
+
 function createStatement(parent: Stmt, child: Element): Stmt {
 	if (child.getAttribute("key")) return new Declaration(child, parent);
 	if (child.getAttribute("keyword")) return new KeywordStatement(child, parent);
@@ -34,9 +30,15 @@ function createStatement(parent: Stmt, child: Element): Stmt {
 }
 
 export class ExpressionStatement extends Stmt {
+	getValue(): Value {
+		return compileExpr(this);
+	}
 }
 
 export class KeywordStatement extends Stmt {
+	getValue(): Value {
+		return compileExpr(this);
+	}
 }
 
 export class Module extends Stmt {
@@ -48,20 +50,23 @@ export class Module extends Stmt {
 	get scope(): Scope {
 		return this.#scope;
 	}
-	protected compile(): Value {
+	getValue(): Value {
 		for (let stmt of this.content) {
-			if (stmt instanceof Declaration) this.scope.put(stmt.key, stmt);
+			if (stmt instanceof Declaration) this.scope.members[stmt.key] = stmt;
 		}
-		for (let stmt of this.content) {
-			if (stmt.getValue() == Statement.COMPILING) {
-				throw new Error("compiling cycle");
-			}
-		}
-		let type = this.scope.getType("object");
-		let pure = Pure.object(this.scope.members);
-		return pure ? new Pure(type, pure) : new Impure(type, this.scope.members);
+		// for (let stmt of this.content) {
+		// 	if (stmt.getValue() == COMPILING) {
+		// 		throw new Error("compiling cycle");
+		// 	}
+		// }
+		// let type = this.scope.getType("object");
+		// let pure = Pure.object(this.scope.members);
+		// return pure ? new Pure(type, pure) : new Impure(type, this.scope.members);
+		return compileObject(this);
 	}
 }
+const COMPILING = Object.freeze(Object.create(null));
+
 export class Declaration extends Stmt implements Value {
 	initialize() {
 		let source = this.source;
@@ -70,6 +75,7 @@ export class Declaration extends Stmt implements Value {
 		this.facets = facets ? facets.split(" ") : EMPTY.array as string[];
 		super.initialize();
 	}
+	#value: Value;
 	key: string;
 	facets: string[];
 	get type(): Type {
@@ -79,18 +85,18 @@ export class Declaration extends Stmt implements Value {
 		let value = this.getValue();
 		return value == this ? undefined : value.pure;
 	}
-	protected compile(): Value {
-		let expr = super.compile();
-		if (expr) {
-			if (this.content.length) {
-				return this.scope.notice("warn", "Both content & expression are not allowed.", expr);
-			}
-			return expr;
+	getValue(): Value {
+		if (this.#value === undefined) {
+			this.#value = COMPILING;
+			this.#value = compile(this);
+			if (this.#value === undefined) throw new Error();
 		}
-		if (this.content.length) {
-			return compileBlock(this);
+		return this.#value;
+	}
+	getFacet(facet: string) {
+		for (let f of this.facets) {
+			if (facet === f) return f;
 		}
-		return this;
 	}
 }
 
@@ -129,6 +135,25 @@ function compileBlock(stmt: Stmt): Value {
 	return stmt as Value;
 }
 
+//expr or object ONLY
+function compile(stmt: Stmt): Value {
+	let expr = compileExpr(stmt);
+	if (expr) {
+		if (stmt.content.length) {
+			return stmt.scope.notice("warn", "Both content & expression are not allowed.", expr);
+		}
+		return expr;
+	}
+	return compileObject(stmt);
+}
+
+function compileExpr(stmt: Statement): Value {
+	let value = stmt.source.getAttribute("value") || "";
+	if (!value) return;
+	let compilable = parse(lex(value));
+	return compilable.compile(stmt.scope);
+}
+
 function compileObject(source: Statement): Value {
 	let object = Object.create(null);
 	for (let stmt of source.content) {
@@ -144,17 +169,22 @@ function compileObject(source: Statement): Value {
 	}
 	for (let name in object) {
 		let stmt: Declaration = object[name];
-		if (stmt.getValue() == Statement.COMPILING) {
+		if (stmt.getValue() == COMPILING) {
 			source.scope.notice("error", `compilation cycle in "${stmt.key}"`, stmt);
 		}
 	}
-	let type = source.scope.getType("object");
-	let pure = Pure.object(object);
-	return pure ? new Pure(type, pure) : new Impure(type, object);
+
+	if (source instanceof Declaration && source.getFacet("type")) {
+		return new Interface(source.key, object) as Value;
+	}
+	// let type = source.scope.getType("object");
+	// let pure = Pure.object(object);
+	// return pure === undefined ? new Impure(type, object) : new Pure(type, pure);
+	return new Pure(source.scope.getType("object"), object);
 }
 
 function compileFunction(stmt: Statement) {
 }
-/*
+/* 
 	Target:
 */

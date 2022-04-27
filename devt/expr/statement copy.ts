@@ -14,13 +14,13 @@ abstract class Stmt extends Statement {
 }
 
 export class ExpressionStatement extends Stmt {
-	compile(): Value {
+	getValue(): Value {
 		throw new Error("Not implemented.");
 	}
 }
 
 export class KeywordStatement extends Stmt {
-	compile(): Value {
+	getValue(): Value {
 		throw new Error("Not implemented.");
 	}
 }
@@ -38,9 +38,9 @@ export class Module extends Stmt {
 	get scope(): Scope {
 		return this.#scope;
 	}
-	compile(): Value {
+	getValue(): Value {
 		for (let stmt of this.content) {
-			if (stmt instanceof Declaration) this.scope.put(stmt.key, stmt);
+			if (stmt instanceof Declaration) this.scope.members[stmt.key] = stmt;
 		}
 		for (let stmt of this.content) {
 			if (stmt.getValue() == COMPILING) {
@@ -69,7 +69,7 @@ export class Declaration extends Stmt implements Value {
 		let value = this.getValue();
 		return value.pure;
 	}
-	compile(): Value {
+	getValue(): Value {
 		return null;
 	}
 	// protected compile(): Value {

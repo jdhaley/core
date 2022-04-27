@@ -1,38 +1,34 @@
 
 import {Bundle} from "../api/model.js";
-import {Type, Value} from "../api/value.js";
+import {Parcel, Type, Value} from "../api/value.js";
 import {level} from "../api/notice.js";
 import {Pure} from "./pure.js";
 import {NoticeValue} from "./target.js";
-import {Container} from "./container.js";
 import {EMPTY} from "./data.js";
 
 export interface Compilable {
 	compile(scope: Scope, receiver?: Value): Value
 }
 
-export class Scope implements Container<string, Value> {
+export class Scope implements Parcel<string, Value> {
 	constructor(scope?: Scope) {
 		this.members = Object.create(scope ? scope.members : null);
 	}
-	members: Bundle<Value>
-	get type() {
-		return undefined;
-	}
+	members: Bundle<Statement>
 	at(name: string): Value {
-		if (Object.getOwnPropertyDescriptor(this.members, name)) return this.members[name];
+		if (Object.getOwnPropertyDescriptor(this.members, name)) return this.members[name].getValue();
 		return new NoticeValue("error", `"${name}" is not in scope`, null);
 	}
-	put(key: string, value: Value): void {
-		let member: any = this.members[key]
-		if (member?.facets?.reserved) {
-			value = this.notice("error", `"${key}" is a reserved name.`, value);
-		}
-		this.members[key] = value;
-	}
+	// put(key: string, value: Value): void {
+	// 	let member: any = this.members[key]
+	// 	if (member?.facets?.reserved) {
+	// 		value = this.notice("error", `"${key}" is a reserved name.`, value);
+	// 	}
+	// 	this.members[key] = value;
+	// }
 	getType(name: string): Type {
 		let type = this.at(name);
-		if (type?.pure instanceof Type) return type.pure;
+		if (type instanceof Type) return type;
 	}
 	createPure(value: any): Pure {
 		let type = this.getType(Pure.typeOf(value));
@@ -44,30 +40,26 @@ export class Scope implements Container<string, Value> {
 }
 
 export abstract class Statement  {
-	static readonly COMPILING = Object.freeze(Object.create(null));
 	constructor(source: Element, parent?: Statement) {
 		this.source = source;
 		this.parent = parent;
 		this.content = source.children.length ? [] : EMPTY.array as any[];
 	}
-	#value: Value;
 	readonly source: Element;
 	readonly parent: Statement;
 	readonly content: Statement[];
 	
+	get type() {
+		return undefined;
+	}
+	get pure() {
+		return undefined;
+	}
 	get scope(): Scope {
 		return this.parent?.scope || null;
 	}
 	get note(): Element {
 		return this.source.getElementsByTagName("note").item(0);
 	}
-	getValue(): Value {
-		if (this.#value === undefined) {
-			this.#value = Statement.COMPILING;
-			this.#value = this.compile();
-			if (this.#value === undefined) throw new Error();
-		}
-		return this.#value;
-	}
-	protected abstract compile(): Value;
+	abstract getValue(): Value ;
 }

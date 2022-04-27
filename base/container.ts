@@ -10,7 +10,7 @@ interface Stream {
 }
 
 export interface Container<K, V> extends Parcel<K, V> {
-	type: ContainerType;
+//	type: ContainerType;
 	put(key: K, value: V): void;
 	// keys(): Iterable<K>;
 	// values(): Iterable<V>;
