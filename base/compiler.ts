@@ -5,10 +5,6 @@ import {level} from "../api/notice.js";
 import {Pure} from "./pure.js";
 import {NoticeValue} from "../../lang/compiler/target.js";
 
-export interface Eval extends Value {
-	transform(target: any): string
-}
-
 export interface Compilable {
 	//TODO return Eval
 	compile(scope: Scope, receiver?: Value): Value

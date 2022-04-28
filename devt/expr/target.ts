@@ -5,12 +5,15 @@ import {Context, Transform} from "../../api/transform";
 
 type transform = Transform<Value, string>
 
+export interface Eval extends Value {
+	transform(target: Target): string
+}
+
 export class Target implements Context<string> {
 	constructor(transforms: Bundle<transform>) {
 		this.transforms = transforms;
 	}
-	container: undefined;
-	level: 0;
+	declare container: undefined;
 	transforms: Bundle<transform>;
 	target(name: string, value: Value): string {
 		return this.transforms[name].call(value, this);
