@@ -3,9 +3,14 @@ import {Value, Type, Bundle, EMPTY} from "../api/model.js";
 import {level} from "../api/notice.js";
 
 import {Pure} from "./pure.js";
-import {NoticeValue} from "./target.js";
+import {NoticeValue} from "../../lang/compiler/target.js";
+
+export interface Eval extends Value {
+	transform(target: any): string
+}
 
 export interface Compilable {
+	//TODO return Eval
 	compile(scope: Scope, receiver?: Value): Value
 }
 
@@ -48,12 +53,6 @@ export abstract class Statement  {
 	readonly parent: Statement;
 	readonly content: Statement[];
 	
-	get type() {
-		return undefined;
-	}
-	get pure() {
-		return undefined;
-	}
 	get scope(): Scope {
 		return this.parent?.scope || null;
 	}

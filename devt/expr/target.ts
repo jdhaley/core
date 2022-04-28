@@ -1,24 +1,19 @@
-import {Value} from "../api/model.js";
-import {Notice, Notifier, Notifiable, level} from "../api/notice.js";
 
-interface Transforms {
-	[key: string]: (context: Target) => any;
-}
+import {Value, Bundle} from "../../api/model";
+import {Notice, level} from "../../api/notice.js";
+import {Context, Transform} from "../../api/transform";
 
-export interface  Targeter extends Notifier {
-	transform(context: Target): any
-}
+type transform = Transform<Value, string>
 
-export class Target implements Notifiable {
-	constructor(transforms: Transforms) {
+export class Target implements Context<string> {
+	constructor(transforms: Bundle<transform>) {
 		this.transforms = transforms;
 	}
-	transforms: Transforms;
-	target(name: string, value: any): any {
+	container: undefined;
+	level: 0;
+	transforms: Bundle<transform>;
+	target(name: string, value: Value): string {
 		return this.transforms[name].call(value, this);
-	}
-	notify(notice: Notice): void {
-		console[notice.level](notice);
 	}
 }
 
