@@ -13,7 +13,7 @@ export interface Parcel<K, V> {
 	There are no contracts on the mutability of the sequence.
 	Runtime strings and Arrays are assignable to Sequence.
 */
-export interface Sequence<T> extends Iterable<T>, Parcel<number, T> {
+export interface Sequence<T> extends Parcel<number, T>, Iterable<T> {
 	get length(): number;
 	indexOf(search: T, start?: number): number;
 	slice(start?: number, end?: number): Sequence<T>;
