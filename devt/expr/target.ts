@@ -6,7 +6,7 @@ import {Context, Transform} from "../../api/transform";
 type transform = Transform<Value, string>
 
 export interface Eval extends Value {
-	transform(target: Target): string
+	transform(this: Value, target: Target): string
 }
 
 export class Target implements Context<string> {
