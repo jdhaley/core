@@ -1,4 +1,4 @@
-import {Parcel, Type, Value} from "../../api/value.js";
+import {Parcel, Type, Value} from "../../api/model.js";
 import {ContainerType, Signature} from "../../base/type.js";
 import {Pure} from "../../base/pure.js";
 

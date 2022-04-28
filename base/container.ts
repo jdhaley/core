@@ -1,6 +1,5 @@
-import {Bundle} from "../api/model.js";
-import {Value, Type, Parcel} from "../api/value.js";
-import { ContainerType } from "./type.js";
+import {Value, Type, Parcel, Bundle} from "../api/model.js";
+import {ContainerType} from "./type.js";
 
 type Key = string | number;
 

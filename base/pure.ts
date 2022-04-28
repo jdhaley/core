@@ -1,5 +1,4 @@
-import {Bundle, pure} from "../api/model.js";
-import {Value, Type} from "../api/value.js";
+import {Value, Type, Bundle, pure} from "../api/model.js";
 
 export class Pure implements Value {
 	static typeOf(value: any): string {

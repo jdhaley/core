@@ -1,6 +1,5 @@
 
-import {Bundle, EMPTY} from "../api/model.js";
-import {Type, Value} from "../api/value.js";
+import {Value, Type, Bundle, EMPTY} from "../api/model.js";
 import {level} from "../api/notice.js";
 
 import {Pure} from "./pure.js";

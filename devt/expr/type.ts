@@ -1,5 +1,4 @@
-import {Bundle} from "../../api/model.js";
-import {Type, Value} from "../../api/value.js";
+import {Value, Type, Bundle} from "../../api/model.js";
 
 import {ContainerType, Contract, Signature, Tuple} from "../../base/type.js";
 import {Pure} from "../../base/pure.js";

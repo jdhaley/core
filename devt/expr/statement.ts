@@ -1,5 +1,4 @@
-import {Value, Type} from "../../api/value.js";
-import {EMPTY} from "../../api/model.js";
+import {Value, Type, EMPTY} from "../../api/model.js";
 
 import {Scope, Statement} from "../../base/compiler.js";
 import {Impure, Pure} from "../../base/pure.js";

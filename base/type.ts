@@ -1,5 +1,4 @@
-import {Bundle, constant} from "../api/model.js";
-import {Type, Value} from "../api/value.js";
+import {Value, Type, Bundle, constant} from "../api/model.js";
 import {Container} from "./container.js";
 
 /*

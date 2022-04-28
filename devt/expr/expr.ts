@@ -1,5 +1,4 @@
-import {Type, Value} from "../../api/value.js";
-import {Markup, constant} from "../../api/model.js";
+import {Value, Type, Markup, constant} from "../../api/model.js";
 
 import {Scope, Compilable} from "../../base/compiler.js";
 import {Signature} from "../../base/type.js";

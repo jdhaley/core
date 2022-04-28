@@ -1,4 +1,4 @@
-import {Value} from "../api/value.js";
+import {Value} from "../api/model.js";
 import {Notice, Notifier, Notifiable, level} from "../api/notice.js";
 
 interface Transforms {

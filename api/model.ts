@@ -1,20 +1,35 @@
-/**	A Bundle (aka "dictionary") is a collection of <string, T> entries. 
-	A Bundle isn't required to have prototype (other than null).
-*/
-export interface Bundle<T> {
-	[key: string]: T;
+export interface Value {
+	/** undefined is equivalent to TS "any". A Type is a constraint on a value. */
+	type?: Type;
+	/** undefined is impure. Use null to indicate a valueless value. */
+	pure?: any; //possibly value;
+}
+
+export interface Parcel<K, V> {
+	at(key: K): V 
 }
 
 /** A Sequence declares an ordinal (positional) collection of values.
 	There are no contracts on the mutability of the sequence.
 	Runtime strings and Arrays are assignable to Sequence.
 */
-export interface Sequence<T> extends Iterable<T> {
+export interface Sequence<T> extends Iterable<T>, Parcel<number, T> {
 	get length(): number;
-	at(key: number): T;
 	indexOf(search: T, start?: number): number;
 	slice(start?: number, end?: number): Sequence<T>;
 	concat(...values: T[]): Sequence<T>;
+}
+
+export class Type implements Parcel<string, Value> {
+	at(key: string): Value {
+		return undefined;
+	}
+	generalizes(type: Type): boolean {
+		return type == this;
+	}
+	categorizes(value: any): boolean {
+		return value?.type ? this.generalizes(value.type) : false;
+	}
 }
 
 /*
@@ -40,6 +55,13 @@ export interface Markup extends Content<Markup> {
 	markup: string;			//DOM outerHTML
 	markupContent: string;	//DOM innerHTML
 	textContent: string;	//DOM textContent
+}
+
+/**	A Bundle (aka "dictionary") is a collection of <string, T> entries. 
+	A Bundle's prototype should be another Bundle or null.
+*/
+export interface Bundle<T> {
+	[key: string]: T;
 }
 
 export type constant = string | number | boolean | null;
