@@ -1,11 +1,17 @@
 import {serial} from "../api/model.js";
-import {Receiver} from "../api/signal.js";
+import {Receiver, Signal} from "../api/signal.js";
 import {Message} from "./control.js";
 
 interface RemoteRequest {
 	url: string;
 	method?: "HEAD" | "GET" | "PUT" | "PATCH" | "POST";
 	body?: serial /*| Buffer */;
+}
+
+export interface RemoteResponse extends Signal {
+	request: RemoteRequest;
+	status: number;
+	response: string;
 }
 
 export class Remote {
