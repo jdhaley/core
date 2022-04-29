@@ -92,8 +92,23 @@ export class Declaration extends Stmt implements Value {
 	}
 }
 
-// 
-//expr or object ONLY
+type blockType = "object" | "array" | "fn" | "";
+function blockType(stmt: Statement): blockType {
+	let type: blockType = "";
+	for (let content of stmt.content) {
+		if (content instanceof KeywordStatement) {
+			return "fn"
+		} else if (content instanceof Declaration) {
+			if (!type) type = "object";
+			if (type != "object") return "fn";
+		} else {
+			if (!type) type = "array";
+			if (type != "array") return "fn";
+		}
+	}
+	return type;
+}
+
 function compile(stmt: Stmt): Value {
 	let expr = compileExpr(stmt);
 	if (expr) {
@@ -102,7 +117,15 @@ function compile(stmt: Stmt): Value {
 		}
 		return expr;
 	}
-	return compileObject(stmt);
+	switch (blockType(stmt)) {
+		case "":
+		case "object":
+			return compileObject(stmt);
+		case "array":
+			return compileArray(stmt);
+		case "fn":
+			return compileFunction(stmt);
+	}
 }
 
 function compileExpr(stmt: Statement): Value {
@@ -135,42 +158,16 @@ function compileObject(source: Statement): Value {
 	if (source instanceof Declaration && source.getFacet("type")) {
 		return new Interface(source.key, object) as Value;
 	}
-	// let type = source.scope.getType("object");
-	// let pure = Pure.object(object);
-	// return pure === undefined ? new Impure(type, object) : new Pure(type, pure);
-	return new Pure(source.scope.getType("object"), object);
+	let type = source.scope.getType("object");
+	let pure = Pure.object(object);
+	return pure === undefined ? new Impure(type, object) : new Pure(type, pure);
+	//return new Pure(source.scope.getType("object"), object);
+}
+
+function compileArray(stmt: Statement) {
+	return new Pure(undefined, EMPTY.array);
 }
 
 function compileFunction(stmt: Statement) {
+	return new Pure(undefined, EMPTY.function);
 }
-/* 
-	Target:
-*/
-
-//type blockType = "object" | /*"array" |*/ "fn" | "expr" | "";
-// function blockType(stmt: Statement): blockType {
-// 	let type: blockType = "";
-// 	for (let content of stmt.content) {
-// 		if (content instanceof Declaration) {
-// 			if (type == "expr") return "fn";
-// 			type = "object";
-// 		} else if (content instanceof KeywordStatement) {
-// 			return "fn"
-// 		} else {
-// 			if (type) return "fn";
-// 			type = "expr";
-// 		}
-// 	}
-// 	return type;
-// }
-
-// function compileBlock(stmt: Stmt): Value {
-// 	switch (blockType(stmt)) {
-// 		case "object":
-// 			return compileObject(stmt);
-// 		case "fn":
-// 		case "expr":
-// 		case "":
-// 	}
-// 	return stmt as Value;
-// }

@@ -117,7 +117,7 @@ export class Exprs extends Receivable {
 		let exprs = new ExprList(values);
 		if (receiver) {
 			let call = new Call(receiver, exprs);
-			if (!(receiver.type instanceof Signature)) {
+			if (receiver.type && !(receiver.type instanceof Signature)) {
 				return scope.notice("error", "Receiver is not callable.", call);
 			}
 			return call;
