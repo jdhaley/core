@@ -1,7 +1,7 @@
 
-import {Value, Bundle} from "../../api/model";
-import {Notice, level} from "../../api/notice.js";
-import {Context, Transform} from "../../api/transform";
+import {Value, Bundle} from "../api/model";
+import {Notice, level} from "../api/notice.js";
+import {Context, Transform} from "../api/transform";
 
 type transform = Transform<Value, string>
 

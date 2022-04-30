@@ -1,8 +1,26 @@
 export interface Value {
-	/** undefined is equivalent to TS "any". A Type is a constraint on a value. */
+	/** A Type is a constraint on a value, therefore "undefined" is treated like Typescript "any" */
 	type?: Type;
-	/** undefined is impure. Use null to indicate a valueless value. */
+	/** undefined is impure. Use null to for a pure non-existent value */
 	pure?: any; //possibly value;
+}
+
+export interface Property {
+	readonly key: string;
+	readonly facets: string[];
+	getValue(): Value;
+}
+
+export class Type implements Parcel<string, Value> {
+	at(key: string): Value {
+		return undefined;
+	}
+	generalizes(type: Type): boolean {
+		return type == this;
+	}
+	categorizes(value: any): boolean {
+		return value?.type ? this.generalizes(value.type) : false;
+	}
 }
 
 export interface Parcel<K, V> {
@@ -18,18 +36,6 @@ export interface Sequence<T> extends Parcel<number, T>, Iterable<T> {
 	indexOf(search: T, start?: number): number;
 	slice(start?: number, end?: number): Sequence<T>;
 	concat(...values: T[]): Sequence<T>;
-}
-
-export class Type implements Parcel<string, Value> {
-	at(key: string): Value {
-		return undefined;
-	}
-	generalizes(type: Type): boolean {
-		return type == this;
-	}
-	categorizes(value: any): boolean {
-		return value?.type ? this.generalizes(value.type) : false;
-	}
 }
 
 /*

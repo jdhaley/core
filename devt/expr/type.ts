@@ -4,7 +4,7 @@ import {ContainerType, Contract, Signature, Tuple} from "../../base/type.js";
 import {Pure} from "../../base/pure.js";
 import {Scope, Compilable} from "../../base/compiler.js";
 import {Msg} from "./expr.js";
-import {Declaration} from "./statement.js";
+import {Decl} from "./statement.js";
 
 export class TYPE {
 	constructor(value: Compilable[]) {
@@ -49,10 +49,10 @@ function compileTypes(source: Compilable[], scope: Scope): Type[] {
 }
 
 export class TUPLE {
-	constructor(value: Declaration[]) {
+	constructor(value: Decl[]) {
 		this.value = value;
 	}
-	value: Declaration[];
+	value: Decl[];
 	compile(scope: Scope): Tuple {
 		let members: Bundle<Value> = Object.create(null);
 		for (let decl of this.value) {

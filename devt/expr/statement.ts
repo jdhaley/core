@@ -1,82 +1,88 @@
-import {Value, Type, EMPTY} from "../../api/model.js";
+import {Value, Property, Type, EMPTY} from "../../api/model.js";
 
 import {Scope, Statement} from "../../base/compiler.js";
 import {Impure, Pure} from "../../base/pure.js";
+import { Remote } from "../../base/remote.js";
 import {Interface} from "../../base/type.js";
 
 import lex from "./lexer.js";
 import parse from "./parser.js";
 
-export abstract class Stmt extends Statement {
-	initialize() {
-		let source = this.source;
+export class Source extends Statement {
+	source: Element
+	declare content: Source[]
+	load(source: Element) {
+		this.source = source;
+		this.content = source.children.length ? [] : EMPTY.array as any[];
 		for (let child of source.children) {
-			if (child.nodeName == "s") {
+			if (child.nodeName == "note") {
+				//for display only.
+			} else {
 				let stmt = createStatement(this, child);
 				this.content.push(stmt);
-				stmt.initialize();
-			} else if (child.nodeName == "note") {
-			} else {
-				this.scope.notice("error", `invalid child node "<${child.nodeName}>"`);
+				stmt.load(child);
 			}
 		}
 	}
-}
-
-function createStatement(parent: Stmt, child: Element): Stmt {
-	if (child.getAttribute("key")) return new Declaration(child, parent);
-	if (child.getAttribute("keyword")) return new KeywordStatement(child, parent);
-	return new ExpressionStatement(child, parent);
-}
-
-export class ExpressionStatement extends Stmt {
 	getValue(): Value {
 		return compileExpr(this);
 	}
 }
 
-export class KeywordStatement extends Stmt {
+function createStatement(parent: Statement, child: Element): Source {
+	if (child.getAttribute("key")) return new Decl(parent);
+	if (child.getAttribute("keyword")) return new KeywordStatement(parent);
+	return new Source(parent);
+}
+
+export class KeywordStatement extends Source {
 	getValue(): Value {
 		return compileExpr(this);
 	}
 }
 
-export class Module extends Stmt {
-	constructor(source: Element) {
-		super(source);
-		this.#scope = new Scope();
+export class Loader extends Scope {
+	constructor(loader: Loader) {
+		super(loader);
 	}
-	#scope: Scope;
+}
+
+export class Module extends Source {
+	constructor(scope?: Loader) {
+		super();
+		this.#scope = new Loader(scope);
+	}
+	#scope: Loader;
 	get scope(): Scope {
 		return this.#scope;
 	}
 	getValue(): Value {
 		for (let stmt of this.content) {
-			if (stmt instanceof Declaration) this.scope.members[stmt.key] = stmt;
+			if (stmt instanceof Decl) this.scope.members[stmt.key] = stmt;
 		}
 		return compileObject(this);
 	}
 }
+
 const COMPILING = Object.freeze(Object.create(null));
 
-export class Declaration extends Stmt implements Value {
-	initialize() {
-		let source = this.source;
+export class Decl extends Source implements Property {
+	load(source: Element) {
 		this.key = source.getAttribute("key") || "";
 		let facets = source.getAttribute("facets") || "";
 		this.facets = facets ? facets.split(" ") : EMPTY.array as string[];
-		super.initialize();
+		super.load(source);
 	}
 	#value: Value;
 	key: string;
 	facets: string[];
-	get type(): Type {
-		return this.getValue().type;
-	}
-	get pure(): any {
-		let value = this.getValue();
-		return value == this ? undefined : value.pure;
-	}
+	// get type(): Type {
+	// 	return this.getValue().type;
+	// }
+	// get pure(): any {
+	// 	let value = this.getValue();
+	// 	return value == this ? undefined : value.pure;
+	// }
 	getFacet(facet: string) {
 		for (let f of this.facets) {
 			if (facet === f) return f;
@@ -98,7 +104,7 @@ function blockType(stmt: Statement): blockType {
 	for (let content of stmt.content) {
 		if (content instanceof KeywordStatement) {
 			return "fn"
-		} else if (content instanceof Declaration) {
+		} else if (content instanceof Decl) {
 			if (!type) type = "object";
 			if (type != "object") return "fn";
 		} else {
@@ -109,7 +115,7 @@ function blockType(stmt: Statement): blockType {
 	return type;
 }
 
-function compile(stmt: Stmt): Value {
+function compile(stmt: Source): Value {
 	let expr = compileExpr(stmt);
 	if (expr) {
 		if (stmt.content.length) {
@@ -128,7 +134,7 @@ function compile(stmt: Stmt): Value {
 	}
 }
 
-function compileExpr(stmt: Statement): Value {
+function compileExpr(stmt: Source): Value {
 	let value = stmt.source.getAttribute("value") || "";
 	if (!value) return;
 	let compilable = parse(lex(value));
@@ -138,9 +144,9 @@ function compileExpr(stmt: Statement): Value {
 function compileObject(source: Statement): Value {
 	let object = Object.create(null);
 	for (let stmt of source.content) {
-		if (stmt instanceof Declaration) {
+		if (stmt instanceof Decl) {
 			if (object[stmt.key]) {
-				source.scope.notice("error", `Duplicate name "${stmt.key}"`, stmt)
+				source.scope.notice("error", `Duplicate name "${stmt.key}"`, stmt as Value);
 			} else {
 				object[stmt.key] = stmt;
 			}
@@ -149,13 +155,13 @@ function compileObject(source: Statement): Value {
 		}
 	}
 	for (let name in object) {
-		let stmt: Declaration = object[name];
+		let stmt: Decl = object[name];
 		if (stmt.getValue() == COMPILING) {
-			source.scope.notice("error", `compilation cycle in "${stmt.key}"`, stmt);
+			source.scope.notice("error", `compilation cycle in "${stmt.key}"`, stmt as Value);
 		}
 	}
 
-	if (source instanceof Declaration && source.getFacet("type")) {
+	if (source instanceof Decl && source.getFacet("type")) {
 		return new Interface(source.key, object) as Value;
 	}
 	let type = source.scope.getType("object");
