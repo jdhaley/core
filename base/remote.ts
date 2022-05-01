@@ -2,14 +2,14 @@ import {serial} from "../api/model.js";
 import {Receiver, Signal} from "../api/signal.js";
 import {Message} from "./control.js";
 
-interface RemoteRequest {
+export interface Request {
 	url: string;
 	method?: "HEAD" | "GET" | "PUT" | "PATCH" | "POST";
 	body?: serial /*| Buffer */;
 }
 
-export interface RemoteResponse extends Signal {
-	request: RemoteRequest;
+export interface Response extends Signal {
+	request: Request;
 	status: number;
 	response: string;
 }
@@ -28,7 +28,7 @@ export class Remote {
 			body: body
 		});
 	}
-	process(receiver: Receiver, subject: string, request: RemoteRequest) {
+	process(receiver: Receiver, subject: string, request: Request) {
 		let xhr = this.createHttpRequest(receiver, subject, request);
 		this.prepare(xhr);
 		let body = request.body;
@@ -63,7 +63,7 @@ export class Remote {
 				}
 			}
 	}
-	protected createHttpRequest(receiver: Receiver, subject: string, request: RemoteRequest): XMLHttpRequest {
+	protected createHttpRequest(receiver: Receiver, subject: string, request: Request): XMLHttpRequest {
 		let xhr = new XMLHttpRequest() as any;
 		xhr.receiver = receiver;
 		xhr.subject = subject;

@@ -1,22 +1,79 @@
-import {Value, Property, Type, EMPTY} from "../../api/model.js";
+import {Value, Property, Type, EMPTY, Bundle} from "../../api/model.js";
+import { Receiver } from "../../api/signal.js";
 
 import {Scope, Statement} from "../../base/compiler.js";
 import {Impure, Pure} from "../../base/pure.js";
-import { Remote } from "../../base/remote.js";
+import { Remote, Response } from "../../base/remote.js";
 import {Interface} from "../../base/type.js";
 
 import lex from "./lexer.js";
 import parse from "./parser.js";
 
+class Loader extends Scope implements Receiver {
+	constructor(loader?: Loader) {
+		super(loader);
+		this.parent = loader;
+	}
+	parent: Loader;
+	get modules(): Bundle<Module> {
+		return this.parent?.modules;
+	}
+	get origin(): Remote {
+		return this.parent?.origin;
+	}
+	use(name: string) {
+		if (!this.modules) return console.log("No modules");
+		name = "/journal/" + name + ".note";
+		if (this.modules[name]) return;
+		let module = new Module(this);
+		this.modules[name] = module;
+		this.origin.open(module.scope, name);
+	}
+	receive(response: Response): void {
+		let module: Module = this.modules[response.request.url];
+		if (!module || module.source) throw new Error("Error loading content.");
+		if (response.status == 200) {
+			let doc = new DOMParser().parseFromString(response.response, "text/xml");
+			module.load(doc.documentElement);	
+		} else {
+			console.error(`Note "${response.request.url}" not found.`);
+			module.source = null;
+		}
+		console.log(this.modules);
+	}
+}
+export class Processor extends Loader {
+	constructor() {
+		super();
+	}
+	#modules: Bundle<Module> = Object.create(null);
+	#origin: Remote = new Remote();
+	get modules() {
+		return this.#modules;
+	}
+	get origin() {
+		return this.#origin;
+	}
+}
+
 export class Source extends Statement {
-	source: Element
-	declare content: Source[]
+	declare content: Source[];
+	source: Element;
+	get scope(): Loader {
+		return super.scope as Loader;
+	}
+
+	getValue(): Value {
+		return compileExpr(this);
+	}
 	load(source: Element) {
 		this.source = source;
 		this.content = source.children.length ? [] : EMPTY.array as any[];
 		for (let child of source.children) {
 			if (child.nodeName == "note") {
 				//for display only.
+			} else if (child.nodeName == "use") {
+				this.scope.use(child.getAttribute("href"));
 			} else {
 				let stmt = createStatement(this, child);
 				this.content.push(stmt);
@@ -24,8 +81,22 @@ export class Source extends Statement {
 			}
 		}
 	}
+}
+
+export class Module extends Source {
+	constructor(scope?: Loader) {
+		super();
+		this.#scope = new Loader(scope);
+	}
+	#scope: Loader;
+	get scope(): Loader {
+		return this.#scope;
+	}
 	getValue(): Value {
-		return compileExpr(this);
+		for (let stmt of this.content) {
+			if (stmt instanceof Decl) this.scope.members[stmt.key] = stmt;
+		}
+		return compileObject(this);
 	}
 }
 
@@ -38,29 +109,6 @@ function createStatement(parent: Statement, child: Element): Source {
 export class KeywordStatement extends Source {
 	getValue(): Value {
 		return compileExpr(this);
-	}
-}
-
-export class Loader extends Scope {
-	constructor(loader: Loader) {
-		super(loader);
-	}
-}
-
-export class Module extends Source {
-	constructor(scope?: Loader) {
-		super();
-		this.#scope = new Loader(scope);
-	}
-	#scope: Loader;
-	get scope(): Scope {
-		return this.#scope;
-	}
-	getValue(): Value {
-		for (let stmt of this.content) {
-			if (stmt instanceof Decl) this.scope.members[stmt.key] = stmt;
-		}
-		return compileObject(this);
 	}
 }
 
