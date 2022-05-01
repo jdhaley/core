@@ -5,13 +5,7 @@ export interface Value {
 	pure?: any; //possibly value;
 }
 
-export interface Property {
-	readonly key: string;
-	readonly facets: string[];
-	getValue(): Value;
-}
-
-export class Type implements Parcel<string, Value> {
+export class Type {
 	at(key: string): Value {
 		return undefined;
 	}

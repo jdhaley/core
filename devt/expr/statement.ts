@@ -1,7 +1,7 @@
-import {Value, Property, Type, EMPTY, Bundle} from "../../api/model.js";
+import {Value, EMPTY, Bundle} from "../../api/model.js";
 import { Receiver } from "../../api/signal.js";
 
-import {Scope, Statement} from "../../base/compiler.js";
+import {Scope, Property, Statement} from "../../base/compiler.js";
 import {Impure, Pure} from "../../base/pure.js";
 import {Origin, Response} from "../../base/remote.js";
 import {Interface} from "../../base/type.js";

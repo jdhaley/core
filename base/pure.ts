@@ -1,6 +1,22 @@
-import {Value, Type, Bundle, pure} from "../api/model.js";
+import {Value, Parcel, Type, Bundle, pure} from "../api/model.js";
 
-export class Pure implements Value {
+export class Impure implements Parcel<string, Value> {
+	constructor(type: Type, value: any) {
+		this.type = type;
+		this.value = value;
+		Object.freeze(this);
+	}
+	readonly type: Type;
+	readonly value: any;
+	get pure() {
+		return undefined;
+	}
+	at(key: string): Value {
+		return this.value ? this.value[key] : undefined;
+	}
+}
+
+export class Pure extends Impure {
 	static typeOf(value: any): string {
 		switch (typeof value) {
 			case "undefined":
@@ -60,26 +76,7 @@ export class Pure implements Value {
 		}
 		return arr;	
 	}
-	constructor(type: Type, value: pure) {
-		this.#type = type;
-		this.#pure = value;
-		Object.freeze(this);
-	}
-	#type: Type
-	#pure: pure;
-	get type(): Type {
-		return this.#type;
-	}
 	get pure(): pure {
-		return this.#pure;
+		return this.value;
 	}
-}
-
-export class Impure implements Value {
-	constructor(type: Type, value: any) {
-		this.type = type;
-		this.value = value;
-	}
-	type: Type;
-	value: any;
 }

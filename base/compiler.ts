@@ -1,9 +1,15 @@
 
-import {Value, Type, Bundle, Property} from "../api/model.js";
+import {Value, Type, Bundle} from "../api/model.js";
 import {level} from "../api/notice.js";
 import {NoticeValue} from "./target.js";
 
 import {Pure} from "./pure.js";
+
+export interface Property {
+	readonly key: string;
+	readonly facets: string[];
+	getValue(): Value;
+}
 
 export interface Compilable {
 	//TODO return Eval
