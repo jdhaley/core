@@ -56,4 +56,8 @@ export abstract class Statement  {
 		return this.parent?.scope || null;
 	}
 	abstract getValue(): Value;
+	// protected use(name: string): void {
+	// 	if (this.parent) return this.parent.use(name);
+	// 	throw new Error("No parent for use()");
+	// }
 }

@@ -1,7 +1,6 @@
 import {Controller, Receiver, Transmitter} from "../api/signal.js";
 import {Control, Part} from "../../core/base/control.js";
 import {Origin} from "../base/remote.js";
-import {formatDate} from "../base/util.js";
 
 interface Whole extends Receiver, Transmitter {
 	origin: Origin;
@@ -14,11 +13,13 @@ export class Owner extends Control implements Whole {
 		if (node instanceof Range) node = node.commonAncestorContainer;
 		return node?.ownerDocument["owner"];
 	}
-	origin = new Origin();
-	#lastId: number = 0;
-	constructor(actions: Controller) {
+	constructor(origin: Origin, actions: Controller) {
 		super(actions);
+		this.origin = origin;
 	}
+	#lastId: number = 0;
+	origin: Origin;
+
 	get document(): Document {
 		return null;
 	}
@@ -40,6 +41,7 @@ export class Owner extends Control implements Whole {
 	get location() {
 		return this.document.location;
 	}
+
 	createElement(name: string, namespace?: string): Element {
 		if (namespace) {
 			return this.document.createElementNS(namespace, name);
@@ -56,17 +58,6 @@ export class Owner extends Control implements Whole {
 			ele.id = "" + this.createId();
 		}
 		return ele ? ele.id : "";
-	}
-	getFileName(contextPath?: string, extension?: string) {
-		if (!this.location.search) {
-			this.location.search = formatDate(new Date());
-			// this.location.search = `${contextPath}/${util.formatDate(new Date())}.${extension}`;
-			return;
-		}
-		let name = this.location.search.substring(1); //strip the leading "?"
-		if (contextPath) name = contextPath + "/" + name;
-		if (extension) name += "." + extension;
-		return name;
 	}
 	viewerOf(node: Node): Viewer {
 		while(node) {

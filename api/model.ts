@@ -32,17 +32,18 @@ export interface Sequence<T> extends Parcel<number, T>, Iterable<T> {
 	concat(...values: T[]): Sequence<T>;
 }
 
+export interface Resource {
+	/** close() is not required to do anything other than signal the resource isClosed. */
+	close(): void;	
+	isClosed?: boolean;
+}
+
 /*
 	NOTE: A Consumer can be a stable Sequence source, therefore
 	append() shouldn't alter the sub sequences created from this instance.
-
-	close() is not required to do anything, however the intent is enable
-	freezing the underlying buffer, optimizing the data for access, clearing data, etc.
 */
-export interface Consumer<T>  {
+export interface Consumer<T> extends Resource  {
 	append(...data: T[]): void;
-	close(): void;	
-	isClosed?: boolean;
 }
 
 export interface Content<T> {

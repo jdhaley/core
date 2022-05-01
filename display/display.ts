@@ -1,13 +1,13 @@
+import {Bundle} from "../api/model.js";
 import {Controller, Signal} from "../api/signal.js";
 import {Commandable} from "../api/command.js";
 import {Transformer} from "../api/transform.js";
 import {Viewer, Owner, text} from "./dom.js";
-import { Bundle } from "../api/model.js";
+
+import {Origin} from "../base/remote.js";
 //import {Node, Element, Range} from "./domParts.js";
 
-export {Frame, Display, Article, UserEvent, ViewConf, FrameConf};
-
-interface UserEvent extends Signal, UIEvent {
+export interface UserEvent extends Signal, UIEvent {
 	sensor: Display;
 	//keyboard & mouse
     ctrlKey: boolean,
@@ -27,7 +27,8 @@ interface UserEvent extends Signal, UIEvent {
 	moveY?: number;
 }
 
-interface FrameConf {
+export interface FrameConf {
+	origin: Origin,
 	events: Controller;
 	actions: Controller;
 	types: {
@@ -36,7 +37,7 @@ interface FrameConf {
 	[key: string]: unknown;
 }
 
-interface ViewConf {
+export interface ViewConf {
 	type?: string;
 	nodeName?: string;
 	styles?: string;
@@ -47,13 +48,13 @@ interface ViewConf {
 	[key: string]: unknown;
 }
 
-class Frame extends Owner {
+export class Frame extends Owner {
 	#window: Window;
 	types = {
 	};
 	model?: any;
 	constructor(window: Window, conf: FrameConf) {
-		super(conf.actions);
+		super(conf.origin, conf.actions);
 		this.#window = window;
 		this.document["owner"] = this;
 		if (conf.types) this.types = conf.types;
@@ -111,7 +112,7 @@ class Frame extends Owner {
 	}
 }
 
-class Display extends Viewer {
+export class Display extends Viewer {
 	constructor(owner: Frame, conf: ViewConf) {
 		super(owner, conf);
 		if (conf.shortcuts) this.shortcuts = conf.shortcuts;
@@ -156,7 +157,7 @@ class Display extends Viewer {
  * An Article is a display for a whole entity/resource. A single Frame may have multiple
  * independent Articles opened.
  */
-class Article extends Display {
+export class Article extends Display {
 	constructor(owner: Frame, conf: ViewConf) {
 		super(owner, conf);
 		this.transform = conf.transform as Transformer<Node, HTMLElement>;
