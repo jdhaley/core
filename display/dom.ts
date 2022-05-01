@@ -1,10 +1,10 @@
 import {Controller, Receiver, Transmitter} from "../api/signal.js";
 import {Control, Part} from "../../core/base/control.js";
-import {Remote} from "../base/remote.js";
+import {Origin} from "../base/remote.js";
 import {formatDate} from "../base/util.js";
 
 interface Whole extends Receiver, Transmitter {
-	origin: Remote;
+	origin: Origin;
 	location: Location;
 	part: Part;
 }
@@ -14,7 +14,7 @@ export class Owner extends Control implements Whole {
 		if (node instanceof Range) node = node.commonAncestorContainer;
 		return node?.ownerDocument["owner"];
 	}
-	origin = new Remote();
+	origin = new Origin();
 	#lastId: number = 0;
 	constructor(actions: Controller) {
 		super(actions);

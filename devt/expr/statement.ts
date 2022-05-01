@@ -3,7 +3,7 @@ import { Receiver } from "../../api/signal.js";
 
 import {Scope, Statement} from "../../base/compiler.js";
 import {Impure, Pure} from "../../base/pure.js";
-import { Remote, Response } from "../../base/remote.js";
+import {Origin, Response} from "../../base/remote.js";
 import {Interface} from "../../base/type.js";
 
 import lex from "./lexer.js";
@@ -18,12 +18,11 @@ class Loader extends Scope implements Receiver {
 	get modules(): Bundle<Module> {
 		return this.parent?.modules;
 	}
-	get origin(): Remote {
+	get origin(): Origin {
 		return this.parent?.origin;
 	}
 	use(name: string) {
 		if (!this.modules) return console.log("No modules");
-		name = "/journal/" + name + ".note";
 		if (this.modules[name]) return;
 		let module = new Module(this);
 		this.modules[name] = module;
@@ -42,12 +41,15 @@ class Loader extends Scope implements Receiver {
 		console.log(this.modules);
 	}
 }
+
 export class Processor extends Loader {
-	constructor() {
+	constructor(origin: Origin) {
 		super();
+		this.#origin = origin;
+		this.#modules = Object.create(null);
 	}
-	#modules: Bundle<Module> = Object.create(null);
-	#origin: Remote = new Remote();
+	#modules: Bundle<Module>;
+	#origin: Origin;
 	get modules() {
 		return this.#modules;
 	}
