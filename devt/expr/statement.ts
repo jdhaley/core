@@ -9,55 +9,6 @@ import {Interface} from "../../base/type.js";
 import lex from "./lexer.js";
 import parse from "./parser.js";
 
-// class Loader extends Scope implements Receiver {
-// 	constructor(loader?: Loader) {
-// 		super(loader);
-// 		this.parent = loader;
-// 	}
-// 	parent: Loader;
-// 	get modules(): Bundle<Module> {
-// 		return this.parent?.modules;
-// 	}
-// 	get origin(): Origin {
-// 		return this.parent?.origin;
-// 	}
-// 	use(name: string) {
-// 		if (!this.modules) return console.log("No modules");
-// 		if (this.modules[name]) return;
-// 		let module = new Module(this);
-// 		this.modules[name] = module;
-// 		this.origin.open(module.origin, name);
-// 	}
-// 	receive(response: Response): void {
-// 		let module: Module = this.modules[response.request.url];
-// 		if (!module || module.source) throw new Error("Error loading content.");
-// 		if (response.status == 200) {
-// 			let doc = new DOMParser().parseFromString(response.response, "text/xml");
-// 			module.load(doc.documentElement);	
-// 		} else {
-// 			console.error(`Note "${response.request.url}" not found.`);
-// 			module.source = null;
-// 		}
-// 		console.log(this.modules);
-// 	}
-// }
-
-// export class Processor extends Loader {
-// 	constructor(origin: Origin) {
-// 		super();
-// 		this.#origin = origin;
-// 		this.#modules = Object.create(null);
-// 	}
-// 	#modules: Bundle<Module>;
-// 	#origin: Origin;
-// 	get modules() {
-// 		return this.#modules;
-// 	}
-// 	get origin() {
-// 		return this.#origin;
-// 	}
-// }
-
 export class Source extends Statement {
 	declare content: Source[];
 	source: Element;

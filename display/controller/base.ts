@@ -1,4 +1,4 @@
-import {Signal} from "../../api/signal.js";
+import {Response, Signal} from "../../api/signal.js";
 import {Display, Article, UserEvent} from "../display.js"
 
 import {extend} from "../../base/util.js";
@@ -17,13 +17,13 @@ export const displayActions = {
 }
 
 export const resourceActions = extend(displayActions, {
-	opened(this: Article, msg: any) {
-		this.model = msg.status == 404 ? "" : msg.response;
+	opened(this: Article, msg: Response) {
+		this.model = msg.status == 404 ? "" : msg.body;
 		this.dataset.file = msg.request.url;
 		this.send("draw");
 		this.send("view");
 	},
-	saved(this: Article, msg: any) {
+	saved(this: Article, msg: Response) {
 		console.log(msg);
 	},
 	draw(this: Article, msg: Signal) {

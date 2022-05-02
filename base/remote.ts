@@ -1,5 +1,5 @@
 import {Bundle, serial} from "../api/model.js";
-import {Receiver, Transmitter, Request, Response} from "../api/signal.js";
+import {Receiver, Transmitter, Request, Response, Signal} from "../api/signal.js";
 import {Message} from "./control.js";
 
 class Remote implements Transmitter, Receiver {
@@ -9,12 +9,12 @@ class Remote implements Transmitter, Receiver {
 		let content = typeof body != "string" ? JSON.stringify(body) : body;
 		xhr.send(content);
 	}
-	receive(message: Response): void {
-		let to = message.request.sender;
-		if (typeof to == "function") {
-			to(message);
-		} else {
-			to.receive(message);
+	receive(message: Signal): void {
+		let from = message["request"]?.from;
+		if (typeof from == "function") {
+			from(message);
+		} else if (from?.receive) {
+			from.receive(message);
 		}
 	}
 	protected prepare(request: Request): XMLHttpRequest {
@@ -53,7 +53,7 @@ class Remote implements Transmitter, Receiver {
 	protected createResponse(xhr: any): Response {
 		let msg = new Message(xhr.request.subject, this) as Response;
 		msg.request = xhr.request,
-		msg.response = xhr.responseText,
+		msg.body = xhr.responseText,
 		msg.status = xhr.status;
 		return msg;
 	}
@@ -81,24 +81,24 @@ export class Origin extends Remote {
 	origin: string
 	resources: Bundle<Loadable>;
 
-	open(path: string, sender?: Receiver | Function, subject?: string) {
+	open(path: string, from?: Receiver | Function, subject?: string) {
 		if (subject == "use" && this.resources[path]) return;
 		let resource = this.createResource();
 		this.resources[path] = resource;
 
 		let msg = new Message(subject || "opened") as Request;
-		msg.sender = sender,
+		msg.from = from,
 		msg.url = path,
 		msg.method = "GET"
 		this.send(msg);
 	}
-	save(path: string, body: serial, sender?: Receiver | Function, subject?: string) {
-		let msg = new Message(subject || "saved") as Request;
-		msg.sender = sender;
-		msg.url = path;
-		msg.method = "PUT";
-		msg.body = body;
-		this.send(msg);
+	save(path: string, body: serial, from?: Receiver | Function, subject?: string) {
+		let req = new Message(subject || "saved") as Request;
+		req.from = from;
+		req.url = path;
+		req.method = "PUT";
+		req.body = body;
+		this.send(req);
 	}
 	protected getEndpoint(request: Request) {
 		return this.origin + request.url;
@@ -107,7 +107,7 @@ export class Origin extends Remote {
 		let resource = this.resources[response.request.url];
 		//if (!resource || resource.source !== undefined) throw new Error("Error loading content.");
 		if (response.status == 200) {
-			let doc = new DOMParser().parseFromString(response.response, "text/xml");
+			let doc = new DOMParser().parseFromString(response.body, "text/xml");
 			resource.load(doc.documentElement);
 		} else {
 			resource.source = null;

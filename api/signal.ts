@@ -4,7 +4,8 @@ export type direction = "up" | "down";
 
 export interface Signal {
 	readonly direction: direction;
-	from: Receiver; //The "parent" or "child", based on direction.
+	/** The from represents the Transmitter (sender), control path ("parent" or "child"), last receiver, string path, etc... */
+	from: any;
 	subject: string;
 }
 
@@ -25,16 +26,18 @@ export interface Sensor {
 }
 
 export interface Request extends Signal {
-	sender: Receiver | Function /* | string // path or id */
+	/** The request.from becomes the response receiver. */
+	from: Receiver | Function
 	url: string;
-	method: "HEAD" | "GET" | "PUT" | "PATCH" | "POST";
-	// headers?: Bundle<string>
-	// body?: serial /*| Buffer */;
-	[key: string]: unknown;
+	method?: "HEAD" | "GET" | "PUT" | "PATCH" | "POST";
+	headers?: {
+		[key: string]: string
+	}
+	body?: any /* serial | Buffer */;
 }
 
 export interface Response extends Signal {
 	request: Request;
 	status: number;
-	response: string;
+	body: any; /* serial | Buffer | Element */
 }
