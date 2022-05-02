@@ -23,3 +23,19 @@ export interface Transmitter {
 export interface Sensor {
 	sense(signal: Signal): void;
 }
+
+export interface Request extends Signal {
+	/** send response to */
+	to: Receiver | Function /* | string // path or id */
+	url: string;
+	method: "HEAD" | "GET" | "PUT" | "PATCH" | "POST";
+	// headers?: Bundle<string>
+	// body?: serial /*| Buffer */;
+	[key: string]: unknown;
+}
+
+export interface Response extends Signal {
+	request: Request;
+	status: number;
+	response: string;
+}

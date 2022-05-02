@@ -1,69 +1,65 @@
-import {Value, EMPTY, Bundle} from "../../api/model.js";
-import { Receiver } from "../../api/signal.js";
+import {Value, EMPTY} from "../../api/model.js";
 
 import {Scope, Property, Statement} from "../../base/compiler.js";
 import {Impure, Pure} from "../../base/pure.js";
-import {Origin, Response} from "../../base/remote.js";
+import {Origin} from "../../base/remote.js";
 import {Interface} from "../../base/type.js";
 
 import lex from "./lexer.js";
 import parse from "./parser.js";
 
-class Loader extends Scope implements Receiver {
-	constructor(loader?: Loader) {
-		super(loader);
-		this.parent = loader;
-	}
-	parent: Loader;
-	get modules(): Bundle<Module> {
-		return this.parent?.modules;
-	}
-	get origin(): Origin {
-		return this.parent?.origin;
-	}
-	use(name: string) {
-		if (!this.modules) return console.log("No modules");
-		if (this.modules[name]) return;
-		let module = new Module(this);
-		this.modules[name] = module;
-		this.origin.open(module.scope, name);
-	}
-	receive(response: Response): void {
-		let module: Module = this.modules[response.request.url];
-		if (!module || module.source) throw new Error("Error loading content.");
-		if (response.status == 200) {
-			let doc = new DOMParser().parseFromString(response.response, "text/xml");
-			module.load(doc.documentElement);	
-		} else {
-			console.error(`Note "${response.request.url}" not found.`);
-			module.source = null;
-		}
-		console.log(this.modules);
-	}
-}
+// class Loader extends Scope implements Receiver {
+// 	constructor(loader?: Loader) {
+// 		super(loader);
+// 		this.parent = loader;
+// 	}
+// 	parent: Loader;
+// 	get modules(): Bundle<Module> {
+// 		return this.parent?.modules;
+// 	}
+// 	get origin(): Origin {
+// 		return this.parent?.origin;
+// 	}
+// 	use(name: string) {
+// 		if (!this.modules) return console.log("No modules");
+// 		if (this.modules[name]) return;
+// 		let module = new Module(this);
+// 		this.modules[name] = module;
+// 		this.origin.open(module.origin, name);
+// 	}
+// 	receive(response: Response): void {
+// 		let module: Module = this.modules[response.request.url];
+// 		if (!module || module.source) throw new Error("Error loading content.");
+// 		if (response.status == 200) {
+// 			let doc = new DOMParser().parseFromString(response.response, "text/xml");
+// 			module.load(doc.documentElement);	
+// 		} else {
+// 			console.error(`Note "${response.request.url}" not found.`);
+// 			module.source = null;
+// 		}
+// 		console.log(this.modules);
+// 	}
+// }
 
-export class Processor extends Loader {
-	constructor(origin: Origin) {
-		super();
-		this.#origin = origin;
-		this.#modules = Object.create(null);
-	}
-	#modules: Bundle<Module>;
-	#origin: Origin;
-	get modules() {
-		return this.#modules;
-	}
-	get origin() {
-		return this.#origin;
-	}
-}
+// export class Processor extends Loader {
+// 	constructor(origin: Origin) {
+// 		super();
+// 		this.#origin = origin;
+// 		this.#modules = Object.create(null);
+// 	}
+// 	#modules: Bundle<Module>;
+// 	#origin: Origin;
+// 	get modules() {
+// 		return this.#modules;
+// 	}
+// 	get origin() {
+// 		return this.#origin;
+// 	}
+// }
 
 export class Source extends Statement {
 	declare content: Source[];
 	source: Element;
-	get scope(): Loader {
-		return super.scope as Loader;
-	}
 
 	getValue(): Value {
 		return compileExpr(this);
@@ -86,12 +82,14 @@ export class Source extends Statement {
 }
 
 export class Module extends Source {
-	constructor(scope?: Loader) {
+	constructor(origin: Origin) {
 		super();
-		this.#scope = new Loader(scope);
+		this.#scope = new Scope();
+		this,this.#origin = origin;
 	}
-	#scope: Loader;
-	get scope(): Loader {
+	#scope: Scope;
+	#origin: Origin;
+	get scope(): Scope {
 		return this.#scope;
 	}
 	getValue(): Value {
@@ -101,7 +99,7 @@ export class Module extends Source {
 		return compileObject(this);
 	}
 	protected use(name: string): void {
-		this.scope.use(name);
+		this.#origin.use(name);
 	}
 }
 

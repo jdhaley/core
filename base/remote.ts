@@ -1,13 +1,21 @@
 import {Bundle, serial} from "../api/model.js";
-import {Receiver, Signal} from "../api/signal.js";
+import {Receiver, Transmitter, Request, Response} from "../api/signal.js";
 import {Message} from "./control.js";
 
-class Remote {
-	remote(request: Request) {
+class Remote implements Transmitter, Receiver {
+	send(request: Request) {
 		let xhr = this.prepare(request);
 		let body = request.body;
 		let content = typeof body != "string" ? JSON.stringify(body) : body;
 		xhr.send(content);
+	}
+	receive(message: Response): void {
+		let to = message.request.to;
+		if (typeof to == "function") {
+			to(message);
+		} else {
+			to.receive(message);
+		}
 	}
 	protected prepare(request: Request): XMLHttpRequest {
 		let xhr = this.createRemoteRequest(request);
@@ -32,12 +40,8 @@ class Remote {
 			case 3:	// LOADING Downloading; responseText holds partial data.
 				break;
 			case 4: // DONE The operation is complete.
-				let message = this.createResponse(xhr);
-				if (typeof xhr.request.from == "function") {
-					xhr.request.from(message);
-				} else {
-					xhr.request.from.receive(message);
-				}
+				let response = this.createResponse(xhr);
+				this.receive(response);
 			}
 	}
 	protected createRemoteRequest(request: Request): XMLHttpRequest {
@@ -55,39 +59,42 @@ class Remote {
 	}
 }
 
-export interface Request {
-	subject: string;
-	from: Receiver | Function
-	url: string;
-	method?: "HEAD" | "GET" | "PUT" | "PATCH" | "POST";
-	headers?: Bundle<string>
-	body?: serial /*| Buffer */;
+
+export interface Loadable {
+	source?: any;
+	load(source: any): void;
 }
 
-export interface Response extends Signal {
-	request: Request;
-	status: number;
-	response: string;
+class DEFAULT_LOADABLE implements Loadable {
+	source = undefined;
+	load(source: any) {
+		if (source === undefined) source = null;
+		this.source = source;
+	}
 }
-
 export class Origin extends Remote {
 	constructor(origin?: string) {
 		super();
 		this.origin = origin || "";
+		this.resources = Object.create(null);
 	}
-	origin: string;
+	origin: string
+	resources: Bundle<Loadable>;
+
 	open(receiver: Receiver, path: string, subject?: string) {
-		this.remote({
+		this.send({
+			direction: "down",
 			subject: subject || "opened",
-			from: receiver,
+			to: receiver,
 			url: path,
 			method: "GET"
 		});
 	}
 	save(receiver: Receiver, path: string, body: serial, subject?: string) {
-		this.remote({
+		this.send({
+			direction: "down",
 			subject: subject || "saved",
-			from: receiver,
+			to: receiver,
 			url: path,
 			method: "PUT",
 			body: body
@@ -96,5 +103,35 @@ export class Origin extends Remote {
 	protected getEndpoint(request: Request) {
 		return this.origin + request.url;
 	}
+	use(path: string, target?: Receiver | Function): void {
+		if (this.resources[path]) return;
+		let resource = this.createResource();
+		this.resources[path] = resource;
+		let request: Request = {
+			direction: "down",
+			subject: "load",
+			to: target,
+			url: path,
+			method: "GET",
+		}
+		this.send(request);
+	}
+	receive(response: Response): void {
+		if (response.subject != "load") return super.receive(response);
+		let resource = this.resources[response.request.url];
+		if (!resource || resource.source !== undefined) throw new Error("Error loading content.");
+		if (response.status == 200) {
+			let doc = new DOMParser().parseFromString(response.response, "text/xml");
+			resource.load(doc.documentElement);
+		} else {
+			resource.source = null;
+			console.error(`Note "${response.request.url}" not found.`);
+		}
+		console.log(this.resources);
+	}
+	protected createResource(): Loadable {
+		return new DEFAULT_LOADABLE();
+	}
+
 }
 
