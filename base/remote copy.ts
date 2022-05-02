@@ -22,7 +22,10 @@ export interface Loadable {
 	load(source: any): void;
 }
 
-class Remote {
+class Remote implements Receiver {
+	receive(signal: Signal): void {
+		throw new Error("Method not implemented.");
+	}
 	remote(request: Request) {
 		let xhr = this.prepare(request);
 		let body = request.body;
@@ -67,7 +70,7 @@ class Remote {
 		return xhr;
 	}
 	protected createResponse(xhr: any): Response {
-		let msg = new Message(xhr.request.subject, "down") as Response;
+		let msg = new Message(xhr.request.subject, this) as Response;
 		msg.request = xhr.request,
 		msg.response = xhr.responseText,
 		msg.status = xhr.status;

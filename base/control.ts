@@ -1,3 +1,4 @@
+import { Bundle } from "../api/model.js";
 import {Signal, Receiver, Controller, direction, Sensor, Transmitter} from "../api/signal.js";
 
 const EMPTY_ARR = Object.freeze([]);
@@ -36,9 +37,7 @@ export class Control implements Part, Transmitter, Sensor {
 		}
 	}
 	send(signal: Signal | string) {
-		if (typeof signal != "object") signal = new Message(signal || "", "down");
-		//TODO decide if there should always be a from.
-		//signal.from = this;
+		if (typeof signal != "object") signal = new Message(signal || "", this);
 		signal.subject && this.receive(signal);
 		signal.subject && Promise.resolve(signal).then(signal => sendTo(this, signal));
 		return;
@@ -52,8 +51,7 @@ export class Control implements Part, Transmitter, Sensor {
 			}
 		}
 	}
-	sense(signal: Signal | string) {
-		if (typeof signal != "object") signal = new Message(signal, "up");
+	sense(signal: Signal) {
 		signal.subject && this.receive(signal);
 		signal.from = this;
 
@@ -66,10 +64,15 @@ export class Control implements Part, Transmitter, Sensor {
 }
 
 export class Message implements Signal {
-	constructor(subject: string, direction: direction) {
+	constructor(subject: string, from?: Receiver) {
 		this.subject = subject;
-		if (direction) this.direction = direction;
+		this.from = from || null;
 	}
-	readonly direction: direction;
+	from: Receiver;
 	subject: string;
+	//[key: string]: any;
+	get direction(): direction {
+		return "down";
+	}
 }
+

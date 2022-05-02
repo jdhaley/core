@@ -4,7 +4,7 @@ export type direction = "up" | "down";
 
 export interface Signal {
 	readonly direction: direction;
-	from?: Receiver; //The parent or child, based on direction.
+	from: Receiver; //The "parent" or "child", based on direction.
 	subject: string;
 }
 

@@ -51,7 +51,7 @@ class Remote implements Transmitter, Receiver {
 		return xhr;
 	}
 	protected createResponse(xhr: any): Response {
-		let msg = new Message(xhr.request.subject, "down") as Response;
+		let msg = new Message(xhr.request.subject, this) as Response;
 		msg.request = xhr.request,
 		msg.response = xhr.responseText,
 		msg.status = xhr.status;
@@ -81,24 +81,20 @@ export class Origin extends Remote {
 	origin: string
 	resources: Bundle<Loadable>;
 
-	open(to: Receiver | Function, path: string, subject?: string) {
-		this.send({
-			direction: "down",
-			subject: subject || "opened",
-			sender: to,
-			url: path,
-			method: "GET"
-		});
+	open(sender: Receiver | Function, path: string, subject?: string) {
+		let msg = new Message(subject || "opened") as Request;
+		msg.sender = sender,
+		msg.url = path,
+		msg.method = "GET"
+		this.send(msg);
 	}
-	save(to: Receiver | Function, path: string, body: serial, subject?: string) {
-		this.send({
-			direction: "down",
-			subject: subject || "saved",
-			sender: to,
-			url: path,
-			method: "PUT",
-			body: body
-		});
+	save(sender: Receiver | Function, path: string, body: serial, subject?: string) {
+		let msg = new Message(subject || "saved") as Request;
+		msg.sender = sender;
+		msg.url = path;
+		msg.method = "PUT";
+		msg.body = body;
+		this.send(msg);
 	}
 	protected getEndpoint(request: Request) {
 		return this.origin + request.url;
