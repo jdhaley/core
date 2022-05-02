@@ -1,4 +1,5 @@
 import {Value, EMPTY} from "../../api/model.js";
+import { Receiver, Signal } from "../../api/signal.js";
 
 import {Scope, Property, Statement} from "../../base/compiler.js";
 import {Impure, Pure} from "../../base/pure.js";
@@ -81,7 +82,7 @@ export class Source extends Statement {
 	}
 }
 
-export class Module extends Source {
+export class Module extends Source implements Receiver {
 	constructor(origin: Origin) {
 		super();
 		this.#scope = new Scope();
@@ -99,7 +100,10 @@ export class Module extends Source {
 		return compileObject(this);
 	}
 	protected use(name: string): void {
-		this.#origin.use(name);
+		this.#origin.open(name, this, "use");
+	}
+	receive(signal: Signal): void {
+		console.log("Module received: ", signal);
 	}
 }
 

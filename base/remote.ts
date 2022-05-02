@@ -81,14 +81,18 @@ export class Origin extends Remote {
 	origin: string
 	resources: Bundle<Loadable>;
 
-	open(sender: Receiver | Function, path: string, subject?: string) {
+	open(path: string, sender?: Receiver | Function, subject?: string) {
+		if (subject == "use" && this.resources[path]) return;
+		let resource = this.createResource();
+		this.resources[path] = resource;
+
 		let msg = new Message(subject || "opened") as Request;
 		msg.sender = sender,
 		msg.url = path,
 		msg.method = "GET"
 		this.send(msg);
 	}
-	save(sender: Receiver | Function, path: string, body: serial, subject?: string) {
+	save(path: string, body: serial, sender?: Receiver | Function, subject?: string) {
 		let msg = new Message(subject || "saved") as Request;
 		msg.sender = sender;
 		msg.url = path;
@@ -99,23 +103,9 @@ export class Origin extends Remote {
 	protected getEndpoint(request: Request) {
 		return this.origin + request.url;
 	}
-	use(path: string, target?: Receiver | Function): void {
-		if (this.resources[path]) return;
-		let resource = this.createResource();
-		this.resources[path] = resource;
-		// let request: Request = {
-		// 	direction: "down",
-		// 	subject: "load",
-		// 	to: target,
-		// 	url: path,
-		// 	method: "GET",
-		// }
-		this.open(this, path, "load");
-	}
 	receive(response: Response): void {
-		if (response.subject != "load") return super.receive(response);
 		let resource = this.resources[response.request.url];
-		if (!resource || resource.source !== undefined) throw new Error("Error loading content.");
+		//if (!resource || resource.source !== undefined) throw new Error("Error loading content.");
 		if (response.status == 200) {
 			let doc = new DOMParser().parseFromString(response.response, "text/xml");
 			resource.load(doc.documentElement);
@@ -124,6 +114,7 @@ export class Origin extends Remote {
 			console.error(`Note "${response.request.url}" not found.`);
 		}
 		console.log(this.resources);
+		super.receive(response);
 	}
 	protected createResource(): Loadable {
 		return new DEFAULT_LOADABLE();

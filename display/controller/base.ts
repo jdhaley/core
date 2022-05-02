@@ -38,7 +38,7 @@ export const resourceActions = extend(displayActions, {
 	save(this: Article, event: UserEvent) {
 		event.subject = "";
 		let target = this.transform.target(this.view) as Element;
-		this.owner.origin.save(this, this.dataset.file, target.outerHTML);
+		this.owner.origin.save(this.dataset.file, target.outerHTML, this);
 	},
 	selectAll(this: Article, event: UserEvent) {
 		event.subject = "";
