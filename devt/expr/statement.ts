@@ -75,7 +75,7 @@ export class Source extends Statement {
 			if (child.nodeName == "note") {
 				//for display only.
 			} else if (child.nodeName == "use") {
-				this.scope.use(child.getAttribute("href"));
+				this.use(child.getAttribute("href"));
 			} else {
 				let stmt = createStatement(this, child);
 				this.content.push(stmt);
@@ -99,6 +99,9 @@ export class Module extends Source {
 			if (stmt instanceof Decl) this.scope.members[stmt.key] = stmt;
 		}
 		return compileObject(this);
+	}
+	protected use(name: string): void {
+		this.scope.use(name);
 	}
 }
 
