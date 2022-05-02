@@ -10,7 +10,7 @@ class Remote implements Transmitter, Receiver {
 		xhr.send(content);
 	}
 	receive(message: Response): void {
-		let to = message.request.to;
+		let to = message.request.sender;
 		if (typeof to == "function") {
 			to(message);
 		} else {
@@ -81,20 +81,20 @@ export class Origin extends Remote {
 	origin: string
 	resources: Bundle<Loadable>;
 
-	open(receiver: Receiver, path: string, subject?: string) {
+	open(to: Receiver | Function, path: string, subject?: string) {
 		this.send({
 			direction: "down",
 			subject: subject || "opened",
-			to: receiver,
+			sender: to,
 			url: path,
 			method: "GET"
 		});
 	}
-	save(receiver: Receiver, path: string, body: serial, subject?: string) {
+	save(to: Receiver | Function, path: string, body: serial, subject?: string) {
 		this.send({
 			direction: "down",
 			subject: subject || "saved",
-			to: receiver,
+			sender: to,
 			url: path,
 			method: "PUT",
 			body: body
@@ -107,14 +107,14 @@ export class Origin extends Remote {
 		if (this.resources[path]) return;
 		let resource = this.createResource();
 		this.resources[path] = resource;
-		let request: Request = {
-			direction: "down",
-			subject: "load",
-			to: target,
-			url: path,
-			method: "GET",
-		}
-		this.send(request);
+		// let request: Request = {
+		// 	direction: "down",
+		// 	subject: "load",
+		// 	to: target,
+		// 	url: path,
+		// 	method: "GET",
+		// }
+		this.open(this, path, "load");
 	}
 	receive(response: Response): void {
 		if (response.subject != "load") return super.receive(response);

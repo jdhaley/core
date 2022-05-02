@@ -25,8 +25,7 @@ export interface Sensor {
 }
 
 export interface Request extends Signal {
-	/** send response to */
-	to: Receiver | Function /* | string // path or id */
+	sender: Receiver | Function /* | string // path or id */
 	url: string;
 	method: "HEAD" | "GET" | "PUT" | "PATCH" | "POST";
 	// headers?: Bundle<string>
