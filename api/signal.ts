@@ -28,7 +28,7 @@ export interface Sensor {
 export interface Request extends Signal {
 	/** The request.from becomes the response receiver. */
 	from: Receiver | Function
-	url: string;
+	to: string;
 	method?: "HEAD" | "GET" | "PUT" | "PATCH" | "POST";
 	headers?: {
 		[key: string]: string

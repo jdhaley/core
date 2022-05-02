@@ -19,7 +19,7 @@ export const displayActions = {
 export const resourceActions = extend(displayActions, {
 	opened(this: Article, msg: Response) {
 		this.model = msg.status == 404 ? "" : msg.body;
-		this.dataset.file = msg.request.url;
+		this.dataset.file = msg.request.to;
 		this.send("draw");
 		this.send("view");
 	},

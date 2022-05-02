@@ -30,7 +30,7 @@ class Remote implements Transmitter, Receiver {
 		}
 	}
 	protected getEndpoint(request: Request) {
-		return request.url;
+		return request.to;
 	}
 	protected monitor(xhr: any) {
 		switch (xhr.readyState) {
@@ -88,30 +88,30 @@ export class Origin extends Remote {
 
 		let msg = new Message(subject || "opened") as Request;
 		msg.from = from,
-		msg.url = path,
+		msg.to = path,
 		msg.method = "GET"
 		this.send(msg);
 	}
 	save(path: string, body: serial, from?: Receiver | Function, subject?: string) {
 		let req = new Message(subject || "saved") as Request;
 		req.from = from;
-		req.url = path;
+		req.to = path;
 		req.method = "PUT";
 		req.body = body;
 		this.send(req);
 	}
 	protected getEndpoint(request: Request) {
-		return this.origin + request.url;
+		return this.origin + request.to;
 	}
 	receive(response: Response): void {
-		let resource = this.resources[response.request.url];
+		let resource = this.resources[response.request.to];
 		//if (!resource || resource.source !== undefined) throw new Error("Error loading content.");
 		if (response.status == 200) {
 			let doc = new DOMParser().parseFromString(response.body, "text/xml");
 			resource.load(doc.documentElement);
 		} else {
 			resource.source = null;
-			console.error(`Note "${response.request.url}" not found.`);
+			console.error(`Note "${response.request.to}" not found.`);
 		}
 		console.log(this.resources);
 		super.receive(response);
