@@ -4,13 +4,13 @@ import {Request} from "./request.js";
 export default function start(serverConf: Bundle<any>, serviceConf: Bundle<any>) {
 	let modules = serverConf.modules;
 	console.info(`Service file context "${modules.fs.realpathSync(".")}"`)
-	let service = startApp(modules, {}, serviceConf);
+	let service = startService(modules, {}, serviceConf);
 	const httpServer = modules.http.createServer(service);
 	httpServer.listen(serverConf.server.port, () => console.info());
 	console.info(`Service listening on HTTP port "${serverConf.server.port}"`)	
 }
 
-function startApp(modules: Bundle<any>, context: Bundle<any>, endpoints: Bundle<any>) {
+function startService(modules: Bundle<any>, context: Bundle<any>, endpoints: Bundle<any>) {
 	let conf = {
 		modules: modules,
 		engine: modules.express,
@@ -38,6 +38,7 @@ function createAction(endpoint: any, conf: Bundle<any>, ctx: any) {
 		case "object":
 			action = conf.engine.Router();
 			config(conf, ctx, endpoint);
+			break;
 		case "function":
 			function service(req: Request) {
 				let res = req["res"];
@@ -46,6 +47,7 @@ function createAction(endpoint: any, conf: Bundle<any>, ctx: any) {
 				return endpoint(res);
 			}
 			action = service;
+			break;
 	}
 	return action;
 }

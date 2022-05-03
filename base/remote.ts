@@ -1,6 +1,24 @@
 import {Bundle, serial} from "../api/model.js";
-import {Receiver, Transmitter, Request, Response, Signal} from "../api/signal.js";
+import {Receiver, Transmitter, Signal} from "../api/signal.js";
 import {Message} from "./control.js";
+
+
+export interface Request extends Signal {
+	/** The request.from becomes the response receiver. */
+	from: Receiver | Function
+	to: string;
+	method?: "HEAD" | "GET" | "PUT" | "PATCH" | "POST";
+	headers?: {
+		[key: string]: string
+	}
+	body?: any /* serial | Buffer */;
+}
+
+export interface Response<T> extends Signal {
+	req: Request;
+	statusCode: number;
+	body: T; /* serial | Buffer | Element */
+}
 
 class Remote implements Transmitter, Receiver {
 	send(request: Request) {
@@ -50,11 +68,11 @@ class Remote implements Transmitter, Receiver {
 		xhr["request"] = request;
 		return xhr;
 	}
-	protected createResponse(xhr: any): Response {
-		let msg = new Message(xhr.request.subject, this) as Response;
-		msg.request = xhr.request,
+	protected createResponse(xhr: any): Response<string> {
+		let msg = new Message(xhr.request.subject, this) as Response<string>;
+		msg.req = xhr.request,
 		msg.body = xhr.responseText,
-		msg.status = xhr.status;
+		msg.statusCode = xhr.status;
 		return msg;
 	}
 }
@@ -103,15 +121,15 @@ export class Origin extends Remote {
 	protected getEndpoint(request: Request) {
 		return this.origin + request.to;
 	}
-	receive(response: Response): void {
-		let resource = this.resources[response.request.to];
+	receive(response: Response<string>): void {
+		let resource = this.resources[response.req.to];
 		//if (!resource || resource.source !== undefined) throw new Error("Error loading content.");
-		if (response.status == 200) {
+		if (response.statusCode == 200) {
 			let doc = new DOMParser().parseFromString(response.body, "text/xml");
 			resource.load(doc.documentElement);
 		} else {
 			resource.source = null;
-			console.error(`Note "${response.request.to}" not found.`);
+			console.error(`Note "${response.req.to}" not found.`);
 		}
 		console.log(this.resources);
 		super.receive(response);

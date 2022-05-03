@@ -1,7 +1,7 @@
 import {Bundle} from "../api/model.js";
 
 //Modelled after Express
-export interface Request /*extends Signal*/ {
+export interface Request {
 	method: string;
 	path: string;
 	query: Bundle<string>;
