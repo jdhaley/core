@@ -55,15 +55,7 @@ export class Module extends Source implements Receiver {
 		if (response) return response.req.from as Module;
 	}
 	getValue(): Value {
-		for (let stmt of this.content) {
-			if (stmt instanceof Decl) {
-				this.scope.members[stmt.key] = stmt;
-				if (stmt.getFacet("use")) {
-					let module = this.getModule(JSON.parse(stmt.source.getAttribute("value")));
-					console.log("IMPORT:", module);
-				}
-			}
-		}
+		importModule(this, this);
 		return compileObject(this);
 	}
 	protected use(name: string): void {
@@ -80,7 +72,20 @@ export class Module extends Source implements Receiver {
 //		console.log(this.#origin.responses);
 	}
 }
+function importModule(into: Module, from: Module) {
+	for (let stmt of from.content) {
+		if (stmt instanceof Decl) {
+			console.debug("IMPORT:", stmt.key, stmt);
+			into.scope.members[stmt.key] = stmt;
+			if (stmt.getFacet("use")) {
+				let module = from.getModule(JSON.parse(stmt.source.getAttribute("value")));
+				module.getValue();
+				module && importModule(into, module);
+			}
+		}
+	}
 
+}
 function createStatement(parent: Statement, child: Element): Source {
 	if (child.getAttribute("key")) return new Decl(parent);
 	if (child.getAttribute("keyword")) return new KeywordStatement(parent);

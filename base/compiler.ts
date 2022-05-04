@@ -34,7 +34,14 @@ export class Scope {
 	// }
 	getType(name: string): Type {
 		let value = this.at(name);
-		if (value.pure instanceof Type) return value.pure;
+		if (value instanceof Type) {
+			console.debug("value is-a type");
+			return value;
+		}
+		if (value.pure instanceof Type) {
+			console.debug("pure value has-a type");
+			return value.pure;
+		}
 	}
 	createPure(value: any): Pure {
 		let type = this.getType(Pure.typeOf(value));
