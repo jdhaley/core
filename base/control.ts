@@ -1,5 +1,4 @@
-import { Bundle } from "../api/model.js";
-import {Signal, Receiver, Controller, direction, Sensor, Transmitter} from "../api/signal.js";
+import {Signal, Receiver, Controller, Sensor, Transmitter, Message} from "../api/signal.js";
 
 const EMPTY_ARR = Object.freeze([]);
 
@@ -60,19 +59,6 @@ export class Control implements Part, Transmitter, Sensor {
 			sensor.receive(signal);
 			signal.from = sensor;
 		}
-	}
-}
-
-export class Message implements Signal {
-	constructor(subject: string, from?: Receiver) {
-		this.subject = subject;
-		this.from = from || null;
-	}
-	from: Receiver;
-	subject: string;
-	//[key: string]: any;
-	get direction(): direction {
-		return "down";
 	}
 }
 

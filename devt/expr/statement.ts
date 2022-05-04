@@ -3,7 +3,7 @@ import { Receiver, Signal } from "../../api/signal.js";
 
 import {Scope, Property, Statement} from "../../base/compiler.js";
 import {Impure, Pure} from "../../base/pure.js";
-import {Origin} from "../../base/remote.js";
+import {Origin, Response} from "../../base/remote.js";
 import {Interface} from "../../base/type.js";
 
 import lex from "./lexer.js";
@@ -53,8 +53,12 @@ export class Module extends Source implements Receiver {
 	protected use(name: string): void {
 		this.#origin.open(name, this, "use");
 	}
-	receive(signal: Signal): void {
-		console.log("Module received: ", signal);
+	receive(response: Response<string>): void {
+		console.log("Module received: ", response);
+		//if (response.statusCode == 200
+		let doc = new DOMParser().parseFromString(response.body, "text/xml");
+		//this.load(doc.documentElement);
+		console.log(this.#origin.resources);		
 	}
 }
 

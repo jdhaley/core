@@ -24,3 +24,17 @@ export interface Transmitter {
 export interface Sensor {
 	sense(signal: Signal): void;
 }
+
+export class Message implements Signal {
+	constructor(subject: string, from?: Receiver | Function) {
+		this.subject = subject;
+		this.from = from || null;
+	}
+	from: Receiver | Function;
+	subject: string;
+	//[key: string]: any;
+
+	get direction(): direction {
+		return "down";
+	}
+}
