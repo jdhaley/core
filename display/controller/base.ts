@@ -19,7 +19,7 @@ export const displayActions = {
 }
 
 export const resourceActions = extend(displayActions, {
-	opened(this: Article, msg: Response<string>) {
+	open(this: Article, msg: Response<string>) {
 		this.model = msg.statusCode == 404 ? "" : msg.body;
 		this.dataset.file = msg.req.to;
 		this.send("draw");

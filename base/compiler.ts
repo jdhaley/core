@@ -45,7 +45,7 @@ export class Scope {
 	}
 }
 
-export abstract class Statement  {
+export abstract class Statement {
 	constructor(parent?: Statement) {
 		this.parent = parent;
 	}
@@ -57,8 +57,8 @@ export abstract class Statement  {
 	}
 
 	abstract getValue(): Value;
-	protected use(name: string): void {
-		if (this.parent) return this.parent.use(name);
+	protected use(name: string, user?: Statement): void {
+		if (this.parent) return this.parent.use(name, user || this);
 		throw new Error("No parent for use()");
 	}
 }

@@ -19,11 +19,13 @@ export class Source extends Statement {
 	load(source: Element) {
 		this.source = source;
 		this.content = source.children.length ? [] : EMPTY.array as any[];
+		if (source.getAttribute("facets") == "use") {
+			//Start loading the referenced resource.
+			this.use(JSON.parse(source.getAttribute("value")));
+		}
 		for (let child of source.children) {
 			if (child.nodeName == "note") {
 				//for display only.
-			} else if (child.nodeName == "use") {
-				this.use(child.getAttribute("href"));
 			} else {
 				let stmt = createStatement(this, child);
 				this.content.push(stmt);
@@ -51,14 +53,16 @@ export class Module extends Source implements Receiver {
 		return compileObject(this);
 	}
 	protected use(name: string): void {
-		this.#origin.open(name, this, "use");
+		if (this.#origin[name]) return;
+		let module = new Module(this.#origin);
+		this.#origin.open(name, module, "use");
 	}
 	receive(response: Response<string>): void {
 		console.log("Module received: ", response);
 		//if (response.statusCode == 200
 		let doc = new DOMParser().parseFromString(response.body, "text/xml");
-		//this.load(doc.documentElement);
-		console.log(this.#origin.resources);		
+		this.load(doc.documentElement);
+		console.log(this.#origin.responses);		
 	}
 }
 

@@ -1,22 +1,23 @@
 import {Bundle, serial} from "../api/model.js";
-import {Receiver, Transmitter, Signal, Message} from "../api/signal.js";
+import {Receiver, Transmitter, Message} from "../api/signal.js";
 
 export class Request extends Message {
 	constructor(subject: string, from: Receiver | Function, to: string, body?: any) {
+		/* "from" becomes the response receiver. */
 		super(subject, from);
 		this.to = to;
 		this.body = body;
 	}
-	/** The request.from becomes the response receiver. */
-	//from: Receiver | Function
+	/** The path, control, etc. */
 	to: string;
-	body?: any /* serial | Buffer */;
+	body?: any; // serial | Buffer
+
+	//HTTP specific
 
 	method?: "HEAD" | "GET" | "PUT" | "PATCH" | "POST";
 	headers?: {
 		[key: string]: string
 	}
-
 }
 
 export class Response<T> extends Message {
@@ -25,8 +26,8 @@ export class Response<T> extends Message {
 		this.req = request;
 	}
 	readonly req: Request;
+	body: T; // serial | Buffer | Element
 	statusCode: number;
-	body: T; /* serial | Buffer | Element */
 }
 
 class Remote implements Transmitter, Receiver {
@@ -92,19 +93,23 @@ export class Origin extends Remote {
 	constructor(origin?: string) {
 		super();
 		this.origin = origin || "";
-		this.resources = Object.create(null);
+		this.responses = Object.create(null);
 	}
 	origin: string
-	resources: Bundle<any>;
+	responses: Bundle<Response<any>>;
 
 	protected getEndpoint(request: Request) {
 		return this.origin + request.to;
 	}
 
 	open(path: string, from?: Receiver | Function, subject?: string) {
-		let req = new Request(subject || "opened", from, path);
-		req.method = "GET"
-		this.send(req);
+		if (subject == "use" && this.responses[path]) {
+			super.receive(this.responses[path]);
+		} else {
+			let req = new Request(subject || "open", from, path);
+			req.method = "GET"
+			this.send(req);	
+		}
 	}
 	save(path: string, body: serial, from?: Receiver | Function, subject?: string) {
 		let req = new Request(subject || "saved", from, path, body);
@@ -112,9 +117,9 @@ export class Origin extends Remote {
 		this.send(req);
 	}
 	receive(response: Response<string>): void {
-		let existing = this.resources[response.req.to];
+		let existing = this.responses[response.req.to];
 		if (existing) response["prior"] = existing;
-		this.resources[response.req.to] = response;
+		this.responses[response.req.to] = response;
 		super.receive(response);
 	}
 }
