@@ -25,8 +25,14 @@ export const resourceActions = extend(displayActions, {
 		this.send("draw");
 		this.send("view");
 	},
-	saved(this: Article, msg: Response<string>) {
-		console.log(msg);
+	save(this: Article, signal: UserEvent | Response<string>) {
+		if (signal instanceof Response) {
+			console.log("Saved: ", signal);
+			return;
+		}
+		signal.subject = "";
+		let target = this.transform.target(this.view) as Element;
+		this.owner.origin.save(this.dataset.file, target.outerHTML, this);
 	},
 	draw(this: Article, msg: Signal) {
 		this.view["$editor"] = this;
@@ -36,11 +42,6 @@ export const resourceActions = extend(displayActions, {
 		let div = this.owner.document.createElement("DIV");
 		div.innerHTML = this.model;
 		this.view.innerHTML = this.transform.transform(div).innerHTML;
-	},
-	save(this: Article, event: UserEvent) {
-		event.subject = "";
-		let target = this.transform.target(this.view) as Element;
-		this.owner.origin.save(this.dataset.file, target.outerHTML, this);
 	},
 	selectAll(this: Article, event: UserEvent) {
 		event.subject = "";

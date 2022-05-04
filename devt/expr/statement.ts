@@ -1,5 +1,5 @@
 import {Value, EMPTY} from "../../api/model.js";
-import { Receiver, Signal } from "../../api/signal.js";
+import {Receiver} from "../../api/signal.js";
 
 import {Scope, Property, Statement} from "../../base/compiler.js";
 import {Impure, Pure} from "../../base/pure.js";
@@ -40,29 +40,44 @@ export class Module extends Source implements Receiver {
 		super();
 		this.#scope = new Scope();
 		this,this.#origin = origin;
+//		this.uses = Object.create(null);
 	}
 	#scope: Scope;
 	#origin: Origin;
+//	uses: Bundle<Module>;
+
 	get scope(): Scope {
 		return this.#scope;
 	}
+
+	getModule(path: string): Module {
+		let response = this.#origin.responses[path];
+		if (response) return response.req.from as Module;
+	}
 	getValue(): Value {
 		for (let stmt of this.content) {
-			if (stmt instanceof Decl) this.scope.members[stmt.key] = stmt;
+			if (stmt instanceof Decl) {
+				this.scope.members[stmt.key] = stmt;
+				if (stmt.getFacet("use")) {
+					let module = this.getModule(JSON.parse(stmt.source.getAttribute("value")));
+					console.log("IMPORT:", module);
+				}
+			}
 		}
 		return compileObject(this);
 	}
 	protected use(name: string): void {
-		if (this.#origin[name]) return;
+		if (this.#origin.responses[name]) return;
 		let module = new Module(this.#origin);
 		this.#origin.open(name, module, "use");
 	}
 	receive(response: Response<string>): void {
 		console.log("Module received: ", response);
 		//if (response.statusCode == 200
-		let doc = new DOMParser().parseFromString(response.body, "text/xml");
-		this.load(doc.documentElement);
-		console.log(this.#origin.responses);		
+		let source = new DOMParser().parseFromString(response.body, "text/xml").documentElement;
+//		response["source"] = source;
+		this.load(source);
+//		console.log(this.#origin.responses);
 	}
 }
 

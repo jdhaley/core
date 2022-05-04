@@ -57,8 +57,8 @@ export abstract class Statement {
 	}
 
 	abstract getValue(): Value;
-	protected use(name: string, user?: Statement): void {
-		if (this.parent) return this.parent.use(name, user || this);
+	protected use(name: string /*, user?: Statement*/): void {
+		if (this.parent) return this.parent.use(name /*, user || this*/);
 		throw new Error("No parent for use()");
 	}
 }

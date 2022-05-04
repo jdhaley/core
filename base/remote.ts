@@ -104,6 +104,7 @@ export class Origin extends Remote {
 
 	open(path: string, from?: Receiver | Function, subject?: string) {
 		if (subject == "use" && this.responses[path]) {
+			//BROKEN - need to check that it is the same "from".
 			super.receive(this.responses[path]);
 		} else {
 			let req = new Request(subject || "open", from, path);
@@ -112,7 +113,7 @@ export class Origin extends Remote {
 		}
 	}
 	save(path: string, body: serial, from?: Receiver | Function, subject?: string) {
-		let req = new Request(subject || "saved", from, path, body);
+		let req = new Request(subject || "save", from, path, body);
 		req.method = "PUT";
 		this.send(req);
 	}
