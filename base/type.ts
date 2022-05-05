@@ -1,36 +1,25 @@
 import {Value, Type, Bundle, constant} from "../api/model.js";
-import {Container} from "./container.js";
 
-export class Contract extends Type implements Container<string, Value> {
-	constructor(members: Bundle<Value> | Contract) {
+export class Contract extends Type  {
+	constructor(contract: Bundle<Value>) {
 		super();
-		this.#contract = members instanceof Contract ? members.#contract : members
+		this.contract = contract || Object.create(null)
 	}
-	#contract: Bundle<Value>
-	*[Symbol.iterator](): Iterator<string, any, undefined> {
-		for (let key of Object.keys(this.#contract)) yield key;
-	}
+	contract: Bundle<Value>
 	at(key: string): Value {
-		return this.#contract[key]
+		return this.contract[key]
 	}
 	generalizes(type: Type): boolean {
 		if (type == this) return true;
-		if (type instanceof Contract) {
-			for (let key of this) {
-				let thisType = this.at(key).type;
-				let thatType = type.at(key)?.type;
-				if (!thatType || !thisType.generalizes(thatType)) return false;
-			}
-			return true;
-		} else {
-			return false;
+		for (let key in this.contract) {
+			let thisType = this.at(key).type;
+			let thatType = type.at(key)?.type;
+			if (!thatType || !thisType.generalizes(thatType)) return false;
 		}
-	}
-	put(name: string, value: Value) {
-		this.#contract[name] = value;
+		return true;
 	}
 	freeze() {
-		Object.freeze(this.#contract);
+		Object.freeze(this.contract);
 		Object.freeze(this);
 	}
 }
@@ -42,12 +31,6 @@ export class Interface extends Contract {
 	}
 	name: string
 	implement: Contract[];
-	generalizes(type: Type) {
-		if (!Object.isFrozen) {
-			console.warn(`Type "${this.name}" is not frozen.`);
-		}
-		return type instanceof Interface && super.generalizes(type);
-	}
 }
 
 export class Class extends Interface {
@@ -59,7 +42,7 @@ export class Class extends Interface {
 
 export class Producer extends Contract {
 	constructor(contract: Contract, product: Type) {
-		super(contract);
+		super(contract.contract);
 		this.product = product;
 	}
 	product: Type
@@ -104,7 +87,7 @@ export class Tuple extends Contract {
 		this.types = [];
 		for (let key of Object.keys(struct)) {
 			let value = struct[key];
-			this.put(key, value);
+			this.contract[key] = value;
 			this.types.push(value.pure);
 		}
 		Object.freeze(this);
