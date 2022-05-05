@@ -1,41 +1,17 @@
 import {Value, Type, Bundle, constant} from "../api/model.js";
 import {Container} from "./container.js";
 
-/*
-Type expressions:
-expr ^ type - casting
-name: expr ^ type 
-	- expr or type or both
-type:		ident | signature | contract | tuple | union | [sigType [^ type]...]	
-sigType:	tuple | <export class extending Container>
-	- function and containers.
-contract:	{decl (, decl)*} | {}
-tuple:		(decl (, decl)*) | ()
-union:		[cort (| cort)*]
-
-decl:		facet* name : type
-facet:		ident
-name:		ident
-cort:		const | type
-
-Classes:
-signature:	Functional (Function, Method, Constructor, Lambda)
-interface:	Interface
-tuple:		Class
-domain:		Enum
-container:	Sequence/Array, Countable/Iterable, 
-*/
 export class Contract extends Type implements Container<string, Value> {
 	constructor(members: Bundle<Value> | Contract) {
 		super();
-		this.#members = members instanceof Contract ? members.#members : members
+		this.#contract = members instanceof Contract ? members.#contract : members
 	}
-	#members: Bundle<Value>
+	#contract: Bundle<Value>
 	*[Symbol.iterator](): Iterator<string, any, undefined> {
-		for (let key of Object.keys(this.#members)) yield key;
+		for (let key of Object.keys(this.#contract)) yield key;
 	}
 	at(key: string): Value {
-		return this.#members[key]
+		return this.#contract[key]
 	}
 	generalizes(type: Type): boolean {
 		if (type == this) return true;
@@ -51,10 +27,10 @@ export class Contract extends Type implements Container<string, Value> {
 		}
 	}
 	put(name: string, value: Value) {
-		this.#members[name] = value;
+		this.#contract[name] = value;
 	}
 	freeze() {
-		Object.freeze(this.#members);
+		Object.freeze(this.#contract);
 		Object.freeze(this);
 	}
 }
@@ -81,37 +57,34 @@ export class Class extends Interface {
 	}
 }
 
-export class ContainerType extends Contract {
-	constructor(contract: Contract, output: Type) {
+export class Producer extends Contract {
+	constructor(contract: Contract, product: Type) {
 		super(contract);
-		this.output = output;
+		this.product = product;
 	}
-	input: "string" | "number"
-	output: Type
+	product: Type
 	generalizes(type: Type): boolean {
-		if (type instanceof ContainerType) {
-			if (this.output.generalizes(type.output)) return true;
+		if (type instanceof Producer) {
+			if (this.product.generalizes(type.product)) return true;
 		}
 		return super.generalizes(type);
 	}
 }
 
-export class Signature extends Contract {
+export class Signature extends Producer {
 	receiver?: Type
 	input: Tuple
-	output?: Type;
 	//NOTE - the rest arg can be handled through a modifier
-	constructor(FUNCTION_TYPE: Contract, receiver: Type, input: Tuple, output: Type) {
-		super(FUNCTION_TYPE);
+	constructor(FUNCTION_TYPE: Contract, receiver: Type, input: Tuple, product: Type) {
+		super(FUNCTION_TYPE, product);
 		this.receiver = receiver;
 		this.input = input;
-		this.output = output;
-//		this.freeze();
+		this.freeze();
 	}
 	generalizes(type: Type): boolean {
 		if (type instanceof Signature) {
 			if (this.receiver && !this.receiver.generalizes(type.receiver)) return false;
-			if (this.output && !this.output.generalizes(type.output)) return false;
+			if (this.product && !this.product.generalizes(type.product)) return false;
 			//For the input the generalization works the other way.
 			//i.e. the overloading function must accept this function's signature.
 			if (!type.input.generalizes(this.input)) return false;

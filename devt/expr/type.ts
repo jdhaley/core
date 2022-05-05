@@ -1,6 +1,6 @@
 import {Value, Type, Bundle} from "../../api/model.js";
 
-import {ContainerType, Contract, Signature, Tuple} from "../../base/type.js";
+import {Contract, Producer, Signature, Tuple} from "../../base/type.js";
 import {Pure} from "../../base/pure.js";
 import {Scope, Compilable} from "../../base/compiler.js";
 import {Msg} from "./expr.js";
@@ -25,7 +25,7 @@ function compileType(scope: Scope, types: Type[]): Type {
 		if (part instanceof Tuple && type) {
 			type = new Signature(fn, null, part, type);
 		} else if (type) {
-			type = new ContainerType(part as Contract, type);
+			type = new Producer(part as Contract, type);
 		}
 	}
 	return type;

@@ -1,5 +1,5 @@
 import {Parcel, Type, Value} from "../../api/model.js";
-import {ContainerType, Signature} from "../../base/type.js";
+import {Producer, Signature} from "../../base/type.js";
 import {Pure} from "../../base/pure.js";
 
 export abstract class Lval implements Value {
@@ -18,7 +18,7 @@ export class Access extends Lval {
 		return this.receiver.type;
 	}
 	get type(): Type {
-		return (this.receiver.type as ContainerType)?.output;
+		return (this.receiver.type as Producer)?.product;
 	}
 	get pure(): any {
 		return this.value?.pure;
@@ -39,7 +39,7 @@ export class Modify implements Value {
 		return this.receiver.type;
 	}
 	get type(): Type {
-		return (this.receiver.type as ContainerType).output;
+		return (this.receiver.type as Producer).product;
 	}
 	get value(): Value {
 		if (this.expr.pure) return this.contract.at(this.expr.pure);
@@ -113,7 +113,7 @@ export class Call implements Value {
 	callable: Value
 	args: ExprList;
 	get type(): Type {
-		return (this.callable.type as Signature)?.output;
+		return (this.callable.type as Signature)?.product;
 	}
 	get value(): any {
 		return this;
