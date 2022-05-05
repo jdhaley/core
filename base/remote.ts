@@ -1,16 +1,13 @@
 import {Bundle, serial} from "../api/model.js";
-import {Receiver, Transmitter, Message} from "../api/signal.js";
+import {Receiver, Transmitter, Message, Response} from "../api/signal.js";
 
-export class Request extends Message {
+class Request extends Message<any> {
 	constructor(subject: string, from: Receiver | Function, to: string, body?: any) {
 		/* "from" becomes the response receiver. */
 		super(subject, from);
 		this.to = to;
 		this.body = body;
 	}
-	/** The path, control, etc. */
-	to: string;
-	body?: any; // serial | Buffer
 
 	//HTTP specific
 
@@ -18,16 +15,6 @@ export class Request extends Message {
 	headers?: {
 		[key: string]: string
 	}
-}
-
-export class Response<T> extends Message {
-	constructor(request: Request, from: any) {
-		super(request.subject, from);
-		this.req = request;
-	}
-	readonly req: Request;
-	body: T; // serial | Buffer | Element
-	statusCode: number;
 }
 
 class Remote implements Transmitter, Receiver {
@@ -82,10 +69,7 @@ class Remote implements Transmitter, Receiver {
 		return xhr;
 	}
 	protected createResponse(xhr: any): Response<string> {
-		let msg = new Response<string>(xhr.request, this);
-		msg.statusCode = xhr.status;
-		msg.body = xhr.responseText;
-		return msg;
+		return new Response<string>(xhr.request, this, xhr.status, xhr.responseText);
 	}
 }
 
@@ -124,4 +108,3 @@ export class Origin extends Remote {
 		super.receive(response);
 	}
 }
-

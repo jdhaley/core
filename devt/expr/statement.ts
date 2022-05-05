@@ -1,9 +1,9 @@
 import {Value, EMPTY} from "../../api/model.js";
-import {Receiver} from "../../api/signal.js";
+import {Receiver, Response} from "../../api/signal.js";
 
 import {Scope, Property, Statement} from "../../base/compiler.js";
 import {Impure, Pure} from "../../base/pure.js";
-import {Origin, Response} from "../../base/remote.js";
+import {Origin} from "../../base/remote.js";
 import {Interface} from "../../base/type.js";
 
 import lex from "./lexer.js";
