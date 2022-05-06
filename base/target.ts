@@ -3,18 +3,24 @@ import {Value, Bundle} from "../api/model";
 import {Notice, level} from "../api/notice.js";
 import {Context, Transform} from "../api/transform";
 
-type transform = Transform<Value, string>
+type Transforms = Bundle<Transform<Eval, string>>
 
-export interface Eval extends Value {
-	transform(this: Value, target: Target): string
+export interface Eval {
+	evaluate(): Value;
+	transform(target: Target): string
+}
+
+export interface Property extends Eval {
+	readonly key: string;
+	readonly facets: string[];
 }
 
 export class Target implements Context<string> {
-	constructor(transforms: Bundle<transform>) {
+	constructor(transforms: Transforms) {
 		this.transforms = transforms;
 	}
 	declare container: undefined;
-	transforms: Bundle<transform>;
+	transforms: Transforms;
 	target(name: string, value: Value): string {
 		return this.transforms[name].call(value, this);
 	}
