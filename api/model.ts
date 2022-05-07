@@ -5,16 +5,10 @@ export interface Value {
 	pure?: any; //possibly value;
 }
 
-export class Type {
-	at(key: string): Value {
-		return undefined;
-	}
-	generalizes(type: Type): boolean {
-		return type == this;
-	}
-	categorizes(value: any): boolean {
-		return value?.type ? this.generalizes(value.type) : false;
-	}
+export interface Type extends Value {
+	at(key: string): Value;
+	generalizes(type: Type): boolean;
+	categorizes(value: any): boolean;
 }
 
 export interface Parcel<K, V> {
@@ -100,7 +94,7 @@ export function typeOf(value: any): string {
 			if (typeof value.valueOf == "function") value = value.valueOf();
 			if (typeof value != "object") return typeOf(value);
 			if (value instanceof Array) return "array";
-			if (value instanceof Type) return "type";
+			if (value.generalizes) return "type";
 			return "object";
 		case "bigint":
 		case "symbol":

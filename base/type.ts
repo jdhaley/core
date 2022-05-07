@@ -1,11 +1,15 @@
 import {Value, Type, Bundle, constant} from "../api/model.js";
 
-export class Contract extends Type  {
+export class Contract implements Type  {
 	constructor(contract: Bundle<Value>) {
-		super();
 		this.contract = contract || Object.create(null)
 	}
 	contract: Bundle<Value>
+
+	get type() {
+		return TYPE;
+	}
+
 	at(key: string): Value {
 		return this.contract[key]
 	}
@@ -18,11 +22,16 @@ export class Contract extends Type  {
 		}
 		return true;
 	}
+	categorizes(value: any): boolean {
+		return value?.type ? this.generalizes(value.type) : false;
+	}
 	freeze() {
 		Object.freeze(this.contract);
 		Object.freeze(this);
 	}
 }
+//The contract must be filled in or replaced by compilation.
+const TYPE = new Contract(Object.create(null));
 
 export class Interface extends Contract {
 	constructor(name?: string, members?: Bundle<Value>) {
@@ -114,12 +123,22 @@ export class Tuple extends Contract {
 	}
 }
 
-abstract class Types extends Type {
+abstract class Types implements Type {
 	constructor(types: Type[], freeze = true) {
-		super();
 		this.types = types;
 		if (freeze) Object.freeze(this);
 	}
+	at(key: string): Value {
+		throw new Error("Method not implemented.");
+	}
+	generalizes(type: Type): boolean {
+		throw new Error("Method not implemented.");
+	}
+	categorizes(value: any): boolean {
+		throw new Error("Method not implemented.");
+	}
+	type?: Type;
+	pure?: any;
 	types: Type[]
 }
 
@@ -152,13 +171,18 @@ export class Domain extends Types {
 	}
 }
 
-export class LiteralType extends Type {
+export class LiteralType implements Type {
 	constructor(value: constant) {
-        super();
         this.value = value;
 		Object.freeze(this);
     }
+	at(key: string): Value {
+		throw new Error("Method not implemented.");
+	}
+	type?: Type;
+	pure?: any;
     value: constant;
+
 	generalizes(type: Type): boolean {
 		return type instanceof LiteralType && type.value === this.value;
 	}
