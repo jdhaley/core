@@ -1,7 +1,9 @@
 
-import {Value, Parcel} from "../api/model.js";
+import {Value, Parcel, Bundle} from "../api/model.js";
 
 import {Eval, Target} from "./target.js";
+
+export type Compiler = Bundle<(source: Source) => Value>
 
 export abstract class Source implements Eval {
 	constructor(parent?: Source) {
@@ -12,6 +14,9 @@ export abstract class Source implements Eval {
 
 	get scope(): Parcel<string, Value> {
 		return this.parent?.scope || null;
+	}
+	get compiler(): Compiler {
+		return this.parent?.compiler || null;
 	}
 
 	abstract load(source: any): void;
