@@ -17,30 +17,6 @@ export class Impure implements Parcel<string, Value> {
 }
 
 export class Pure extends Impure {
-	static typeOf(value: any): string {
-		switch (typeof value) {
-			case "undefined":
-				return "void"
-			case "number":
-				if (value === NaN) return "unknown";
-			case "boolean":
-			case "string":
-			case "function":
-				return typeof value;
-			case "object":
-				if (value === null) return "any";
-				if (typeof value.valueOf == "function") value = value.valueOf();
-				if (typeof value != "object") return this.typeOf(value);
-				if (value instanceof Array) return "array";
-				if (value instanceof Type) return "type";
-				return "object";
-			case "bigint":
-			case "symbol":
-			default:
-				return "unknown";
-		}
-	}
-	
 	static call(method: Value, receiver: Value, args: Value[]): pure {
 		let pure = Pure.array(args);
 		let fn = method.pure as Function;

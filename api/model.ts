@@ -83,3 +83,28 @@ NIL.value = null
 NIL.void = undefined
 NIL.unknown = NaN
 Object.freeze(NIL);
+
+//TODO value, sequence and other types defined in core.api
+export function typeOf(value: any): string {
+	switch (typeof value) {
+		case "undefined":
+			return "void"
+		case "number":
+			if (value === NaN) return "unknown";
+		case "boolean":
+		case "string":
+		case "function":
+			return typeof value;
+		case "object":
+			if (value === null) return "any";
+			if (typeof value.valueOf == "function") value = value.valueOf();
+			if (typeof value != "object") return typeOf(value);
+			if (value instanceof Array) return "array";
+			if (value instanceof Type) return "type";
+			return "object";
+		case "bigint":
+		case "symbol":
+		default:
+			return "unknown";
+	}
+}
