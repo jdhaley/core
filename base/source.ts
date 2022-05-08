@@ -1,15 +1,12 @@
 
-import {Value, Parcel, Bundle, Content} from "../api/model.js";
-import { level } from "../api/notice.js";
+import {Value, Content} from "../api/model.js";
 
-import {Eval, Target} from "./target.js";
+import {Eval, Property, Target} from "./target.js";
 
-export type Compiler = Bundle<(source: Source) => Value>
 
 export interface Scope {
 	at(name: string): Value;
-	notice(level: level, message: string, value?: Value): Value;
-	compiler: Compiler;
+	put_temporary(name: string, value: Property): Value;
 }
 
 export interface Source extends Eval, Content<Source> {
