@@ -1,7 +1,7 @@
 
-import {Value, Bundle} from "../api/model";
-import {Notice, level} from "../api/notice.js";
-import {Context, Transform} from "../api/transform";
+import {Value, Bundle, EMPTY} from "../api/model.js";
+import {Notification, level} from "../api/util.js";
+import {Context, Transform} from "../api/transform.js";
 
 type Transforms = Bundle<Transform<Eval, string>>
 
@@ -26,10 +26,10 @@ export class Target implements Context<string> {
 	}
 }
 
-export class NoticeValue implements Notice, Value {
+export class Notice implements Notification, Value {
 	constructor(level: level, message: string, value?: Value) {
 		console[level](message, value);
-		this.value = value;
+		this.value = value || EMPTY.object;
 		this.level = level;
 		this.message = message;
 	}

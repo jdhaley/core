@@ -63,20 +63,26 @@ export type constant = string | number | boolean | null;
 export type serial = constant | Bundle<serial> | serial[];
 export type pure = constant | Function | Bundle<pure> | pure[]
 
-export const EMPTY: Bundle<pure> = Object.create(null);
-EMPTY.string = ""
-EMPTY.number = 0
-EMPTY.boolean = false
-EMPTY.bundle = Object.freeze(Object.create(null))
-EMPTY.array = Object.freeze([]) as pure[]
-EMPTY.function = Object.freeze(function nil(any: any): any {}),
-Object.freeze(EMPTY);
+// class Nil {
+// 	void = undefined;
+// 	value = null;
+// 	string = "";
+// 	boolean = false;
+// 	number = 0;
+// 	unknown = NaN;
+// }
+//type nil = undefined | null | "" | false | 0 | NaN;
 
-export const NIL: Bundle<pure> = Object.create(EMPTY);
-NIL.value = null
-NIL.void = undefined
-NIL.unknown = NaN
-Object.freeze(NIL);
+class Empty {
+	object = Object.freeze(Object.create(null));
+	array = Object.freeze([]) as pure[];
+	function = Object.freeze(function nil(any: any): any {});
+}
+export const EMPTY = Object.freeze({
+	object: Object.freeze(Object.create(null)),
+	array: Object.freeze([]) as pure[],
+	function: Object.freeze(function nil(any: any): any {})
+});
 
 //TODO value, sequence and other types defined in core.api
 export function typeOf(value: any): string {

@@ -1,6 +1,6 @@
 import {Bundle} from "../api/model.js";
 import {Controller, Signal} from "../api/signal.js";
-import {Commandable} from "../api/command.js";
+import {Commandable} from "../api/util.js";
 import {Transformer} from "../api/transform.js";
 import {Viewer, Owner, text} from "./dom.js";
 

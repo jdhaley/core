@@ -10,3 +10,10 @@ export abstract class Command<R> implements Commandable<R> {
 	abstract undo(): R;
 	abstract redo(): R;
 }
+
+export type level = "error" | "warn" | "info" | "debug";
+
+export interface Notification {
+	level: level;
+	message: string;
+}
