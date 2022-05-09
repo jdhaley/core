@@ -1,9 +1,9 @@
-
 export interface bundle<T> {
 	[key: string]: T
 }
 
-export type constant = string | number | boolean | null;
+export type key = string | number /*| symbol */;
+export type constant = key | boolean | null;
 export type serial = constant | bundle<serial> | serial[];
 export type pure = constant | Function | bundle<pure> | pure[]
 
