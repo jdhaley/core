@@ -1,4 +1,4 @@
-import {Bundle, serial} from "../api/model.js";
+import {bundle, serial} from "../api/util.js";
 import {Receiver, Transmitter, Message, Response} from "../api/signal.js";
 
 class Request extends Message<any> {
@@ -80,7 +80,7 @@ export class Origin extends Remote {
 		this.responses = Object.create(null);
 	}
 	origin: string
-	responses: Bundle<Response<any>>;
+	responses: bundle<Response<any>>;
 
 	protected getEndpoint(request: Request) {
 		return this.origin + request.to;

@@ -1,17 +1,13 @@
 
-import {Value, Content} from "../api/model.js";
+import {Value, Content, Parcel} from "../api/model.js";
 
-import {Eval, Property, Target} from "./target.js";
-
-
-export interface Scope {
-	at(name: string): Value;
-	put_temporary(name: string, value: Property): Value;
-}
+import {Eval, Target} from "./target.js";
 
 export interface Source extends Eval, Content<Source> {
-	scope: Scope;
 	parent: Source;
+
+	// scope is compatible with Type to enable common interface for getting property values.
+	scope: Parcel<string, Value>;
 
 	load(source: any): void;
 	evaluate(): Value;

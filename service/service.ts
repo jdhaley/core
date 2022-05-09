@@ -1,7 +1,7 @@
-import {Bundle} from "../api/model.js";
+import {bundle} from "../api/util.js";
 import {Request} from "./request.js";
 
-export default function start(serverConf: Bundle<any>, serviceConf: Bundle<any>) {
+export default function start(serverConf: bundle<any>, serviceConf: bundle<any>) {
 	let modules = serverConf.modules;
 	console.info(`Service file context "${modules.fs.realpathSync(".")}"`)
 	let service = startService(modules, {}, serviceConf);
@@ -10,7 +10,7 @@ export default function start(serverConf: Bundle<any>, serviceConf: Bundle<any>)
 	console.info(`Service listening on HTTP port "${serverConf.server.port}"`)	
 }
 
-function startService(modules: Bundle<any>, context: Bundle<any>, endpoints: Bundle<any>) {
+function startService(modules: bundle<any>, context: bundle<any>, endpoints: bundle<any>) {
 	let conf = {
 		modules: modules,
 		engine: modules.express,
@@ -22,14 +22,14 @@ function startService(modules: Bundle<any>, context: Bundle<any>, endpoints: Bun
 	return app;
 }
 
-function config(conf: Bundle<any>, ctx: any, endpoints: Bundle<any>) {
+function config(conf: bundle<any>, ctx: any, endpoints: bundle<any>) {
 	for (let path in endpoints) {
 		let action = createAction(endpoints[path], conf, ctx);
 		ctx.use(path, action);
 	}
 }
 
-function createAction(endpoint: any, conf: Bundle<any>, ctx: any) {
+function createAction(endpoint: any, conf: bundle<any>, ctx: any) {
 	let action: any;
 	switch (typeof endpoint) {
 		case "string":

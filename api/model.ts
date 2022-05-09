@@ -42,7 +42,9 @@ export interface Consumer<T> extends Resource  {
 
 export interface Content<T> {
 	name: string;
-	attr: Bundle<string>;
+	attr: {
+		[key: string]: string
+	};
 	content: Iterable<T>;
 }
 
@@ -50,61 +52,4 @@ export interface Markup extends Content<Markup> {
 	markup: string;			//DOM outerHTML
 	markupContent: string;	//DOM innerHTML
 	textContent: string;	//DOM textContent
-}
-
-/**	A Bundle (aka "dictionary") is a collection of <string, T> entries. 
-	A Bundle's prototype should be another Bundle or null.
-*/
-export interface Bundle<T> {
-	[key: string]: T;
-}
-
-export type constant = string | number | boolean | null;
-export type serial = constant | Bundle<serial> | serial[];
-export type pure = constant | Function | Bundle<pure> | pure[]
-
-// class Nil {
-// 	void = undefined;
-// 	value = null;
-// 	string = "";
-// 	boolean = false;
-// 	number = 0;
-// 	unknown = NaN;
-// }
-//type nil = undefined | null | "" | false | 0 | NaN;
-
-class Empty {
-	object = Object.freeze(Object.create(null));
-	array = Object.freeze([]) as pure[];
-	function = Object.freeze(function nil(any: any): any {});
-}
-export const EMPTY = Object.freeze({
-	object: Object.freeze(Object.create(null)),
-	array: Object.freeze([]) as pure[],
-	function: Object.freeze(function nil(any: any): any {})
-});
-
-//TODO value, sequence and other types defined in core.api
-export function typeOf(value: any): string {
-	switch (typeof value) {
-		case "undefined":
-			return "void"
-		case "number":
-			if (value === NaN) return "unknown";
-		case "boolean":
-		case "string":
-		case "function":
-			return typeof value;
-		case "object":
-			if (value === null) return "any";
-			if (typeof value.valueOf == "function") value = value.valueOf();
-			if (typeof value != "object") return typeOf(value);
-			if (value instanceof Array) return "array";
-			if (value.generalizes) return "type";
-			return "object";
-		case "bigint":
-		case "symbol":
-		default:
-			return "unknown";
-	}
 }

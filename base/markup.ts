@@ -1,7 +1,5 @@
-import {Bundle, Consumer, Markup, Sequence} from "../api/model.js";
-
-const EMPTY_ARRAY = Object.freeze([]);
-const EMPTY_OBJECT = Object.freeze(Object.create(null));
+import {Consumer, Markup, Sequence} from "../api/model.js";
+import {bundle, EMPTY} from "../api/util.js";
 
 export type content = string | Markup;
 
@@ -12,11 +10,11 @@ export class EmptyMarkup implements Markup {
 	get name(): string {
 		return typeof this.value == "string" ? "#text" : "markup";
 	}
-	get attr(): Bundle<string> {
-		return EMPTY_OBJECT;
+	get attr(): bundle<string> {
+		return EMPTY.object;
 	}
 	get content(): Iterable<Markup> {
-		return EMPTY_ARRAY;
+		return EMPTY.array;
 	}
 	get markup(): string {
 		let markup = this.markupContent;
@@ -110,7 +108,7 @@ function toMarkup(...values: content[]): Markup[] {
 	return content;
 }
 
-function markupAttrs(attrs: Bundle<string>) {
+function markupAttrs(attrs: bundle<string>) {
 	let markup = "";
 	for (let key in attrs) {
 		markup += ` ${key}="${markupText(attrs[key], true)}"`;

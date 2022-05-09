@@ -1,4 +1,4 @@
-import {Bundle} from "../api/model.js";
+import {bundle} from "../api/util.js";
 import {Controller, Signal} from "../api/signal.js";
 import {Commandable} from "../api/util.js";
 import {Transformer} from "../api/transform.js";
@@ -118,7 +118,7 @@ export class Display extends Viewer {
 		if (conf.shortcuts) this.shortcuts = conf.shortcuts;
 		if (conf.styles) this.view.className = conf.styles;
 	}
-	shortcuts: Bundle<string>;
+	shortcuts: bundle<string>;
 	get owner(): Frame {
 		return super.owner as Frame;
 	}

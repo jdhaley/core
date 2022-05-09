@@ -1,4 +1,4 @@
-import {Markup, Bundle} from "../api/model.js";
+import {Markup} from "../api/model.js";
 import {EmptyMarkup} from "../base/markup.js";
 
 const IMMUTABLE_ARRAY = {
@@ -45,7 +45,7 @@ class MarkupNode extends EmptyMarkup {
 
 class MINI_ELE extends MarkupNode {
 	#nodes: MarkupNode[] = [];
-	#attributes: Bundle<string> = Object.create(null);
+	#attributes: any = Object.create(null);
 
 	firstChild: Node;
 	lastChild: Node;

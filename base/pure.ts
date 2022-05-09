@@ -1,4 +1,5 @@
-import {Value, Parcel, Type, Bundle, pure} from "../api/model.js";
+import {Value, Parcel, Type} from "../api/model.js";
+import {bundle, pure} from "../api/util.js";
 
 export class Impure implements Parcel<string, Value> {
 	constructor(type: Type, value: any) {
@@ -34,7 +35,7 @@ export class Pure extends Impure {
 			}
 		}
 	}
-	static object(parcel: Bundle<Value>): Bundle<pure> {	
+	static object(parcel: bundle<Value>): bundle<pure> {	
 		let obj = {};
 		for (let key in parcel) {
 			let value = parcel[key].pure

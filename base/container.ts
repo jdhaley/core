@@ -1,12 +1,9 @@
-import {Value, Type, Parcel, Bundle} from "../api/model.js";
+import {Value, Parcel} from "../api/model.js";
+import {bundle} from "../api/util.js";
+
 import {Producer} from "./type.js";
 
-type Key = string | number;
-
-interface Stream {
-	close(): void;
-	add(): void;
-}
+type key = string | number;
 
 export interface Container<K, V> extends Parcel<K, V> {
 //	type: ContainerType;
@@ -22,15 +19,15 @@ export abstract class Collection<K, T> implements Container<K, T> {
 	abstract put(key: K, value: T): void;
 }
 
-abstract class X<T> implements Collection<Key, T> {
+abstract class X<T> implements Collection<key, T> {
 	type: Producer;
 	pure: any;
-	keys: Iterable<Key>;
+	keys: Iterable<key>;
 	get isClosed(): boolean {
 		return Object.isFrozen(this);
 	}
-	abstract at(key: Key): T
-	put(key: Key, value: T): void {
+	abstract at(key: key): T
+	put(key: key, value: T): void {
 		if (this.isClosed) throw new Error("Object is frozen");
 	}
 	close(): void {
@@ -39,11 +36,11 @@ abstract class X<T> implements Collection<Key, T> {
 }
 
 export class ParcelImpl<T> implements Collection<string, T>, Value {
-	constructor(type: Producer, from?: ParcelImpl<T> | Bundle<T>) {
+	constructor(type: Producer, from?: ParcelImpl<T> | bundle<T>) {
 		this.type = type;
 		this.#members = from instanceof ParcelImpl ? Object.create(from.#members) : (from || Object.create(null));
 	}
-	#members: Bundle<T>;
+	#members: bundle<T>;
 	type: Producer;
 	get pure() {
 		return this;

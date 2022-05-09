@@ -1,10 +1,11 @@
-import {Value, Type, Bundle, constant} from "../api/model.js";
+import {Value, Type} from "../api/model.js";
+import {bundle, constant} from "../api/util.js";
 
 export class Contract implements Type  {
-	constructor(contract: Bundle<Value>) {
+	constructor(contract: bundle<Value>) {
 		this.contract = contract || Object.create(null)
 	}
-	contract: Bundle<Value>
+	contract: bundle<Value>
 
 	get type() {
 		return TYPE;
@@ -34,7 +35,7 @@ export class Contract implements Type  {
 const TYPE = new Contract(Object.create(null));
 
 export class Interface extends Contract {
-	constructor(name?: string, members?: Bundle<Value>) {
+	constructor(name?: string, members?: bundle<Value>) {
 		super(members || Object.create(null));
 		this.name = name || "";
 	}
@@ -91,7 +92,7 @@ export class Signature extends Producer {
 
 export class Tuple extends Contract {
 	types: Type[]
-	constructor(struct: Bundle<Value>) {
+	constructor(struct: bundle<Value>) {
 		super(Object.create(null));
 		this.types = [];
 		for (let key of Object.keys(struct)) {
@@ -156,7 +157,7 @@ export class Union extends Types {
 }
 
 export class Domain extends Types {
-	instance: Bundle<Type>
+	instance: bundle<Type>
 	constructor(values: constant[]) {
 		let types: LiteralType[] = [];
 		for (let value of values) {

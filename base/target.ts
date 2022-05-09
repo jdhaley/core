@@ -1,9 +1,10 @@
 
-import {Value, Bundle, EMPTY} from "../api/model.js";
+import {Value} from "../api/model.js";
+import {bundle, EMPTY} from "../api/util.js";
 import {Notification, level} from "../api/util.js";
 import {Context, Transform} from "../api/transform.js";
 
-type Transforms = Bundle<Transform<Eval, string>>
+type Transforms = bundle<Transform<Eval, string>>
 
 export interface Eval {
 	evaluate(): Value;
@@ -26,23 +27,31 @@ export class Target implements Context<string> {
 	}
 }
 
-export class Notice implements Notification, Value {
+export class Notice implements Notification, Value, Eval {
 	constructor(level: level, message: string, value?: Value) {
 		console[level](message, value);
-		this.value = value || EMPTY.object;
+		this.#value = value || EMPTY.object;
 		this.level = level;
 		this.message = message;
 	}
-	level: level
+	#value: Value;
+	level: level;
 	message: string;
-	value: Value
+
 	get type() {
-		return this.value?.type;
+		return this.#value.type;
 	}
 	get pure() {
-		return this.value?.pure;
+		return this.#value.pure;
 	}
 	get error(): string {
 		if (this.level == "error") return this.message
+	}
+
+	evaluate(): Value {
+		return this.#value;
+	}
+	transform(target: Target): string {
+		return `/*${this.message}*/`
 	}
 }

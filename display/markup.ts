@@ -1,4 +1,4 @@
-import {Bundle} from "../api/model.js";
+import {bundle} from "../api/util.js";
 import {EmptyMarkup} from "../base/markup.js";
 
 class NodeModel extends EmptyMarkup {
@@ -10,7 +10,7 @@ class NodeModel extends EmptyMarkup {
 	get name() {
 		return this.#view.nodeName.toLowerCase();
 	}
-	get attr(): Bundle<string> {
+	get attr(): bundle<string> {
 		const proxy = proxyAttributes(this, this.#view);
 		Reflect.defineProperty(this, "attr", {value: proxy, enumerable: true});
 		return proxy;
@@ -81,7 +81,7 @@ const ATTRIBUTES_HANDLER = {
 	//...etc
 }
 
-function proxyAttributes(model: NodeModel, view: Node): Bundle<string> {
+function proxyAttributes(model: NodeModel, view: Node): bundle<string> {
 	return new Proxy(view, ATTRIBUTES_HANDLER) as any;
 }
 
