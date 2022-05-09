@@ -1,8 +1,8 @@
 export interface Value {
-	/** A Type is a constraint on a value, therefore "undefined" is treated like Typescript "any" */
+	/** "undefined" is treated like Typescript "unknown" */
 	type?: Type;
-	/** undefined is impure. Use null to for a pure non-existent value */
-	pure?: any; //possibly value;
+	/** "undefined" is impure. All other values, including "null", and "NaN", are pure. */
+	pure?: any;
 }
 
 export interface Type extends Value {
@@ -11,7 +11,7 @@ export interface Type extends Value {
 	categorizes(value: any): boolean;
 }
 
-export interface Parcel<K, V> {
+export interface Parcel<K, V> extends Value {
 	at(key: K): V 
 }
 

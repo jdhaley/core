@@ -1,4 +1,4 @@
-import {Value, Type} from "../api/model.js";
+import {Value, Type, Content} from "../api/model.js";
 import {bundle, constant} from "../api/util.js";
 
 /*
@@ -7,7 +7,24 @@ import {bundle, constant} from "../api/util.js";
 	- attributes
 	- names (sequence or choice)
 */
+class ContentType implements Type {
+	at(key: string): Value {
+		throw new Error("Method not implemented.");
+	}
+	generalizes(type: Type): boolean {
+		if (type instanceof ContentType) {
 
+		}
+		return false;
+	}
+	categorizes(value: Content<any>): boolean {
+		value.type
+		throw new Error("Method not implemented.");
+	}
+	type?: Type;
+	pure?: any;
+	
+}
 export class Contract implements Type  {
 	constructor(contract: bundle<Value>) {
 		this.contract = contract || Object.create(null)
