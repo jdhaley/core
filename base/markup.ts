@@ -3,15 +3,41 @@ import {bundle, EMPTY} from "../api/util.js";
 
 export type content = string | Markup;
 
+export class MarkupElement<T extends Markup> implements Markup {
+	constructor(parent?: T) {
+		this.parent = parent;
+	}
+	source: Element;
+	protected readonly parent: T;
+	declare content: T[];
+
+	get name() {
+		return this.source.nodeName;
+	}
+	get markup(): string {
+		return this.source.outerHTML;
+	}
+	get markupContent(): string {
+		return this.source.innerHTML;
+	}
+	get textContent(): string {
+		return this.source.textContent;
+	}
+
+	at(name: string): string {
+		return this.source.getAttribute(name);
+	}
+}
+
 export class EmptyMarkup implements Markup {
+	protected get attr(): bundle<string> {
+		return EMPTY.object;
+	}
 	protected get value(): string {
 		return undefined;
 	}
 	get name(): string {
 		return typeof this.value == "string" ? "#text" : "markup";
-	}
-	get attr(): bundle<string> {
-		return EMPTY.object;
 	}
 	get content(): Iterable<Markup> {
 		return EMPTY.array;
@@ -38,6 +64,10 @@ export class EmptyMarkup implements Markup {
 	protected get isNamed(): boolean {
 		return this.name.startsWith("#") ? false : true;
 	}
+
+	at(name: string): string {
+		return undefined;
+	}
 }
 
 export class TextContent extends EmptyMarkup {
@@ -57,11 +87,6 @@ export class TextContent extends EmptyMarkup {
 	}	
 }
 
-const IMMUTABLE_ARRAY = {
-	set() {
-		throw new Error("Immutable Array");
-	}
-}
 
 export class Bag extends EmptyMarkup implements Consumer<Markup> {
 	#content: Markup[] = [];

@@ -26,7 +26,24 @@ export interface Sequence<T> extends Parcel<number, T>, Iterable<T> {
 	concat(...values: T[]): Sequence<T>;
 }
 
-export interface Resource {
+export interface Content<T> extends Parcel<string, string> {
+	name: string;
+	content: Iterable<T>;
+}
+
+/*
+if needed: attributes: Iterable<string> can be added to Content or Markup
+to iterate over attribute names.  The attribute names could come from a
+"ContentType".
+*/
+
+export interface Markup extends Content<Markup> {
+	readonly markup: string;	//DOM outerHTML
+	markupContent: string;		//DOM innerHTML
+	textContent: string;		//DOM textContent
+}
+
+interface Resource {
 	/** close() is not required to do anything other than signal the resource isClosed. */
 	close(): void;	
 	isClosed?: boolean;
@@ -36,20 +53,7 @@ export interface Resource {
 	NOTE: A Consumer can be a stable Sequence source, therefore
 	append() shouldn't alter the sub sequences created from this instance.
 */
-export interface Consumer<T> extends Resource  {
+export interface Consumer<T> {
 	append(...data: T[]): void;
 }
 
-export interface Content<T> {
-	name: string;
-	attr: {
-		[key: string]: string
-	};
-	content: Iterable<T>;
-}
-
-export interface Markup extends Content<Markup> {
-	markup: string;			//DOM outerHTML
-	markupContent: string;	//DOM innerHTML
-	textContent: string;	//DOM textContent
-}

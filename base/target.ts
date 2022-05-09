@@ -1,10 +1,7 @@
 
-import {Value} from "../api/model.js";
-import {bundle, EMPTY} from "../api/util.js";
-import {Notification, level} from "../api/util.js";
+import {Content, Parcel, Value} from "../api/model.js";
+import {bundle, EMPTY, Notification, level} from "../api/util.js";
 import {Context, Transform} from "../api/transform.js";
-
-type Transforms = bundle<Transform<Eval, string>>
 
 export interface Eval {
 	evaluate(): Value;
@@ -15,6 +12,18 @@ export interface Property extends Eval {
 	readonly key: string;
 	readonly facets: string[];
 }
+
+export interface Source extends Eval, Content<Source> {
+	// scope is compatible with Type to enable common interface for getting property values.
+	scope: Parcel<string, Value>;
+
+	load(source: any): void;
+	evaluate(): Value;
+	transform(target: Target): string;
+	use(pathname: string): void;
+}
+
+type Transforms = bundle<Transform<Eval, string>>
 
 export class Target implements Context<string> {
 	constructor(transforms: Transforms) {
