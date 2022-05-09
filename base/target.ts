@@ -15,7 +15,7 @@ export interface Property extends Eval {
 
 export interface Source extends Eval, Content<Source> {
 	// scope is compatible with Type to enable common interface for getting property values.
-	scope: Parcel<string, Value>;
+	scope: Parcel<Value>;
 
 	load(source: any): void;
 	evaluate(): Value;

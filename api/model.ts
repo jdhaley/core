@@ -5,28 +5,30 @@ export interface Value {
 	pure?: any;
 }
 
-export interface Type extends Value {
-	at(key: string): Value;
+export interface Type extends Parcel<Value> {
 	generalizes(type: Type): boolean;
 	categorizes(value: any): boolean;
 }
 
-export interface Parcel<K, V> extends Value {
-	at(key: K): V 
+export interface Producer<I, O> extends Value {
+	at(input: I): O; 
+}
+
+export interface Parcel<V> extends Producer<string, V> {
 }
 
 /** A Sequence declares an ordinal (positional) collection of values.
 	There are no contracts on the mutability of the sequence.
 	Runtime strings and Arrays are assignable to Sequence.
 */
-export interface Sequence<T> extends Parcel<number, T>, Iterable<T> {
+export interface Sequence<T> extends Producer<number, T>, Iterable<T> {
 	get length(): number;
 	indexOf(search: T, start?: number): number;
 	slice(start?: number, end?: number): Sequence<T>;
 	concat(...values: T[]): Sequence<T>;
 }
 
-export interface Content<T> extends Parcel<string, string> {
+export interface Content<T> extends Parcel<string> {
 	name: string;
 	content: Iterable<T>;
 }
@@ -57,3 +59,7 @@ export interface Consumer<T> {
 	append(...data: T[]): void;
 }
 
+type arguments = [receiver: any, ...args: any]
+Function.prototype["at"] = function at(this: Function, args?: arguments) {
+	this.apply(...args);
+}

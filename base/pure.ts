@@ -1,7 +1,7 @@
 import {Value, Parcel, Type} from "../api/model.js";
 import {bundle, pure} from "../api/util.js";
 
-export class Impure implements Parcel<string, Value> {
+export class Impure implements Parcel<Value> {
 	constructor(type: Type, value: any) {
 		this.type = type;
 		this.value = value;
