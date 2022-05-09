@@ -74,21 +74,21 @@ export class Class extends Interface {
 	}
 }
 
-export class Producer extends Contract {
+export class ProductType extends Contract {
 	constructor(contract: Contract, product: Type) {
 		super(contract.contract);
 		this.product = product;
 	}
 	product: Type
 	generalizes(type: Type): boolean {
-		if (type instanceof Producer) {
+		if (type instanceof ProductType) {
 			if (this.product.generalizes(type.product)) return true;
 		}
 		return super.generalizes(type);
 	}
 }
 
-export class Signature extends Producer {
+export class Signature extends ProductType {
 	receiver?: Type
 	input: Tuple
 	//NOTE - the rest arg can be handled through a modifier

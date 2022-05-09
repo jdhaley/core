@@ -1,7 +1,7 @@
 import {Value, Parcel} from "../api/model.js";
 import {bundle} from "../api/util.js";
 
-import {Producer} from "./type.js";
+import {ProductType} from "./type.js";
 
 type key = string | number;
 
@@ -14,13 +14,13 @@ export interface Container<K, V> extends Parcel<K, V> {
 }
 
 export abstract class Collection<K, T> implements Container<K, T> {
-	abstract get type(): Producer;
+	abstract get type(): ProductType;
 	abstract at(key: K): T;
 	abstract put(key: K, value: T): void;
 }
 
 abstract class X<T> implements Collection<key, T> {
-	type: Producer;
+	type: ProductType;
 	pure: any;
 	keys: Iterable<key>;
 	get isClosed(): boolean {
@@ -36,12 +36,12 @@ abstract class X<T> implements Collection<key, T> {
 }
 
 export class ParcelImpl<T> implements Collection<string, T>, Value {
-	constructor(type: Producer, from?: ParcelImpl<T> | bundle<T>) {
+	constructor(type: ProductType, from?: ParcelImpl<T> | bundle<T>) {
 		this.type = type;
 		this.#members = from instanceof ParcelImpl ? Object.create(from.#members) : (from || Object.create(null));
 	}
 	#members: bundle<T>;
-	type: Producer;
+	type: ProductType;
 	get pure() {
 		return this;
 	}
@@ -75,7 +75,7 @@ export class Sequence<T> implements Collection<number, T> {
 	[Symbol.iterator](): Iterator<T, any, undefined> {
 		return this.#members[Symbol.iterator]();
 	}
-	type: Producer;
+	type: ProductType;
 	get pure() {
 		return this;
 	}
