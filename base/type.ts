@@ -1,6 +1,13 @@
 import {Value, Type} from "../api/model.js";
 import {bundle, constant} from "../api/util.js";
 
+/*
+	TODO: consider ContentType
+	- product type
+	- attributes
+	- names (sequence or choice)
+*/
+
 export class Contract implements Type  {
 	constructor(contract: bundle<Value>) {
 		this.contract = contract || Object.create(null)
