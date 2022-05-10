@@ -7,6 +7,7 @@ export type constant = key | boolean | null;
 export type serial = constant | bundle<serial> | serial[];
 export type pure = constant | Function | bundle<pure> | pure[]
 
+export type other = symbol | bigint;
 // class Nil {
 // 	void = undefined;
 // 	value = null;
