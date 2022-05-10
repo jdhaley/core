@@ -11,7 +11,7 @@ export interface Type extends Parcel<Value> {
 }
 
 export interface Producer<I, O> extends Value {
-	at(input: I): O; 
+	at(input?: I): O; 
 }
 
 export interface Parcel<V> extends Producer<string, V> {
@@ -34,9 +34,9 @@ export interface Content<T> extends Parcel<string> {
 }
 
 /*
-if needed: attributes: Iterable<string> can be added to Content or Markup
-to iterate over attribute names.  The attribute names could come from a
-"ContentType".
+	If needed for attributes: 
+	Iterable<string> can be added to Content or Markup to iterate over attribute names.
+	The attribute names (and the node name) could come from a "ContentType".
 */
 
 export interface Markup extends Content<Markup> {
@@ -59,6 +59,12 @@ export interface Consumer<T> {
 	append(...data: T[]): void;
 }
 
+export interface Signature extends Type {
+	input: Type
+	output: Type
+}
+
+//Experimental: Adapting the Producer API for functions...
 type arguments = [receiver: any, ...args: any]
 Function.prototype["at"] = function at(this: Function, args?: arguments) {
 	this.apply(...args);

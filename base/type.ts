@@ -1,4 +1,4 @@
-import {Value, Type, Content} from "../api/model.js";
+import {Value, Type, Signature} from "../api/model.js";
 import {bundle, constant} from "../api/util.js";
 
 /*
@@ -7,24 +7,24 @@ import {bundle, constant} from "../api/util.js";
 	- attributes
 	- names (sequence or choice)
 */
-class ContentType implements Type {
-	at(key: string): Value {
-		throw new Error("Method not implemented.");
-	}
-	generalizes(type: Type): boolean {
-		if (type instanceof ContentType) {
+// class ContentType implements Type {
+// 	at(key: string): Value {
+// 		throw new Error("Method not implemented.");
+// 	}
+// 	generalizes(type: Type): boolean {
+// 		if (type instanceof ContentType) {
 
-		}
-		return false;
-	}
-	categorizes(value: Content<any>): boolean {
-		value.type
-		throw new Error("Method not implemented.");
-	}
-	type?: Type;
-	pure?: any;
+// 		}
+// 		return false;
+// 	}
+// 	categorizes(value: Content<any>): boolean {
+// 		value.type
+// 		throw new Error("Method not implemented.");
+// 	}
+// 	type?: Type;
+// 	pure?: any;
 	
-}
+// }
 export class Contract implements Type  {
 	constructor(contract: bundle<Value>) {
 		this.contract = contract || Object.create(null)
@@ -50,7 +50,7 @@ export class Contract implements Type  {
 	categorizes(value: any): boolean {
 		return value?.type ? this.generalizes(value.type) : false;
 	}
-	freeze() {
+	close() {
 		Object.freeze(this.contract);
 		Object.freeze(this);
 	}
@@ -58,59 +58,52 @@ export class Contract implements Type  {
 //The contract must be filled in or replaced by compilation.
 const TYPE = new Contract(Object.create(null));
 
-export class Interface extends Contract {
+
+export class Class extends Contract {
 	constructor(name?: string, members?: bundle<Value>) {
 		super(members || Object.create(null));
 		this.name = name || "";
 	}
 	name: string
-	implement: Contract[];
-}
-
-export class Class extends Interface {
 	extend: Class;
+	implement: Contract[];
+
 	generalizes(type: Type) {
 		return type instanceof Class /*&& this.super.generalizes(type.super)*/ && super.generalizes(type);
 	}
 }
 
-export class ProductType extends Contract {
-	constructor(contract: Contract, product: Type) {
-		super(contract.contract);
-		this.product = product;
+export class ProductType extends Contract implements Signature {
+	constructor(contract: bundle<Value>, input: Type, output: Type) {
+		super(contract);
+		this.input = input;
+		this.output = output;
 	}
-	product: Type
-	generalizes(type: Type): boolean {
-		if (type instanceof ProductType) {
-			if (this.product.generalizes(type.product)) return true;
-		}
-		return super.generalizes(type);
+	input: Type;
+	output: Type;
+
+	generalizes(type: Type) {
+		return (type instanceof ProductType
+			&& super.generalizes(type)
+			&& this.input.generalizes(type.input)
+			&& this.output.generalizes(type.output)
+		) ? true : false;
 	}
+
 }
 
-export class Signature extends ProductType {
-	receiver?: Type
-	input: Tuple
-	//NOTE - the rest arg can be handled through a modifier
-	constructor(FUNCTION_TYPE: Contract, receiver: Type, input: Tuple, product: Type) {
-		super(FUNCTION_TYPE, product);
-		this.receiver = receiver;
-		this.input = input;
-		this.freeze();
+export class FunctionType extends ProductType {
+	declare input: Tuple
+	constructor(contract: bundle<Value>, input: Tuple, product: Type) {
+		super(contract, input, product);
 	}
 	generalizes(type: Type): boolean {
-		if (type instanceof Signature) {
-			if (this.receiver && !this.receiver.generalizes(type.receiver)) return false;
-			if (this.product && !this.product.generalizes(type.product)) return false;
-			//For the input the generalization works the other way.
-			//i.e. the overloading function must accept this function's signature.
-			if (!type.input.generalizes(this.input)) return false;
-			return super.generalizes(type.receiver);
-		}
-		return false;
-	}
-	categorizes(value: any): boolean {
-		return this.input.categorizes(value);
+		return (type instanceof ProductType
+			&& super.generalizes(type)
+			//// The difference between a function and container is the generalizaton relatonship here
+			&& type.input.generalizes(this.input)
+			&& this.output.generalizes(type.output)
+		) ? true : false;
 	}
 }
 
