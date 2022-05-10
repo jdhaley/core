@@ -39,10 +39,13 @@ export interface Content<T> extends Parcel<string> {
 	The attribute names (and the node name) could come from a "ContentType".
 */
 
-export interface Markup extends Content<Markup> {
+export interface Markable {
 	readonly markup: string;	//DOM outerHTML
 	markupContent: string;		//DOM innerHTML
 	textContent: string;		//DOM textContent
+}
+
+export interface Markup extends Content<Markup>, Markable {
 }
 
 interface Resource {

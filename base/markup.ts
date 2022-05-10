@@ -3,13 +3,13 @@ import {bundle, EMPTY} from "../api/util.js";
 
 export type content = string | Markup;
 
-export class MarkupElement<T extends Markup> implements Markup {
+export class ElementMarkup<T extends Markup> implements Markup {
 	constructor(parent?: T) {
 		this.parent = parent;
 	}
 	source: Element;
 	protected readonly parent: T;
-	declare content: T[];
+	content: T[];
 
 	get name() {
 		return this.source.nodeName;
@@ -26,6 +26,18 @@ export class MarkupElement<T extends Markup> implements Markup {
 
 	at(name: string): string {
 		return this.source.getAttribute(name);
+	}
+	//add put()
+	protected get isNamed(): boolean {
+		return this.name.startsWith("#") ? false : true;
+	}
+	get attributes(): bundle<string> {
+		//TODO return a proxy so that the attributes are live.
+		return Array
+			.from(this.source.attributes)
+    		.filter(a => a.specified)
+    		.map(a => ({[a.nodeName]: a.nodeValue}))
+    		.reduce((prev, curr) => Object.assign(prev || Object.create(null), curr))
 	}
 }
 
