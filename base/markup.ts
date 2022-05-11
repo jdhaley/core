@@ -1,13 +1,9 @@
-import {Consumer, Markup, Parcel, Sequence} from "../api/model.js";
+import {Consumer, Entity, Markup, Sequence} from "../api/model.js";
 import {bundle, EMPTY} from "../api/util.js";
 
 export type content = string | Markup;
 
-export interface Entity extends Parcel<string | number | boolean> {
-	name?: string;
-}
-
-export class EmptyMarkup implements Markup {
+export class EmptyMarkup implements Entity, Markup {
 	protected get attr(): bundle<string> {
 		return EMPTY.object;
 	}

@@ -31,7 +31,7 @@ export const resourceActions = extend(displayActions, {
 		}
 		signal.subject = "";
 		let target = this.transform.target(this.element) as Element;
-		this.owner.origin.save(this.dataset.file, target.outerHTML, this);
+		this.service.save(this.dataset.file, target.outerHTML, this);
 	},
 	draw(this: Article, msg: Signal) {
 		this.element["$editor"] = this;

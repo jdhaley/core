@@ -1,9 +1,13 @@
-import {Markup} from "../api/model.js";
+import {Content} from "../api/model.js";
+import {Transmitter} from "../api/signal.js";
 import {Control} from "./control.js";
 
-export class ControlElement extends Control implements Markup {
+export class ControlElement extends Control implements Content {
 	protected get element(): Element {
 		return null;
+	}
+	get service(): Transmitter {
+		return this.partOf?.service;
 	}
 	get name() {
 		return this.element.nodeName;
@@ -50,6 +54,84 @@ export class ControlElement extends Control implements Markup {
 	append(control: ControlElement) {
 		this.element.append(control.element);
 	}
+}
+
+export class Owner extends Control {
+	static of(node: Node | Range): Owner {
+		if (node instanceof Range) node = node.commonAncestorContainer;
+		return node?.ownerDocument["owner"];
+	}
+
+	get document(): Document {
+		return null;
+	}
+	get location() {
+		return this.document.location;
+	}
+
+	createElement(name: string, namespace?: string): Element {
+		if (namespace) {
+			return this.document.createElementNS(namespace, name);
+		} else {
+			return this.document.createElement(name);
+		}
+	}
+	createNodes(source: string | Range): Node[] {
+		let list: NodeList;
+		if (typeof source == "string") {
+			let div = this.document.createElement("div");
+			div.innerHTML = source;
+			list = div.childNodes;
+		} else if (source instanceof Range) {
+			let frag = source.cloneContents();
+			list = frag.childNodes;
+		}
+		let nodes = [];
+		for (let node of list) {
+			//Chrome adds a meta tag for UTF8 when the cliboard is just text.
+			//TODO a more generalized transformation to be developed for all clipboard exchange.
+			if (node.nodeName != "META") nodes.push(node);
+		}
+		return nodes;
+	}
+
+	u_controlOf(node: Node): ControlElement {
+		while(node) {
+			let control = node["$control"];
+			if (control) return control;
+			node = node.parentNode;
+		}
+	}
+	u_markup(range: Range): string {
+		let frag = range.cloneContents();
+		let div = range.commonAncestorContainer.ownerDocument.createElement("div");
+		while (frag.firstChild) {
+			div.append(frag.firstChild);
+		}
+		return div.innerHTML;
+	}
+
+	// get part(): ControlElement {
+	// 	return this.document.documentElement["$control"];
+	// }
+
+	// get content() {
+	// 	let control = this.part;
+	// 	let decl = {
+	// 		value: {
+	// 			[Symbol.iterator]: function*() {
+	// 				yield control;
+	// 			}
+	// 		}
+	// 	}
+	// 	Reflect.defineProperty(this, "parts", decl);
+	// 	return decl.value;
+	// }
+
+	// append(control: ControlElement) {
+	// 	//cast to any to access the protected element.
+	// 	this.document.body.append((control as any).element);
+	// }
 }
 
 export const text = {
