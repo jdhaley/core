@@ -1,6 +1,6 @@
 import {Content} from "../api/model.js";
 import {Transmitter} from "../api/signal.js";
-import {Control} from "./control.js";
+import {Control, Owner} from "./control.js";
 
 export class ControlElement extends Control implements Content {
 	protected get element(): Element {
@@ -56,8 +56,8 @@ export class ControlElement extends Control implements Content {
 	}
 }
 
-export class Owner extends Control {
-	static of(node: Node | Range): Owner {
+export class DocumentOwner extends Owner {
+	static of(node: Node | Range): DocumentOwner {
 		if (node instanceof Range) node = node.commonAncestorContainer;
 		return node?.ownerDocument["owner"];
 	}

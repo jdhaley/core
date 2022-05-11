@@ -2,11 +2,11 @@ import {Controller, Signal} from "../api/signal.js";
 import {Transformer} from "../api/transform.js";
 import {Commandable, bundle, EMPTY} from "../api/util.js";
 
-import {ControlElement, Owner, text, controlOf} from "../base/dom.js";
+import {ControlElement, DocumentOwner, text, controlOf} from "../base/dom.js";
 import {RemoteFileService} from "../base/remote.js";
 import { FrameConf, ViewConf } from "./configuration.js";
 
-export class Frame extends Owner {
+export class Frame extends DocumentOwner {
 	constructor(window: Window, conf: FrameConf) {
 		super();
 		this.#window = window;
@@ -109,11 +109,11 @@ export class Display extends ControlElement {
 	protected get element(): HTMLElement {
 		return this.#element;
 	}
-	get controller(): Controller {
+	get controller() {
 		return this.#controller;
 	}
 	get owner() {
-		return Owner.of(this.element) as Frame;
+		return DocumentOwner.of(this.element) as Frame;
 	}
 	get box() {
 		return this.element.getBoundingClientRect();

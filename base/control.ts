@@ -5,7 +5,7 @@ export class Control implements Part, Transmitter, Sensor {
 	get controller(): Controller {
 		return EMPTY.object;
 	}
-	get owner() {
+	get owner(): Owner {
 		return this.partOf?.owner;
 	}
 	get partOf() {
@@ -51,5 +51,11 @@ export class Control implements Part, Transmitter, Sensor {
 			sensor.receive(signal);
 			signal.from = sensor;
 		}
+	}
+}
+
+export class Owner extends Control {
+	get location(): Location {
+		return undefined;
 	}
 }
