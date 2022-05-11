@@ -94,44 +94,22 @@ export class Owner extends Control {
 		}
 		return nodes;
 	}
+}
 
-	u_controlOf(node: Node): ControlElement {
-		while(node) {
-			let control = node["$control"];
-			if (control) return control;
-			node = node.parentNode;
-		}
+export function controlOf(node: Node): ControlElement {
+	while(node) {
+		let control = node["$control"];
+		if (control) return control;
+		node = node.parentNode;
 	}
-	u_markup(range: Range): string {
-		let frag = range.cloneContents();
-		let div = range.commonAncestorContainer.ownerDocument.createElement("div");
-		while (frag.firstChild) {
-			div.append(frag.firstChild);
-		}
-		return div.innerHTML;
+}
+export function markup(range: Range): string {
+	let frag = range.cloneContents();
+	let div = range.commonAncestorContainer.ownerDocument.createElement("div");
+	while (frag.firstChild) {
+		div.append(frag.firstChild);
 	}
-
-	// get part(): ControlElement {
-	// 	return this.document.documentElement["$control"];
-	// }
-
-	// get content() {
-	// 	let control = this.part;
-	// 	let decl = {
-	// 		value: {
-	// 			[Symbol.iterator]: function*() {
-	// 				yield control;
-	// 			}
-	// 		}
-	// 	}
-	// 	Reflect.defineProperty(this, "parts", decl);
-	// 	return decl.value;
-	// }
-
-	// append(control: ControlElement) {
-	// 	//cast to any to access the protected element.
-	// 	this.document.body.append((control as any).element);
-	// }
+	return div.innerHTML;
 }
 
 export const text = {

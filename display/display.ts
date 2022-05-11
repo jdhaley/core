@@ -2,7 +2,7 @@ import {Controller, Signal} from "../api/signal.js";
 import {Transformer} from "../api/transform.js";
 import {Commandable, bundle, EMPTY} from "../api/util.js";
 
-import {ControlElement, Owner, text} from "../base/dom.js";
+import {ControlElement, Owner, text, controlOf} from "../base/dom.js";
 import {RemoteFileService} from "../base/remote.js";
 
 export interface UserEvent extends Signal, UIEvent {
@@ -55,7 +55,7 @@ export class Frame extends Owner {
 		}
 		this.document.addEventListener("selectionchange", (event: UserEvent) => {
 			let range = this.selectionRange;
-			let view = this.u_controlOf(range.commonAncestorContainer);
+			let view = controlOf(range.commonAncestorContainer);
 			if (view) {
 				event.subject = "selectionchange";
 				event["range"] = range;
@@ -104,7 +104,7 @@ export class Frame extends Owner {
 	}
 	displayAt(x: number, y: number): Display {
 		let target = this.document.elementFromPoint(x, y);
-		return this.u_controlOf(target) as Display;
+		return controlOf(target) as Display;
 	}
 }
 
