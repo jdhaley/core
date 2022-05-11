@@ -10,8 +10,22 @@ export interface Type extends Parcel<Value> {
 	categorizes(value: any): boolean;
 }
 
+export interface Signature extends Type {
+	input: Type
+	output: Type
+}
+
 export interface Producer<I, O> extends Value {
+	//type?: Signature
 	at(input?: I): O; 
+}
+
+/*
+	NOTE: A Consumer can be a stable Sequence source, therefore
+	append() shouldn't alter the sub sequences created from this instance.
+*/
+export interface Consumer<T> {
+	append(...data: T[]): void;
 }
 
 export interface Parcel<V> extends Producer<string, V> {
@@ -44,21 +58,8 @@ export interface Content extends Entity, Markup {
 
 interface Resource {
 	/** close() is not required to do anything other than signal the resource isClosed. */
-	close(): void;	
+	close(): void;
 	isClosed?: boolean;
-}
-
-/*
-	NOTE: A Consumer can be a stable Sequence source, therefore
-	append() shouldn't alter the sub sequences created from this instance.
-*/
-export interface Consumer<T> {
-	append(...data: T[]): void;
-}
-
-export interface Signature extends Type {
-	input: Type
-	output: Type
 }
 
 //Experimental: Adapting the Producer API for functions...
