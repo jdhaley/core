@@ -1,4 +1,3 @@
-import {Markup} from "../api/model.js";
 import {Signal, Part, Controller, Sensor, Transmitter, Message} from "../api/signal.js";
 import {EMPTY} from "../api/util.js";
 
@@ -52,36 +51,5 @@ export class Control implements Part, Transmitter, Sensor {
 			sensor.receive(signal);
 			signal.from = sensor;
 		}
-	}
-}
-
-export class ElementControl extends Control implements Part, Markup {
-	protected get element(): Element {
-		return null;
-	}
-	get name() {
-		return this.element.nodeName;
-	}
-	get markup(): string {
-		return this.element.outerHTML;
-	}
-	get markupContent(): string {
-		return this.element.innerHTML;
-	}
-	set markupContent(content: string) {
-		this.element.innerHTML = content;
-	}
-	get textContent(): string {
-		return this.element.textContent;
-	}
-	set textContent(content: string) {
-		this.element.textContent = content;
-	}
-
-	at(name: string): string {
-		return this.element.getAttribute(name);
-	}
-	put(name: string, value: string) {
-		this.element.setAttribute(name, value);
 	}
 }

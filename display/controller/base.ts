@@ -9,7 +9,7 @@ export const displayActions = {
 	},
 	view(this: Display, msg: Signal) {
 		this.model = msg.from["model"];
-		this.view.textContent = "" + this.model;
+		this.element.textContent = "" + this.model;
 	},
 	command(this: Display, event: UserEvent) {
 		let command = this.shortcuts[event.shortcut];
@@ -30,22 +30,22 @@ export const resourceActions = extend(displayActions, {
 			return;
 		}
 		signal.subject = "";
-		let target = this.transform.target(this.view) as Element;
+		let target = this.transform.target(this.element) as Element;
 		this.owner.origin.save(this.dataset.file, target.outerHTML, this);
 	},
 	draw(this: Article, msg: Signal) {
-		this.view["$editor"] = this;
+		this.element["$editor"] = this;
 		this.setEditable(true);
 	},
 	view(this: Article, msg: Signal) {
 		let div = this.owner.document.createElement("DIV");
 		div.innerHTML = this.model;
-		this.view.innerHTML = this.transform.transform(div).innerHTML;
+		this.element.innerHTML = this.transform.transform(div).innerHTML;
 	},
 	selectAll(this: Article, event: UserEvent) {
 		event.subject = "";
 		let range = this.owner.selectionRange;
-		range.selectNodeContents(this.view)
+		range.selectNodeContents(this.element)
 	}
 });
 
