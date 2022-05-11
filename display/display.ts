@@ -4,44 +4,7 @@ import {Commandable, bundle, EMPTY} from "../api/util.js";
 
 import {ControlElement, Owner, text, controlOf} from "../base/dom.js";
 import {RemoteFileService} from "../base/remote.js";
-
-export interface UserEvent extends Signal, UIEvent {
-	sensor: Display;
-	//keyboard & mouse
-    ctrlKey: boolean,
-    altKey: boolean,
-    shiftKey: boolean,
-	metaKey: boolean,
-	//clipboard events
-	clipboardData?: DataTransfer,
-	//keyboard.
-    shortcut: string;
-    key: string,
-	//mouse support - to be reviewed.
-    track: Display;
-    x?: number;
-    y?: number;
-	moveX?: number;
-	moveY?: number;
-}
-
-export interface FrameConf {
-	events: Controller;
-	types: bundle<typeof Display>
-}
-
-export interface ViewConf {
-	type?: string;
-	nodeName?: string;
-	styles?: string;
-	shortcuts?: {
-		[key: string]: string
-	};
-	actions: Controller;
-	properties: {
-		[key: string]: unknown;
-	}
-}
+import { FrameConf, ViewConf } from "./configuration.js";
 
 export class Frame extends Owner {
 	constructor(window: Window, conf: FrameConf) {
@@ -49,8 +12,8 @@ export class Frame extends Owner {
 		this.#window = window;
 		this.document["owner"] = this;
 		if (conf.types) this.#types = conf.types;
-		for (let name in conf.events) {
-			let listener = conf.events[name];
+		for (let name in conf.controller) {
+			let listener = conf.controller[name];
 			this.#window.addEventListener(name, listener as any);
 		}
 		this.document.addEventListener("selectionchange", (event: UserEvent) => {
@@ -108,11 +71,32 @@ export class Frame extends Owner {
 	}
 }
 
+export interface UserEvent extends Signal, UIEvent {
+	sensor: Display;
+	//keyboard & mouse
+    ctrlKey: boolean,
+    altKey: boolean,
+    shiftKey: boolean,
+	metaKey: boolean,
+	//clipboard events
+	clipboardData?: DataTransfer,
+	//keyboard.
+    shortcut: string;
+    key: string,
+	//mouse support - to be reviewed.
+    track: Display;
+    x?: number;
+    y?: number;
+	moveX?: number;
+	moveY?: number;
+}
+
+
 export class Display extends ControlElement {
 	constructor(owner: Frame, conf: ViewConf) {
 		super();
 		this.#element = owner.createElement(conf.nodeName || "div") as HTMLElement;
-		this.#controller = conf.actions || EMPTY.object;
+		this.#controller = conf.controller || EMPTY.object;
 		this.#element["$control"] = this;
 		if (conf.shortcuts) this.shortcuts = conf.shortcuts;
 		if (conf.styles) this.#element.className = conf.styles;

@@ -1,23 +1,10 @@
 import {Signal, Response} from "../../api/signal.js";
-
-import {Display, Article, UserEvent} from "../display.js"
-
 import {extend} from "../../base/util.js";
 
-export const displayActions = {
-	draw(this: Display, msg: Signal) {
-	},
-	view(this: Display, msg: Signal) {
-		this.model = msg.from["model"];
-		this.element.textContent = "" + this.model;
-	},
-	command(this: Display, event: UserEvent) {
-		let command = this.shortcuts[event.shortcut];
-		if (command) event.subject = command;
-	}
-}
+import {Article, UserEvent} from "../display.js"
+import display from "./display.js";
 
-export const resourceActions = extend(displayActions, {
+export default extend(display, {
 	open(this: Article, msg: Response<string>) {
 		this.model = msg.statusCode == 404 ? "" : msg.body;
 		this.dataset.file = msg.req.to;
