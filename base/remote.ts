@@ -73,17 +73,18 @@ class Remote implements Transmitter, Receiver {
 	}
 }
 
-export class Origin extends Remote {
+export class RemoteFileService extends Remote {
 	constructor(origin?: string) {
 		super();
-		this.origin = origin || "";
+		console.info("Remote File Service:", origin);
+		this.location = new URL(origin || "");
 		this.responses = Object.create(null);
 	}
-	origin: string
+	location: Location
 	responses: bundle<Response<any>>;
 
 	protected getEndpoint(request: Request) {
-		return this.origin + request.to;
+		return this.location + request.to;
 	}
 
 	open(path: string, from?: Receiver | Function, subject?: string) {
@@ -108,3 +109,37 @@ export class Origin extends Remote {
 		super.receive(response);
 	}
 }
+
+//documentation from MDN.
+export interface Location {
+	/** A stringifier that returns a USVString containing the whole URL. */
+	href: string;
+
+	/** A USVString containing the protocol scheme of the URL, including the final ':'. */
+	protocol: string
+	/** A USVString containing the domain of the URL. */
+	hostname: string;
+	/** A USVString containing the port number of the URL. */
+	port: string
+	/** Is a USVString containing an initial '/' followed by the path of the URL, not including the query string or fragment. */
+	pathname: string;
+	/** A USVString indicating the URL's parameter string; if any parameters are provided, this string includes all of them, beginning with the leading ? character. */
+	search: string;
+	/** A USVString containing a '#' followed by the fragment identifier of the URL. */
+	hash: string;
+
+	//////// username and password are not in a Document.location ////////////
+	// /** A USVString containing the username specified before the domain name. */
+	// username: string;
+	// /** A USVString containing the password specified before the domain. */
+	// password: string;
+	
+	/** Returns a USVString containing the origin of the URL, that is its scheme, its domain and its port.*/
+	//readonly origin: string;
+	/** A USVString containing the domain (that is the hostname) followed by (if a port was specified) a ':' and the port of the URL. */
+	//readonly host: string;
+
+	////* A URLSearchParams object which can be used to access the individual query parameters found in search. */
+	//readonly searchParams
+}
+

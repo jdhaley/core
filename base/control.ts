@@ -1,26 +1,19 @@
-import {Signal, Receiver, Controller, Sensor, Transmitter, Message} from "../api/signal.js";
+import {Signal, Part, Controller, Sensor, Transmitter, Message} from "../api/signal.js";
+import {EMPTY} from "../api/util.js";
 
-const EMPTY_ARR = Object.freeze([]);
-
-
-export interface Part extends Receiver {
-	partOf?: Part;
-	parts: Iterable<Part>;
-}
-
-export class Control implements Part, Transmitter, Sensor {
+export class Control implements Part<unknown>, Transmitter, Sensor {
 	constructor(controller: Controller) {
 		this.actions = controller || Object.create(null);
 	}
-	actions: Controller;
+	private actions: Controller;
 	get owner() {
 		return this.partOf?.owner;
 	}
 	get partOf() {
 		return null;
 	}
-	get parts() {
-		return EMPTY_ARR as Iterable<Part>;
+	get content() {
+		return EMPTY.array as Iterable<Part<Control>>;
 	}
 	receive(signal: Signal)  {
 		if (!signal) return;
@@ -41,8 +34,8 @@ export class Control implements Part, Transmitter, Sensor {
 		signal.subject && Promise.resolve(signal).then(signal => sendTo(this, signal));
 		return;
 
-		function sendTo(sender: Part, signal: Signal) {
-			if (sender.parts) for (let part of sender.parts) {
+		function sendTo(sender: Part<unknown>, signal: Signal) {
+			if (sender.content) for (let part of sender.content) {
 				signal.from = sender;
 				part.receive(signal);
 				if (!signal.subject) return;

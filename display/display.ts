@@ -4,7 +4,7 @@ import {Commandable} from "../api/util.js";
 import {Transformer} from "../api/transform.js";
 import {Viewer, Owner, text} from "./dom.js";
 
-import {Origin} from "../base/remote.js";
+import {RemoteFileService} from "../base/remote.js";
 //import {Node, Element, Range} from "./domParts.js";
 
 export interface UserEvent extends Signal, UIEvent {
@@ -28,13 +28,13 @@ export interface UserEvent extends Signal, UIEvent {
 }
 
 export interface FrameConf {
-	origin: Origin,
+	sources: string,
 	events: Controller;
 	actions: Controller;
 	types: {
 		[key: string]: typeof Display
 	};
-	[key: string]: unknown;
+//	[key: string]: unknown;
 }
 
 export interface ViewConf {
@@ -45,7 +45,9 @@ export interface ViewConf {
 		[key: string]: string
 	};
 	actions: Controller;
-	[key: string]: unknown;
+	properties: {
+		[key: string]: unknown;
+	}
 }
 
 export class Frame extends Owner {
@@ -54,7 +56,7 @@ export class Frame extends Owner {
 	};
 	model?: any;
 	constructor(window: Window, conf: FrameConf) {
-		super(conf.origin, conf.actions);
+		super(new RemoteFileService(window.location.origin + conf.sources), conf.actions);
 		this.#window = window;
 		this.document["owner"] = this;
 		if (conf.types) this.types = conf.types;
@@ -160,8 +162,8 @@ export class Display extends Viewer {
 export class Article extends Display {
 	constructor(owner: Frame, conf: ViewConf) {
 		super(owner, conf);
-		this.transform = conf.transform as Transformer<Node, HTMLElement>;
-		this.commands = conf.commands as Commandable<Range>;
+		this.transform = conf.properties.transform as Transformer<Node, HTMLElement>;
+		this.commands = conf.properties.commands as Commandable<Range>;
 	}
 	protected commands: Commandable<Range>;
 	protected transform: Transformer<Node, Element>

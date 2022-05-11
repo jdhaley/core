@@ -1,11 +1,12 @@
-import {Controller, Receiver, Transmitter} from "../api/signal.js";
-import {Control, Part} from "../../core/base/control.js";
-import {Origin} from "../base/remote.js";
+import {Controller, Part, Receiver, Transmitter} from "../api/signal.js";
+import {Control} from "../../core/base/control.js";
+import {Location, RemoteFileService} from "../base/remote.js";
 
+//TODO review this...
 interface Whole extends Receiver, Transmitter {
-	origin: Origin;
+	origin: RemoteFileService;
 	location: Location;
-	part: Part;
+	part: Part<unknown>;
 }
 
 export class Owner extends Control implements Whole {
@@ -13,12 +14,12 @@ export class Owner extends Control implements Whole {
 		if (node instanceof Range) node = node.commonAncestorContainer;
 		return node?.ownerDocument["owner"];
 	}
-	constructor(origin: Origin, actions: Controller) {
+	constructor(origin: RemoteFileService, actions: Controller) {
 		super(actions);
 		this.origin = origin;
 	}
 	#lastId: number = 0;
-	origin: Origin;
+	origin: RemoteFileService;
 
 	get document(): Document {
 		return null;
@@ -26,7 +27,7 @@ export class Owner extends Control implements Whole {
 	get part(): Viewer {
 		return this.document.documentElement["$control"];
 	}
-	get parts() {
+	get content() {
 		let control = this.part;
 		let decl = {
 			value: {
@@ -110,10 +111,10 @@ export class Viewer extends Control {
 	get owner(): Owner {
 		return Owner.of(this.view);
 	}
-	get partOf() {
+	get partOf(): Viewer {
 		return this.view.parentNode["$control"];
 	}
-	get parts() {
+	get content(): Iterable<Viewer> {
 		const nodes = this.view.childNodes;
 		let to = Object.create(null);
 		to[Symbol.iterator] = function*() {

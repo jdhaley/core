@@ -5,10 +5,10 @@ export type content = string | Markup;
 
 export class ElementMarkup<T extends Markup> implements Markup {
 	constructor(parent?: T) {
-		this.parent = parent;
+		this.partOf = parent;
 	}
 	source: Element;
-	protected readonly parent: T;
+	protected readonly partOf: T;
 	content: T[];
 
 	get name() {

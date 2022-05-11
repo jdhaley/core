@@ -28,8 +28,11 @@ export interface Sequence<T> extends Producer<number, T>, Iterable<T> {
 	concat(...values: T[]): Sequence<T>;
 }
 
-export interface Content<T> extends Parcel<string> {
+interface Entity extends Parcel<string | number | boolean> {
 	name: string;
+}
+
+export interface Content<T> extends Entity {
 	content: Iterable<T>;
 }
 
