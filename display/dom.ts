@@ -14,8 +14,8 @@ export class Owner extends Control implements Whole {
 		if (node instanceof Range) node = node.commonAncestorContainer;
 		return node?.ownerDocument["owner"];
 	}
-	constructor(origin: RemoteFileService, actions: Controller) {
-		super(actions);
+	constructor(origin: RemoteFileService) {
+		super();
 		this.origin = origin;
 	}
 	#lastId: number = 0;
@@ -103,7 +103,7 @@ export class Viewer extends Control {
 	protected model: any;
 	protected view: Element;
 	constructor(owner: Owner, conf: any, ele?: Element) {
-		super(conf?.actions);
+		super();
 		if (!ele) ele = owner.createElement(conf.nodeName || "div");
 		ele["$control"] = this;
 		this.view = ele;

@@ -2,10 +2,9 @@ import {Signal, Part, Controller, Sensor, Transmitter, Message} from "../api/sig
 import {EMPTY} from "../api/util.js";
 
 export class Control implements Part, Transmitter, Sensor {
-	constructor(controller: Controller) {
-		this.actions = controller || Object.create(null);
+	get controller(): Controller {
+		return EMPTY.object;
 	}
-	private actions: Controller;
 	get owner() {
 		return this.partOf?.owner;
 	}
@@ -19,7 +18,7 @@ export class Control implements Part, Transmitter, Sensor {
 		if (!signal) return;
 		let subject = signal.subject;
 		while (subject) try {
-			let action = this.actions[subject];
+			let action = this.controller[subject];
 			action && action.call(this, signal);
 			subject = (subject != signal.subject ? signal.subject : "");	
 		} catch (error) {

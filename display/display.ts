@@ -1,4 +1,4 @@
-import {bundle} from "../api/util.js";
+import {bundle, EMPTY} from "../api/util.js";
 import {Controller, Signal} from "../api/signal.js";
 import {Commandable} from "../api/util.js";
 import {Transformer} from "../api/transform.js";
@@ -30,7 +30,6 @@ export interface UserEvent extends Signal, UIEvent {
 export interface FrameConf {
 	sources: string,
 	events: Controller;
-	actions: Controller;
 	types: {
 		[key: string]: typeof Display
 	};
@@ -56,7 +55,7 @@ export class Frame extends Owner {
 	};
 	model?: any;
 	constructor(window: Window, conf: FrameConf) {
-		super(new RemoteFileService(window.location.origin + conf.sources), conf.actions);
+		super(new RemoteFileService(window.location.origin + conf.sources));
 		this.#window = window;
 		this.document["owner"] = this;
 		if (conf.types) this.types = conf.types;
@@ -117,10 +116,15 @@ export class Frame extends Owner {
 export class Display extends Viewer {
 	constructor(owner: Frame, conf: ViewConf) {
 		super(owner, conf);
+		this.#actions = conf.actions || EMPTY.object;
 		if (conf.shortcuts) this.shortcuts = conf.shortcuts;
 		if (conf.styles) this.view.className = conf.styles;
 	}
+	#actions: Controller;
 	shortcuts: bundle<string>;
+	get controller(): Controller {
+		return this.#actions;
+	}
 	get owner(): Frame {
 		return super.owner as Frame;
 	}

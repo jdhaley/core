@@ -28,20 +28,11 @@ export interface Sequence<T> extends Producer<number, T>, Iterable<T> {
 	concat(...values: T[]): Sequence<T>;
 }
 
-export interface Entity extends Parcel<string | number | boolean> {
-	name?: string;
-}
-
-// export interface Content<T> {
-// 	content: Iterable<T>;
-// }
-
 export interface Markup {
 	readonly markup: string;	//DOM outerHTML
 	markupContent: string;		//DOM innerHTML
 	textContent: string;		//DOM textContent
 }
-
 
 interface Resource {
 	/** close() is not required to do anything other than signal the resource isClosed. */
