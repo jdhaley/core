@@ -1,70 +1,10 @@
 import {Consumer, Markup, Parcel, Sequence} from "../api/model.js";
-import {Part, Signal} from "../api/signal.js";
 import {bundle, EMPTY} from "../api/util.js";
 
 export type content = string | Markup;
 
 export interface Entity extends Parcel<string | number | boolean> {
 	name?: string;
-}
-
-export class ElementEntity<T extends Part> implements Entity, Part, Markup {
-	protected get element(): Element {
-		return null;
-	}
-	get partOf(): T {
-		return undefined;
-	}
-	get content(): Sequence<T> {
-		return EMPTY.array;
-	}
-	get name() {
-		return this.element.nodeName;
-	}
-	get markup(): string {
-		return this.element.outerHTML;
-	}
-	get markupContent(): string {
-		return this.element.innerHTML;
-	}
-	set markupContent(content: string) {
-		this.element.innerHTML = content;
-	}
-	get textContent(): string {
-		return this.element.textContent;
-	}
-	set textContent(content: string) {
-		this.element.textContent = content;
-	}
-
-	at(name: string): string {
-		return this.element.getAttribute(name);
-	}
-
-	receive(signal: Signal): void {
-	}
-	// //add put()
-	// protected get isNamed(): boolean {
-	// 	return this.name.startsWith("#") ? false : true;
-	// }
-	// get attributes(): bundle<string> {
-	// 	//TODO return a proxy so that the attributes are live.
-	// 	return Array
-	// 		.from(this.element.attributes)
-    // 		.filter(a => a.specified)
-    // 		.map(a => ({[a.nodeName]: a.nodeValue}))
-    // 		.reduce((prev, curr) => Object.assign(prev || Object.create(null), curr))
-	// }
-}
-export class ElementPart<T extends Part> extends ElementEntity<T> {
-	constructor(parent?: T, element?: Element) {
-		super();
-		this.#parent = parent;
-	}
-	#parent: T;
-	get partOf(): T {
-		return this.#parent;
-	}
 }
 
 export class EmptyMarkup implements Markup {
