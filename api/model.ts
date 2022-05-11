@@ -32,9 +32,9 @@ export interface Entity extends Parcel<string | number | boolean> {
 	name?: string;
 }
 
-export interface Content<T> {
-	content: Iterable<T>;
-}
+// export interface Content<T> {
+// 	content: Iterable<T>;
+// }
 
 export interface Markup {
 	readonly markup: string;	//DOM outerHTML

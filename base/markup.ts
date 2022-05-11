@@ -1,4 +1,4 @@
-import {Consumer, Markup, Sequence} from "../api/model.js";
+import {Consumer, Entity, Markup, Sequence} from "../api/model.js";
 import {bundle, EMPTY} from "../api/util.js";
 
 export type content = string | Markup;
@@ -48,7 +48,7 @@ export class ElementMarkup<T extends Markup> implements Markup {
 	// }
 }
 
-export class EmptyMarkup implements Markup {
+export class EmptyMarkup implements Markup, Entity {
 	protected get attr(): bundle<string> {
 		return EMPTY.object;
 	}
@@ -124,6 +124,9 @@ export class Bag extends EmptyMarkup implements Consumer<Markup> {
 			this.#content.push(typeof value == "string" ? new TextContent(value) : value);
 		}
 	}
+	empty() {
+		this.#content.length = 0;
+	}
 	get isClosed(): boolean {
 		return Object.isFrozen(this.content);
 	}
@@ -132,16 +135,6 @@ export class Bag extends EmptyMarkup implements Consumer<Markup> {
 	}
 }
 
-export class Source extends Bag  {
-	error?: string;
-	get content(): Markup[] {
-		return super.content as Markup[];
-	}
-	parse(text: string, start: number): number {
-		this.append(new TextContent(text.substring(start)));
-		return text.length;
-	}
-}
 
 function toMarkup(...values: content[]): Markup[] {
 	let content: Markup[] = []

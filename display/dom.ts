@@ -6,7 +6,7 @@ import {Location, RemoteFileService} from "../base/remote.js";
 interface Whole extends Receiver, Transmitter {
 	origin: RemoteFileService;
 	location: Location;
-	part: Part<unknown>;
+	part: Part;
 }
 
 export class Owner extends Control implements Whole {

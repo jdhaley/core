@@ -1,7 +1,7 @@
 import {Signal, Part, Controller, Sensor, Transmitter, Message} from "../api/signal.js";
 import {EMPTY} from "../api/util.js";
 
-export class Control implements Part<unknown>, Transmitter, Sensor {
+export class Control implements Part, Transmitter, Sensor {
 	constructor(controller: Controller) {
 		this.actions = controller || Object.create(null);
 	}
@@ -10,10 +10,10 @@ export class Control implements Part<unknown>, Transmitter, Sensor {
 		return this.partOf?.owner;
 	}
 	get partOf() {
-		return null;
+		return undefined;
 	}
-	get content() {
-		return EMPTY.array as Iterable<Part<Control>>;
+	get content(): Iterable<Part> {
+		return EMPTY.array;
 	}
 	receive(signal: Signal)  {
 		if (!signal) return;
@@ -34,7 +34,7 @@ export class Control implements Part<unknown>, Transmitter, Sensor {
 		signal.subject && Promise.resolve(signal).then(signal => sendTo(this, signal));
 		return;
 
-		function sendTo(sender: Part<unknown>, signal: Signal) {
+		function sendTo(sender: Part, signal: Signal) {
 			if (sender.content) for (let part of sender.content) {
 				signal.from = sender;
 				part.receive(signal);

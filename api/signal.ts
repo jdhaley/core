@@ -13,11 +13,10 @@ export interface Receiver {
 	receive(signal: Signal): void;
 }
 
-//TODO see model.Part
 /** A part is a Receiver node within a directed or rooted tree graph. */
-export interface Part<T> extends Receiver {
-	partOf?: Part<T>;
-	content: Iterable<Part<T>>;
+export interface Part extends Receiver {
+	partOf?: Part;
+	content: Iterable<Part>;
 }
 
 export interface Controller {
