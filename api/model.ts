@@ -44,6 +44,7 @@ export interface Sequence<T> extends Producer<number, T>, Iterable<T> {
 
 export interface Entity extends Parcel<string | number | boolean> {
 	name?: string;
+	keys(): Iterable<string>
 }
 
 export interface Markup {

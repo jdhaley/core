@@ -1,5 +1,6 @@
 import {Content} from "../api/model.js";
 import {Transmitter} from "../api/signal.js";
+import { EMPTY } from "../api/util.js";
 import {Control, Owner} from "./control.js";
 
 export class ControlElement extends Control implements Content {
@@ -45,6 +46,9 @@ export class ControlElement extends Control implements Content {
 		return to;
 	}
 
+	keys() {
+		return EMPTY.array as Iterable<string>;
+	}
 	at(name: string): string {
 		return this.element.getAttribute(name);
 	}
