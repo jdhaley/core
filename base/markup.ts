@@ -7,38 +7,45 @@ export class ElementMarkup<T extends Markup> implements Markup {
 	constructor(parent?: T) {
 		this.partOf = parent;
 	}
-	source: Element;
+	protected element: Element;
+
 	protected readonly partOf: T;
 	content: T[];
 
 	get name() {
-		return this.source.nodeName;
+		return this.element.nodeName;
 	}
 	get markup(): string {
-		return this.source.outerHTML;
+		return this.element.outerHTML;
 	}
 	get markupContent(): string {
-		return this.source.innerHTML;
+		return this.element.innerHTML;
+	}
+	set markupContent(content: string) {
+		this.element.innerHTML = content;
 	}
 	get textContent(): string {
-		return this.source.textContent;
+		return this.element.textContent;
+	}
+	set textContent(content: string) {
+		this.element.textContent = content;
 	}
 
 	at(name: string): string {
-		return this.source.getAttribute(name);
+		return this.element.getAttribute(name);
 	}
-	//add put()
-	protected get isNamed(): boolean {
-		return this.name.startsWith("#") ? false : true;
-	}
-	get attributes(): bundle<string> {
-		//TODO return a proxy so that the attributes are live.
-		return Array
-			.from(this.source.attributes)
-    		.filter(a => a.specified)
-    		.map(a => ({[a.nodeName]: a.nodeValue}))
-    		.reduce((prev, curr) => Object.assign(prev || Object.create(null), curr))
-	}
+	// //add put()
+	// protected get isNamed(): boolean {
+	// 	return this.name.startsWith("#") ? false : true;
+	// }
+	// get attributes(): bundle<string> {
+	// 	//TODO return a proxy so that the attributes are live.
+	// 	return Array
+	// 		.from(this.element.attributes)
+    // 		.filter(a => a.specified)
+    // 		.map(a => ({[a.nodeName]: a.nodeValue}))
+    // 		.reduce((prev, curr) => Object.assign(prev || Object.create(null), curr))
+	// }
 }
 
 export class EmptyMarkup implements Markup {

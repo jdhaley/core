@@ -28,28 +28,20 @@ export interface Sequence<T> extends Producer<number, T>, Iterable<T> {
 	concat(...values: T[]): Sequence<T>;
 }
 
-interface Entity extends Parcel<string | number | boolean> {
-	name: string;
+export interface Entity extends Parcel<string | number | boolean> {
+	name?: string;
 }
 
-export interface Content<T> extends Entity {
+export interface Content<T> {
 	content: Iterable<T>;
 }
 
-/*
-	If needed for attributes: 
-	Iterable<string> can be added to Content or Markup to iterate over attribute names.
-	The attribute names (and the node name) could come from a "ContentType".
-*/
-
-export interface Markable {
+export interface Markup {
 	readonly markup: string;	//DOM outerHTML
 	markupContent: string;		//DOM innerHTML
 	textContent: string;		//DOM textContent
 }
 
-export interface Markup extends Content<Markup>, Markable {
-}
 
 interface Resource {
 	/** close() is not required to do anything other than signal the resource isClosed. */

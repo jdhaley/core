@@ -1,5 +1,5 @@
 
-import {Content, Markable, Parcel, Type, Value} from "../api/model.js";
+import {Content, Markup, Parcel, Type, Value} from "../api/model.js";
 import {bundle, EMPTY, Notification, level, pure} from "../api/util.js";
 import {Context, Transform} from "../api/transform.js";
 
@@ -13,7 +13,7 @@ export interface Property extends Eval {
 	readonly facets: string[];
 }
 
-export interface Source extends Eval, Content<Source>, Markable {
+export interface Source extends Eval, Content<Source>, Markup {
 	// scope is compatible with Type to enable common interface for getting property values.
 	scope: Parcel<Value>;
 
