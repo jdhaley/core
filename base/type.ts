@@ -1,4 +1,4 @@
-import {Value, Type, Signature, bundle, constant} from "../api/model.js";
+import {Value, Type, Signature, Parcel, bundle, constant} from "../api/model.js";
 
 /*
 	TODO: consider ContentType
@@ -24,30 +24,35 @@ import {Value, Type, Signature, bundle, constant} from "../api/model.js";
 // 	pure?: any;
 	
 // }
-export class Contract implements Type  {
+export class Contract implements Type, Parcel<Value>  {
 	constructor(contract: bundle<Value>) {
 		this.contract = contract || Object.create(null)
 	}
+	declare name: string;
 	contract: bundle<Value>
 
 	get type() {
 		return TYPE;
 	}
 
-	at(key: string): Value {
-		return this.contract[key]
-	}
 	generalizes(type: Type): boolean {
 		if (type == this) return true;
-		for (let key in this.contract) {
-			let thisType = this.at(key).type;
-			let thatType = type.at(key)?.type;
-			if (!thatType || !thisType.generalizes(thatType)) return false;
+		if (type instanceof Contract) {
+			for (let key in this.contract) {
+				let thisType = this.at(key).type;
+				let thatType = type.at(key)?.type;
+				if (!thatType || !thisType.generalizes(thatType)) return false;
+			}
+			return true;	
 		}
-		return true;
+		return false;
 	}
-	categorizes(value: any): boolean {
+	for(value: Value): boolean {
 		return value?.type ? this.generalizes(value.type) : false;
+	}
+
+	at(key: string): Value {
+		return this.contract[key]
 	}
 	close() {
 		Object.freeze(this.contract);
@@ -56,16 +61,15 @@ export class Contract implements Type  {
 }
 //The contract must be filled in or replaced by compilation.
 const TYPE = new Contract(Object.create(null));
-
+TYPE.name = "type";
 
 export class Class extends Contract {
-	constructor(name?: string, members?: bundle<Value>) {
+	constructor(name: string, superclass: Class, members: bundle<Value>) {
 		super(members || Object.create(null));
-		this.name = name || "";
+		this.name = name;
 	}
-	name: string
-	extend: Class;
-	implement: Contract[];
+	extends: Class;
+	implements: Contract[];
 
 	generalizes(type: Type) {
 		return type instanceof Class /*&& this.super.generalizes(type.super)*/ && super.generalizes(type);
@@ -128,11 +132,11 @@ export class Tuple extends Contract {
 		}
 		return false;
 	}
-	categorizes(value: any[]): boolean {
+	for(value: Value): boolean {
 		if (value instanceof Array && value.length >= this.types.length) {
 			let types = this.types;
 			for (let i = 0; i < types.length; i++) {
-				if (!types[i].categorizes(value[i])) return false;
+				if (!types[i].for(value[i])) return false;
 			}
 			return true;
 		}
@@ -151,7 +155,7 @@ abstract class Types implements Type {
 	generalizes(type: Type): boolean {
 		throw new Error("Method not implemented.");
 	}
-	categorizes(value: any): boolean {
+	for(value: Value): boolean {
 		throw new Error("Method not implemented.");
 	}
 	type?: Type;
@@ -203,7 +207,7 @@ export class LiteralType implements Type {
 	generalizes(type: Type): boolean {
 		return type instanceof LiteralType && type.value === this.value;
 	}
-	categorizes(value: constant): boolean {
+	for(value: Value): boolean {
 		return value === this.value;
 	}
 }
