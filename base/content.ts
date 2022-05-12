@@ -1,7 +1,7 @@
 import {Content, Consumer, Sequence} from "../api/model.js";
 
 import {markupAttrs, markupContent, markupText} from "./markup.js";
-import { EMPTY } from "./util.js";
+import {EMPTY} from "./util.js";
 
 export class EmptyContent implements Content {
 	get name(): string {
@@ -16,7 +16,7 @@ export class EmptyContent implements Content {
 	get markup(): string {
 		let markup = this.markupContent;
 		let attrs = markupAttrs(this)
-		if (this.isNamed) {
+		if (this.name && !this.name.startsWith("#")) {
 			markup = `<${this.name}${attrs}>${markup}</${this.name}>`
 		}
 		return markup;
@@ -24,14 +24,18 @@ export class EmptyContent implements Content {
 	get markupContent(): string {
 		return "";
 	}
-	protected get isNamed(): boolean {
-		return this.name.startsWith("#") ? false : true;
+	get isClosed(): boolean {
+		return Object.isFrozen(this);
 	}
+
 	at(name: string): string {
 		return undefined;
 	}
-	keys(): Iterable<string> {
+	attributeNames(): Iterable<string> {
 		return EMPTY.array;
+	}
+	close(): Content {
+		return Object.freeze(this);
 	}
 }
 
@@ -57,7 +61,7 @@ export class TextContent extends EmptyContent {
 
 export class Bag extends EmptyContent implements Consumer<string | Content> {
 	#content: Content[] = [];
-
+	#attributes = EMPTY.object;
 	get content(): Sequence<Content> {
 		return this.#content;
 	}
@@ -66,12 +70,23 @@ export class Bag extends EmptyContent implements Consumer<string | Content> {
 	}
 	get textContent(): string {
 		let text = "";
-		for (let item of this.content) text += item.textContent;
+		for (let item of this.#content) text += item.textContent;
 		return text;	
 	}
 	set textContent(text: string) {
 		this.#content.length = 0;
-		this.append(new TextContent(text));
+		this.#content.push(new TextContent(text));
+	}
+
+	at(name: string): string {
+		return this.#attributes[name];
+	}
+	put(name: string, value: string | number | boolean) {
+		if (this.#attributes == EMPTY.object) this.#attributes = Object.create(null);
+		this.#attributes[name] = value;
+	}
+	attributeNames(): Iterable<string> {
+		return Object.keys(this.#attributes);
 	}
 	append(...values: (string | Content)[]): void {
 		for (let value of values) {
@@ -80,12 +95,11 @@ export class Bag extends EmptyContent implements Consumer<string | Content> {
 	}
 	empty() {
 		this.#content.length = 0;
+		this.#attributes = EMPTY.object;
 	}
-	get isClosed(): boolean {
-		return Object.isFrozen(this.content);
-	}
-	close(): void {
-		Object.freeze(this.content);
+	close(): Content {
+		Object.freeze(this.#content);
+		return super.close();
 	}
 }
 

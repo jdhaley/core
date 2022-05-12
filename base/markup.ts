@@ -2,7 +2,7 @@ import {Entity, Markup} from "../api/model.js";
 
 export function markupAttrs(entity: Entity) {
 	let markup = "";
-	for (let key of entity.keys()) {
+	for (let key of entity.attributeNames()) {
 		let value = markupText("" + entity.at(key), true);
 		markup += ` ${key}="${value}"`;
 	}

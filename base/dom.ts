@@ -46,8 +46,8 @@ export class ControlElement extends Control implements Content {
 		return to;
 	}
 
-	keys() {
-		return EMPTY.array as Iterable<string>;
+	attributeNames() {
+		return this.element.getAttributeNames();
 	}
 	at(name: string): string {
 		return this.element.getAttribute(name);

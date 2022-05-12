@@ -5,9 +5,9 @@ export interface Value {
 	pure?: any;
 }
 
-export interface Type extends Parcel<Value> {
+export interface Type {
 	generalizes(type: Type): boolean;
-	categorizes(value: any): boolean;
+	for(value: Value): boolean;
 }
 
 export interface Signature extends Type {
@@ -18,14 +18,6 @@ export interface Signature extends Type {
 export interface Producer<I, O> extends Value {
 	//type?: Signature
 	at(input?: I): O; 
-}
-
-/*
-	NOTE: A Consumer can be a stable Sequence source, therefore
-	append() shouldn't alter the sub sequences created from this instance.
-*/
-export interface Consumer<T> {
-	append(...data: T[]): void;
 }
 
 export interface Parcel<V> extends Producer<string, V> {
@@ -42,9 +34,10 @@ export interface Sequence<T> extends Producer<number, T>, Iterable<T> {
 	concat(...values: T[]): Sequence<T>;
 }
 
-export interface Entity extends Parcel<string | number | boolean> {
+/** If an attribute is an Entity, the referenced entity must have an "id" attribute.*/
+export interface Entity extends Parcel<string | number | boolean | Entity> {
 	name?: string;
-	keys(): Iterable<string>
+	attributeNames(): Iterable<string>
 }
 
 export interface Markup {
@@ -57,10 +50,12 @@ export interface Content extends Entity, Markup {
 	content: Iterable<any>
 }
 
-interface Resource {
-	/** close() is not required to do anything other than signal the resource isClosed. */
-	close(): void;
-	isClosed?: boolean;
+/*
+	NOTE: A Consumer can be a stable Sequence source, therefore
+	append() shouldn't alter the sub sequences created from this instance.
+*/
+export interface Consumer<T> {
+	append(...data: T[]): void;
 }
 
 export interface bundle<T> {
