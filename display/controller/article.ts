@@ -34,6 +34,16 @@ export default extend(display, {
 		event.subject = "";
 		let range = this.owner.selectionRange;
 		range.selectNodeContents(this.element)
+	},
+	undo(this: Article, event: UserEvent) {
+		event.subject = "";
+		let range = this.buffer.undo();
+		if (range) this.owner.selectionRange = range;
+	},
+	redo(this: Article, event: UserEvent) {
+		event.subject = "";
+		let range = this.buffer.redo();
+		if (range) this.owner.selectionRange = range;
 	}
 });
 

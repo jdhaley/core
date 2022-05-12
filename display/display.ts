@@ -4,10 +4,10 @@ import {bundle} from "../api/model.js";
 
 import {ControlElement, DocumentOwner, text, controlOf} from "../base/dom.js";
 import {RemoteFileService} from "../base/remote.js";
-import {Commandable} from "../base/command.js";
 import {EMPTY} from "../base/util.js";
 
 import {FrameConf, ViewConf} from "./configuration.js";
+import {CommandBuffer, Editor} from "../base/command.js";
 
 export class Frame extends DocumentOwner {
 	constructor(window: Window, conf: FrameConf) {
@@ -150,17 +150,18 @@ export class Display extends ControlElement {
 
 /**
  * An Article is a display for a whole entity/resource. A single Frame may have multiple
- * independent Articles opened.
+ * independent Articles opened.  Each Article has it's own CommandBuffer.
  */
 export class Article extends Display {
 	constructor(owner: Frame, conf: ViewConf) {
 		super(owner, conf);
+ 		this.buffer = conf.properties.commands as Editor;
 		this.transform = conf.properties.transform as Transformer<Node, HTMLElement>;
-		this.commands = conf.properties.commands as Commandable<Range>;
 		this.#service = new RemoteFileService(this.owner.location.origin + conf.properties.sources);
 	}
+ 	declare buffer: CommandBuffer<Range>;
+
 	#service: RemoteFileService;
-	protected commands: Commandable<Range>;
 	protected transform: Transformer<Node, Element>
 
 	get service(): RemoteFileService {

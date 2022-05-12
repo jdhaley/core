@@ -7,7 +7,7 @@ export default extend(null, {
 	draw(this: Display, msg: Signal) {
 	},
 	view(this: Display, msg: Signal) {
-		this.model = msg.from["model"];
+		this.model = msg.from.model;
 		this.element.textContent = "" + this.model;
 	},
 	command(this: Display, event: UserEvent) {

@@ -1,6 +1,6 @@
-export interface Commandable<R> {
-	undo(): R;
-	redo(): R;
+export interface Commandable<T> {
+	undo(): T;
+	redo(): T;
 }
 
 export abstract class Command<R> {
@@ -12,7 +12,8 @@ export abstract class Command<R> {
 }
 
 export class CommandBuffer<T> implements Commandable<T> {
-	command = {} as Command<T>;
+	//A CommandBuffer always requires an initial Object as the head of the linked list.
+	command: Command<T> = Object.create(null);
 	undo() {
 		if (!this.command.prior) return;
 		let ret = this.command.undo();
@@ -31,3 +32,10 @@ export class CommandBuffer<T> implements Commandable<T> {
 	}
 }
 
+export abstract class Editor extends CommandBuffer<Range> {
+	abstract edit(name: string, range: Range, replacement: string, offset: number): Range;
+	abstract replace(name: string, range: Range, replacement: string): Range;
+	abstract insert(range: Range): Range;
+	abstract split(range: Range): Range;
+	abstract level(name: "Promote" | "Demote", range: Range): Range;
+}
