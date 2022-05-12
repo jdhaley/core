@@ -1,5 +1,6 @@
-import {Signal, Part, Controller, Sensor, Transmitter, Message} from "../api/signal.js";
-import {EMPTY} from "../api/util.js";
+import {Signal, Part, Controller, Sensor, Transmitter} from "../api/signal.js";
+import {EMPTY} from "./util.js";
+import {Message} from "./message.js";
 
 export class Control implements Part, Transmitter, Sensor {
 	get controller(): Controller {

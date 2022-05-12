@@ -1,4 +1,4 @@
-import {bundle} from "../api/util.js";
+import {bundle} from "../api/model.js";
 import {Request} from "./request.js";
 
 export default function start(serverConf: bundle<any>, serviceConf: bundle<any>) {

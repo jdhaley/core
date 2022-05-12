@@ -1,5 +1,4 @@
-import {Value, Type, Signature} from "../api/model.js";
-import {bundle, constant} from "../api/util.js";
+import {Value, Type, Signature, bundle, constant} from "../api/model.js";
 
 /*
 	TODO: consider ContentType

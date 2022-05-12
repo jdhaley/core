@@ -1,5 +1,6 @@
-import {bundle, serial} from "../api/util.js";
-import {Receiver, Transmitter, Message, Response} from "../api/signal.js";
+import {bundle, serial} from "../api/model.js";
+import {Receiver, Transmitter} from "../api/signal.js";
+import {Message, Response} from "./message.js";
 
 class Request extends Message<any> {
 	constructor(subject: string, from: Receiver | Function, to: string, body?: any) {

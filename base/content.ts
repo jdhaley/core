@@ -1,7 +1,7 @@
 import {Content, Consumer, Sequence} from "../api/model.js";
-import {EMPTY} from "../api/util.js";
 
 import {markupAttrs, markupContent, markupText} from "./markup.js";
+import { EMPTY } from "./util.js";
 
 export class EmptyContent implements Content {
 	get name(): string {

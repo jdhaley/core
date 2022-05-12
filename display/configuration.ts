@@ -1,5 +1,5 @@
 import {Controller} from "../api/signal.js";
-import {bundle} from "../api/util.js";
+import {bundle} from "../api/model.js";
 
 import {Display} from "./display.js";
 

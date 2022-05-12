@@ -1,6 +1,8 @@
 
-import {Content, Parcel, Type, Value} from "../api/model.js";
-import {bundle, EMPTY, Notification, level, pure} from "../api/util.js";
+import {Content, Parcel, Type, Value, bundle, pure} from "../api/model.js";
+import {Notification, level} from "../api/model.js";
+
+import {EMPTY} from "../base/util.js";
 import {Context, Transform} from "../api/transform.js";
 
 export interface Eval {

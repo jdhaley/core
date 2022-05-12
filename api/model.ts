@@ -63,6 +63,24 @@ interface Resource {
 	isClosed?: boolean;
 }
 
+export interface bundle<T> {
+	[key: string]: T
+}
+
+export type key = string | number /*| symbol */;
+export type constant = key | boolean | null;
+export type serial = constant | bundle<serial> | serial[];
+export type pure = constant | Function | bundle<pure> | pure[]
+
+export type other = symbol | bigint;
+
+export type level = "error" | "warn" | "info" | "debug";
+
+export interface Notification {
+	level: level;
+	message: string;
+}
+
 //Experimental: Adapting the Producer API for functions...
 type arguments = [receiver: any, ...args: any]
 Function.prototype["at"] = function at(this: Function, args?: arguments) {

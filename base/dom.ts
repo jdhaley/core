@@ -1,6 +1,6 @@
 import {Content} from "../api/model.js";
 import {Transmitter} from "../api/signal.js";
-import { EMPTY } from "../api/util.js";
+import {EMPTY} from "../base/util.js";
 import {Control, Owner} from "./control.js";
 
 export class ControlElement extends Control implements Content {

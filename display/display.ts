@@ -1,10 +1,13 @@
 import {Controller, Signal} from "../api/signal.js";
 import {Transformer} from "../api/transform.js";
-import {Commandable, bundle, EMPTY} from "../api/util.js";
+import {bundle} from "../api/model.js";
 
 import {ControlElement, DocumentOwner, text, controlOf} from "../base/dom.js";
 import {RemoteFileService} from "../base/remote.js";
-import { FrameConf, ViewConf } from "./configuration.js";
+import {Commandable} from "../base/command.js";
+import {EMPTY} from "../base/util.js";
+
+import {FrameConf, ViewConf} from "./configuration.js";
 
 export class Frame extends DocumentOwner {
 	constructor(window: Window, conf: FrameConf) {

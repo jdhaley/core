@@ -1,4 +1,4 @@
-import {bundle} from "../api/util.js";
+import {bundle} from "../api/model.js";
 
 //Modelled after Express
 export interface Request {

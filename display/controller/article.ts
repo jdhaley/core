@@ -1,4 +1,5 @@
-import {Signal, Response} from "../../api/signal.js";
+import {Signal} from "../../api/signal.js";
+import {Response} from "../../base/message.js";
 import {extend} from "../../base/util.js";
 
 import {Article, UserEvent} from "../display.js"
