@@ -69,15 +69,16 @@ export interface ControlConf {
 }
 
 export class Owner extends Control {
+	readonly types: bundle<typeof Control> = EMPTY.object;
+	readonly controls: bundle<ControlConf> = EMPTY.object;
+
 	get location(): Location {
 		return undefined;
 	}
-	get types(): bundle<typeof Control> {
-		return EMPTY.object;
-	}
 
-	create(conf: ControlConf): Control {
+	create(conf: string | ControlConf): Control {
+		if (typeof conf == "string") conf = this.controls[conf];
 		let type = this.types[conf.type] || Control;
-		return new type(this, conf) as Control;
+		return new type(this, conf);
 	}
 }

@@ -5,6 +5,7 @@ import {Display, UserEvent} from "../display.js";
 let TRACK: UserEvent = null;
 
 export default {
+    input: sense,
     cut: sense,
     copy: sense,
     paste: sense,
@@ -110,11 +111,24 @@ function getModifiers(event: UserEvent) {
 function sense(event: UserEvent) {
     let ctl = controlOf(event.target) as Display;
     if (ctl) {
-       // event.sensor = ctl.owner.selectionRange.commonAncestorContainer;
-        event.sensor = ctl;
+        event.direction = "up";
+        event.from = ctl;
         event.stopPropagation();
         if (!event.subject) event.subject = event.type;
         ctl.sense(event);
         if (!event.subject) event.preventDefault();    
     }
 }
+
+// function sense(event: UserEvent) {
+//     let range = (ownerOf(event.target as Node) as Frame).selectionRange;
+//     let ctl = controlOf(range.commonAncestorContainer) as Display;
+//      if (ctl) {
+//        // event.sensor = ctl.owner.selectionRange.commonAncestorContainer;
+//         event.from = ctl;
+//         event.stopPropagation();
+//         if (!event.subject) event.subject = event.type;
+//         ctl.sense(event);
+//         if (!event.subject) event.preventDefault();    
+//     }
+// }

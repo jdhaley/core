@@ -1,3 +1,4 @@
+import { Markup } from "../../api/model.js";
 import {Signal} from "../../api/signal.js";
 import {Response} from "../../base/message.js";
 import {extend} from "../../base/util.js";
@@ -18,17 +19,17 @@ export default extend(display, {
 			return;
 		}
 		signal.subject = "";
-		let target = this.transform.target(this.element) as Element;
-		this.service.save(this.dataset.file, target.outerHTML, this);
+//		let target = this.transform.target(this.element) as Element;
+		this.service.save(this.dataset.file, (this.model as Markup).markup, this);
 	},
 	draw(this: Article, msg: Signal) {
 		this.element["$editor"] = this;
 		this.view.contentEditable = "true";	
 	},
 	view(this: Article, msg: Signal) {
-		let div = this.owner.document.createElement("DIV");
-		div.innerHTML = this.model;
-		this.element.innerHTML = this.transform.transform(div).innerHTML;
+		this.transform(this.model, this);
+		msg.subject = "";
+
 	},
 	selectAll(this: Article, event: UserEvent) {
 		event.subject = "";

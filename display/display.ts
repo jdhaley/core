@@ -1,20 +1,19 @@
-import {Controller, Signal} from "../api/signal.js";
-import {Transformer} from "../api/transform.js";
-import {bundle} from "../api/model.js";
+import {Signal} from "../api/signal.js";
+import {bundle, Content} from "../api/model.js";
 
+import {Control} from "../base/control.js";
+import {CommandBuffer, Editor} from "../base/command.js";
 import {DocumentControl, DocumentOwner, text, controlOf, ControlElement} from "../base/dom.js";
 import {RemoteFileService} from "../base/remote.js";
-import {EMPTY} from "../base/util.js";
-
 import {FrameConf, ViewConf} from "./configuration.js";
-import {CommandBuffer, Editor} from "../base/command.js";
 
 export class Frame extends DocumentOwner {
 	constructor(window: Window, conf: FrameConf) {
 		super();
 		this.#window = window;
 		this.document["$owner"] = this;
-		if (conf.types) this.#types = conf.types;
+		if (conf.types) this.types = conf.types;
+		if (conf.views) this.controls = conf.views;
 		for (let name in conf.controller) {
 			let listener = conf.controller[name];
 			this.#window.addEventListener(name, listener as any);
@@ -33,11 +32,9 @@ export class Frame extends DocumentOwner {
 		});
 	}
 	#window: Window;
-	#types = Object.create(null);
-	
-	get types() {
-		return this.#types;
-	}
+	types = Object.create(null)
+	controls = Object.create(null);
+
 	get document(): Document {
 		return this.#window.document;
 	}
@@ -65,6 +62,7 @@ export class Frame extends DocumentOwner {
 	get part(): Display {
 		return this.document.body["$control"];
 	}
+
 	displayAt(x: number, y: number): Display {
 		let target = this.document.elementFromPoint(x, y);
 		return controlOf(target) as Display;
@@ -72,7 +70,10 @@ export class Frame extends DocumentOwner {
 }
 
 export interface UserEvent extends Signal, UIEvent {
-	sensor: Display;
+	direction: "up",
+	from: Display,
+	//target: Node;
+
 	//keyboard & mouse
     ctrlKey: boolean,
     altKey: boolean,
@@ -143,17 +144,20 @@ export class Display extends DocumentControl {
  * An Article is a display for a whole entity/resource. A single Frame may have multiple
  * independent Articles opened.  Each Article has it's own CommandBuffer.
  */
+
+ type tx<S, T> = (source: S, context: T) => T;
+
 export class Article extends Display {
 	constructor(owner: Frame, conf: ViewConf) {
 		super(owner, conf);
  		this.buffer = conf.properties.commands as Editor;
-		this.transform = conf.properties.transform as Transformer<Node, HTMLElement>;
+		this.transform = conf.properties.transform as tx<Content, Display>
 		this.#service = new RemoteFileService(this.owner.location.origin + conf.properties.sources);
 	}
  	declare buffer: CommandBuffer<Range>;
 
 	#service: RemoteFileService;
-	protected transform: Transformer<Node, Element>
+	protected transform: tx<Content, Display>;
 
 	get service(): RemoteFileService {
 		return this.#service;

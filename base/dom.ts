@@ -95,7 +95,7 @@ export class DocumentOwner extends Owner {
 		return this.document.location;
 	}
 
-	create(conf: ControlConf, parent?: Element): ControlElement {
+	create(conf: string | ControlConf, parent?: Element): ControlElement {
 		let control = super.create(conf) as ControlElement;
 		if (parent) parent.append(control["element"]);
 		return control;
