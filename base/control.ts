@@ -63,7 +63,7 @@ export interface ControlConf {
 	name?: string;
 	namespace?: string;
 	controller?: Controller;
-	properties: {
+	properties?: {
 		[key: string]: unknown;
 	}
 }

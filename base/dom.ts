@@ -1,4 +1,4 @@
-import {Content, Sequence} from "../api/model.js";
+import {Content} from "../api/model.js";
 import {Controller, Transmitter} from "../api/signal.js";
 import {Control, ControlConf, Owner} from "./control.js";
 import { EMPTY } from "./util.js";
