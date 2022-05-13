@@ -2,7 +2,7 @@ import {Controller, Signal} from "../api/signal.js";
 import {Transformer} from "../api/transform.js";
 import {bundle} from "../api/model.js";
 
-import {ControlElement, DocumentOwner, text, controlOf} from "../base/dom.js";
+import {DocumentControl, DocumentOwner, text, controlOf} from "../base/dom.js";
 import {RemoteFileService} from "../base/remote.js";
 import {EMPTY} from "../base/util.js";
 
@@ -13,7 +13,7 @@ export class Frame extends DocumentOwner {
 	constructor(window: Window, conf: FrameConf) {
 		super();
 		this.#window = window;
-		this.document["owner"] = this;
+		this.document["$owner"] = this;
 		if (conf.types) this.#types = conf.types;
 		for (let name in conf.controller) {
 			let listener = conf.controller[name];
@@ -34,6 +34,10 @@ export class Frame extends DocumentOwner {
 	}
 	#window: Window;
 	#types = Object.create(null);
+	
+	get types() {
+		return this.#types;
+	}
 	get document(): Document {
 		return this.#window.document;
 	}
@@ -61,13 +65,6 @@ export class Frame extends DocumentOwner {
 	get part(): Display {
 		return this.document.body["$control"];
 	}
-
-	create(conf: ViewConf, parent?: Element): Display {
-		let type = this.#types[conf.type] || Display;
-		let display = new type(this, conf);
-		if (parent) parent.append(display.element);
-		return display;
-	}
 	displayAt(x: number, y: number): Display {
 		let target = this.document.elementFromPoint(x, y);
 		return controlOf(target) as Display;
@@ -94,29 +91,20 @@ export interface UserEvent extends Signal, UIEvent {
 	moveY?: number;
 }
 
-
-export class Display extends ControlElement {
+export class Display extends DocumentControl {
 	constructor(owner: Frame, conf: ViewConf) {
-		super();
-		this.#element = owner.createElement(conf.nodeName || "div") as HTMLElement;
-		this.#controller = conf.controller || EMPTY.object;
-		this.#element["$control"] = this;
+		super(owner, conf);
 		if (conf.shortcuts) this.shortcuts = conf.shortcuts;
-		if (conf.styles) this.#element.className = conf.styles;
+		if (conf.styles) this.view.className = conf.styles;
 	}
-	#element: HTMLElement;
-	#controller: Controller;
 	declare protected shortcuts: bundle<string>;
 	declare protected model: any;
 
-	protected get element(): HTMLElement {
-		return this.#element;
-	}
-	get controller() {
-		return this.#controller;
-	}
 	get owner() {
-		return DocumentOwner.of(this.element) as Frame;
+		return super.owner as Frame;
+	}
+	get view(): HTMLElement {
+		return this.element as HTMLElement;
 	}
 	get box() {
 		return this.element.getBoundingClientRect();
@@ -125,13 +113,14 @@ export class Display extends ControlElement {
 		return this.element.classList;
 	}
 	get dataset() {
-		return this.element.dataset;
+		return this.view.dataset;
 	}
+
 	setEditable(flag: boolean) {
-		this.element.contentEditable = "" + flag;
+		this.view.contentEditable = "" + flag;
 	}
 	getStyle(name?: string): CSSStyleDeclaration {
-		return name ? this.element.classList[name] : this.element.style;
+		return name ? this.element.classList[name] : this.view.style;
 	}
 	size(width: number, height: number) {
 		let style = this.getStyle();

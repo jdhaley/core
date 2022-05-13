@@ -1,17 +1,20 @@
-import {Content} from "../api/model.js";
-import {Transmitter} from "../api/signal.js";
-import {EMPTY} from "../base/util.js";
-import {Control, Owner} from "./control.js";
+import {Content, Sequence} from "../api/model.js";
+import {Controller, Transmitter} from "../api/signal.js";
+import {Control, ControlConf, Owner} from "./control.js";
+import { EMPTY } from "./util.js";
 
 export class ControlElement extends Control implements Content {
 	protected get element(): Element {
 		return null;
 	}
+	get owner() {
+		return ownerOf(this.element);
+	}
 	get service(): Transmitter {
 		return this.partOf?.service;
 	}
 	get name() {
-		return this.element.nodeName;
+		return this.element.tagName;
 	}
 	get markup(): string {
 		return this.element.outerHTML;
@@ -29,21 +32,24 @@ export class ControlElement extends Control implements Content {
 		this.element.textContent = content;
 	}
 	get partOf(): ControlElement {
-		return this.element.parentNode["$control"];
+		for (let parent = this.element.parentElement; parent; parent = parent.parentElement) {
+			if (parent["$control"]) return parent["$control"];
+		}
+		return null;
 	}
 	get content(): Iterable<ControlElement> {
 		const nodes = this.element.childNodes;
-		let to = Object.create(null);
-		to[Symbol.iterator] = function*() {
+		let content = Object.create(null);
+		content[Symbol.iterator] = function*() {
 			for (let i = 0, len = nodes.length; i < len; i++) {
 				let node = nodes[i];
 				if (node["$control"]) yield node["$control"];
 			}
 		}
 		Reflect.defineProperty(this, "content", {
-			value: to
+			value: content
 		});
-		return to;
+		return content;
 	}
 
 	attributeNames() {
@@ -55,17 +61,33 @@ export class ControlElement extends Control implements Content {
 	put(name: string, value: string) {
 		this.element.setAttribute(name, value);
 	}
-	append(control: ControlElement) {
-		this.element.append(control.element);
+	append(...values: ControlElement[]): void {
+		for (let value of values) {
+			this.element.append(value.element);
+		}
+	}
+}
+
+
+export class DocumentControl extends ControlElement {
+	constructor(owner: DocumentOwner, conf: ControlConf) {
+		super(owner, conf);
+		let ele = owner.createElement(conf.name || conf.type || "div");
+		ele["$control"] = this;
+		ele["$controller"] = conf.controller || EMPTY.object;
+		this.#element = ele;
+	}
+	#element: Element;
+
+	protected get element() {
+		return this.#element;
+	}
+	get controller(): Controller {
+		return this.#element["$controller"];
 	}
 }
 
 export class DocumentOwner extends Owner {
-	static of(node: Node | Range): DocumentOwner {
-		if (node instanceof Range) node = node.commonAncestorContainer;
-		return node?.ownerDocument["owner"];
-	}
-
 	get document(): Document {
 		return null;
 	}
@@ -73,6 +95,11 @@ export class DocumentOwner extends Owner {
 		return this.document.location;
 	}
 
+	create(conf: ControlConf, parent?: Element): ControlElement {
+		let control = super.create(conf) as ControlElement;
+		if (parent) parent.append(control["element"]);
+		return control;
+	}
 	createElement(name: string, namespace?: string): Element {
 		if (namespace) {
 			return this.document.createElementNS(namespace, name);
@@ -100,7 +127,13 @@ export class DocumentOwner extends Owner {
 	}
 }
 
-export function controlOf(node: Node): ControlElement {
+export function ownerOf(node: Node | Range): DocumentOwner {
+	if (node instanceof Range) node = node.commonAncestorContainer;
+	return node?.ownerDocument["$owner"];
+}
+
+export function controlOf(node: Node | Range): ControlElement {
+	if (node instanceof Range) node = node.commonAncestorContainer;
 	while(node) {
 		let control = node["$control"];
 		if (control) return control;

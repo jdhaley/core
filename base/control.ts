@@ -1,8 +1,11 @@
 import {Signal, Part, Controller, Sensor, Transmitter} from "../api/signal.js";
+import {bundle} from "../api/model.js";
 import {EMPTY} from "./util.js";
 import {Message} from "./message.js";
 
 export class Control implements Part, Transmitter, Sensor {
+	constructor(owner?: Owner, conf?: ControlConf) {
+	}
 	get controller(): Controller {
 		return EMPTY.object;
 	}
@@ -55,8 +58,26 @@ export class Control implements Part, Transmitter, Sensor {
 	}
 }
 
+export interface ControlConf {
+	type: string;
+	name?: string;
+	namespace?: string;
+	controller?: Controller;
+	properties: {
+		[key: string]: unknown;
+	}
+}
+
 export class Owner extends Control {
 	get location(): Location {
 		return undefined;
+	}
+	get types(): bundle<typeof Control> {
+		return EMPTY.object;
+	}
+
+	create(conf: ControlConf): Control {
+		let type = this.types[conf.type] || Control;
+		return new type(this, conf) as Control;
 	}
 }
