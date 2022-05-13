@@ -1,6 +1,6 @@
 import {Controller} from "../../api/signal.js";
-import {controlOf} from "../../base/dom.js";
-import {Display, UserEvent} from "../display.js";
+import {controlOf, ownerOf} from "../../base/dom.js";
+import {Display, Frame, UserEvent} from "../display.js";
 
 let TRACK: UserEvent = null;
 
@@ -108,23 +108,10 @@ function getModifiers(event: UserEvent) {
     return mod;
 }
 
-function sense(event: UserEvent) {
-    let ctl = controlOf(event.target) as Display;
-    if (ctl) {
-        event.direction = "up";
-        event.from = ctl;
-        event.stopPropagation();
-        if (!event.subject) event.subject = event.type;
-        ctl.sense(event);
-        if (!event.subject) event.preventDefault();    
-    }
-}
-
 // function sense(event: UserEvent) {
-//     let range = (ownerOf(event.target as Node) as Frame).selectionRange;
-//     let ctl = controlOf(range.commonAncestorContainer) as Display;
-//      if (ctl) {
-//        // event.sensor = ctl.owner.selectionRange.commonAncestorContainer;
+//     let ctl = controlOf(event.target) as Display;
+//     if (ctl) {
+//         event.direction = "up";
 //         event.from = ctl;
 //         event.stopPropagation();
 //         if (!event.subject) event.subject = event.type;
@@ -132,3 +119,16 @@ function sense(event: UserEvent) {
 //         if (!event.subject) event.preventDefault();    
 //     }
 // }
+
+function sense(event: UserEvent) {
+    event.selection = (ownerOf(event.target as Node) as Frame).selectionRange;
+    let ctl = controlOf(event.selection.commonAncestorContainer) as Display;
+    if (ctl) {
+        event.stopPropagation();
+        event.direction = "up";
+        event.from = ctl;
+        if (!event.subject) event.subject = event.type;
+        ctl.sense(event);
+        if (!event.subject) event.preventDefault();    
+    }
+}

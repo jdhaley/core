@@ -1,11 +1,11 @@
 import {Signal} from "../api/signal.js";
 import {bundle, Content} from "../api/model.js";
 
-import {Control} from "../base/control.js";
-import {CommandBuffer, Editor} from "../base/command.js";
 import {DocumentControl, DocumentOwner, text, controlOf, ControlElement} from "../base/dom.js";
 import {RemoteFileService} from "../base/remote.js";
 import {FrameConf, ViewConf} from "./configuration.js";
+import {CommandBuffer, Editor} from "../base/command.js";
+import {extend} from "../base/util.js";
 
 export class Frame extends DocumentOwner {
 	constructor(window: Window, conf: FrameConf) {
@@ -72,8 +72,8 @@ export class Frame extends DocumentOwner {
 export interface UserEvent extends Signal, UIEvent {
 	direction: "up",
 	from: Display,
-	//target: Node;
 
+	selection: Range,
 	//keyboard & mouse
     ctrlKey: boolean,
     altKey: boolean,
@@ -95,7 +95,11 @@ export interface UserEvent extends Signal, UIEvent {
 export class Display extends DocumentControl {
 	constructor(owner: Frame, conf: ViewConf) {
 		super(owner, conf);
-		if (conf.shortcuts) this.shortcuts = conf.shortcuts;
+		let shortcuts = (this.partOf as Display)?.shortcuts;
+		if (conf.shortcuts) {
+			shortcuts = shortcuts ? extend(shortcuts, conf.shortcuts) : conf.shortcuts;
+		}
+		if (shortcuts) this.shortcuts = shortcuts;
 		if (conf.styles) this.view.className = conf.styles;
 	}
 	declare protected shortcuts: bundle<string>;
@@ -145,7 +149,7 @@ export class Display extends DocumentControl {
  * independent Articles opened.  Each Article has it's own CommandBuffer.
  */
 
- type tx<S, T> = (source: S, context: T) => T;
+type tx<S, T> = (source: S, context: T) => T;
 
 export class Article extends Display {
 	constructor(owner: Frame, conf: ViewConf) {

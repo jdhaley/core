@@ -11,7 +11,9 @@ export default extend(null, {
 		this.element.textContent = "" + this.model;
 	},
 	command(this: Display, event: UserEvent) {
-		let command = this.shortcuts[event.shortcut];
-		if (command) event.subject = command;
+		if (this.shortcuts) {
+			let command = this.shortcuts[event.shortcut];
+			if (command) event.subject = command;	
+		}
 	}
 });
