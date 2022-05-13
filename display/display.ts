@@ -2,7 +2,7 @@ import {Controller, Signal} from "../api/signal.js";
 import {Transformer} from "../api/transform.js";
 import {bundle} from "../api/model.js";
 
-import {DocumentControl, DocumentOwner, text, controlOf} from "../base/dom.js";
+import {DocumentControl, DocumentOwner, text, controlOf, ControlElement} from "../base/dom.js";
 import {RemoteFileService} from "../base/remote.js";
 import {EMPTY} from "../base/util.js";
 
@@ -103,6 +103,11 @@ export class Display extends DocumentControl {
 	get owner() {
 		return super.owner as Frame;
 	}
+	get article() {
+		for (let part: ControlElement = this; part; part = part.partOf) {
+			if (part instanceof Article) return part;
+		}
+	}
 	get view(): HTMLElement {
 		return this.element as HTMLElement;
 	}
@@ -116,9 +121,6 @@ export class Display extends DocumentControl {
 		return this.view.dataset;
 	}
 
-	setEditable(flag: boolean) {
-		this.view.contentEditable = "" + flag;
-	}
 	getStyle(name?: string): CSSStyleDeclaration {
 		return name ? this.element.classList[name] : this.view.style;
 	}

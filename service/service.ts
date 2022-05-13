@@ -17,7 +17,7 @@ function startService(modules: bundle<any>, context: bundle<any>, endpoints: bun
 		context: context
 	};
 	let app = modules.express();
-	app.use(modules.bodyParser.text({type: "text/plain"}));
+	app.use(modules.bodyParser.text({type: "*/*"}));
 	config(conf, app, endpoints);
 	return app;
 }

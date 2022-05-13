@@ -132,12 +132,12 @@ export function ownerOf(node: Node | Range): DocumentOwner {
 	return node?.ownerDocument["$owner"];
 }
 
-export function controlOf(node: Node | Range): ControlElement {
+export function controlOf(node: EventTarget | Range): ControlElement {
 	if (node instanceof Range) node = node.commonAncestorContainer;
-	while(node) {
+	while (node) {
 		let control = node["$control"];
 		if (control) return control;
-		node = node.parentNode;
+		node = (node as Node).parentNode;
 	}
 }
 export function markup(range: Range): string {

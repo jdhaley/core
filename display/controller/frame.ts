@@ -1,14 +1,10 @@
 import {Controller} from "../../api/signal.js";
+import {controlOf} from "../../base/dom.js";
 import {Display, UserEvent} from "../display.js";
 
 let TRACK: UserEvent = null;
 
 export default {
-    //type$input: "sense",
-    // type$focusin: "sense",
-    // type$focusout: "sense",
-    // type$focus: "sense",
-    // type$blur: "sense",
     cut: sense,
     copy: sense,
     paste: sense,
@@ -110,16 +106,11 @@ function getModifiers(event: UserEvent) {
     if (mod.length) mod = mod.substring(0, mod.length - 1);
     return mod;
 }
-function getControl(node: any): Display {
-    while(node) {
-        if (node["$control"]) return node["$control"] as Display;
-        node = node.parentNode;
-    }
-}
 
 function sense(event: UserEvent) {
-    let ctl = getControl(event.target);
+    let ctl = controlOf(event.target) as Display;
     if (ctl) {
+       // event.sensor = ctl.owner.selectionRange.commonAncestorContainer;
         event.sensor = ctl;
         event.stopPropagation();
         if (!event.subject) event.subject = event.type;

@@ -23,7 +23,7 @@ export default extend(display, {
 	},
 	draw(this: Article, msg: Signal) {
 		this.element["$editor"] = this;
-		this.setEditable(true);
+		this.view.contentEditable = "true";	
 	},
 	view(this: Article, msg: Signal) {
 		let div = this.owner.document.createElement("DIV");
