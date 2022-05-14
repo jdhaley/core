@@ -5,6 +5,8 @@ import {Notification, level} from "../api/model.js";
 import {EMPTY} from "../base/util.js";
 import {Context, Transform} from "../api/transform.js";
 
+export const EVALUATING: Value = Object.freeze(Object.create(null));
+
 export interface Eval {
 	evaluate(): Value;
 	transform(target: Target): string
@@ -15,7 +17,7 @@ export interface Property extends Eval {
 	readonly facets: string[];
 }
 
-export interface Source extends Eval, Content {
+export interface Source extends Eval {
 	// scope is compatible with Type to enable common interface for getting property values.
 	scope: Parcel<Value>;
 	
