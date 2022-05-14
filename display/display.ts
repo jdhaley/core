@@ -1,5 +1,5 @@
 import {Signal} from "../api/signal.js";
-import {bundle, Content} from "../api/model.js";
+import {Content, bundle, transform} from "../api/model.js";
 
 import {DocumentControl, DocumentOwner, text, controlOf, ControlElement} from "../base/dom.js";
 import {RemoteFileService} from "../base/remote.js";
@@ -149,19 +149,17 @@ export class Display extends DocumentControl {
  * independent Articles opened.  Each Article has it's own CommandBuffer.
  */
 
-type tx<S, T> = (source: S, context: T) => T;
-
 export class Article extends Display {
 	constructor(owner: Frame, conf: ViewConf) {
 		super(owner, conf);
  		this.buffer = conf.properties.commands as Editor;
-		this.transform = conf.properties.transform as tx<Content, Display>
+		this.transform = conf.properties.transform as transform<Content, Display>
 		this.#service = new RemoteFileService(this.owner.location.origin + conf.properties.sources);
 	}
  	declare buffer: CommandBuffer<Range>;
 
 	#service: RemoteFileService;
-	protected transform: tx<Content, Display>;
+	protected transform: transform<Content, Display>;
 
 	get service(): RemoteFileService {
 		return this.#service;

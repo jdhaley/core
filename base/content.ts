@@ -1,6 +1,5 @@
-import {Content, Consumer, Sequence} from "../api/model.js";
+import {Content, Consumer, Sequence, Entity, Markup} from "../api/model.js";
 
-import {markupAttrs, markupContent, markupText} from "./markup.js";
 import {EMPTY} from "./util.js";
 
 export class EmptyContent implements Content {
@@ -109,4 +108,35 @@ export class SourceContent extends Bag {
 		this.append(new TextContent(text.substring(start)));
 		return text.length;
 	}
+}
+
+/// Markup generators
+
+function markupAttrs(entity: Entity) {
+	let markup = "";
+	for (let key of entity.attributeNames()) {
+		let value = markupText("" + entity.at(key), true);
+		markup += ` ${key}="${value}"`;
+	}
+	return markup;
+}
+
+function markupText(text: string, quote?: boolean): string {
+	let markup = "";
+	for (let ch of text) {
+		switch (ch) {
+			case ">": markup += "&gt;"; break;
+			case "<": markup += "&lt;"; break;
+			case "&": markup += "&amp;"; break;
+			case "\"": markup += quote ? "&quot;" : ch; break;
+			default:  markup += ch; break;
+		}
+	}
+	return markup;			
+}
+
+function markupContent(content: Iterable<Markup>): string {
+	let markup = "";
+	for (let item of content) markup += item.markup;
+	return markup;
 }

@@ -1,9 +1,8 @@
 
-import {Content, Parcel, Type, Value, bundle, pure} from "../api/model.js";
-import {Notification, level} from "../api/model.js";
+import {Parcel, Type, Value, bundle, pure} from "../api/model.js";
+import {Notification, level, transform} from "../api/model.js";
 
 import {EMPTY} from "../base/util.js";
-import {Context, Transform} from "../api/transform.js";
 
 export const EVALUATING: Value = Object.freeze(Object.create(null));
 
@@ -25,14 +24,13 @@ export interface Source extends Eval {
 	use(pathname: string): void;
 }
 
-type Transforms = bundle<Transform<Eval, string>>
+type transforms = bundle<transform<Eval, string>>
 
-export class Target implements Context<string> {
-	constructor(transforms: Transforms) {
+export class Target {
+	constructor(transforms: transforms) {
 		this.transforms = transforms;
 	}
-	declare container: undefined;
-	transforms: Transforms;
+	transforms: transforms;
 	target(name: string, value: Value): string {
 		return this.transforms[name].call(value, this);
 	}

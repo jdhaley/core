@@ -13,7 +13,7 @@ export interface Receiver {
 	receive(signal: Signal): void;
 }
 
-/** A part is a Receiver node within a directed or rooted tree graph. */
+/** A part is a Receiver node within a graph. */
 export interface Part extends Receiver {
 	partOf?: Part;
 	content: Iterable<Part>;

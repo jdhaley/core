@@ -76,6 +76,8 @@ export interface Notification {
 	message: string;
 }
 
+export type transform<S, T> = (source: S, context?: any) => T;
+
 //Experimental: Adapting the Producer API for functions...
 type arguments = [receiver: any, ...args: any]
 Function.prototype["at"] = function at(this: Function, args?: arguments) {
