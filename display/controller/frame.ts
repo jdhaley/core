@@ -127,6 +127,7 @@ function sense(event: UserEvent) {
         event.stopPropagation();
         event.direction = "up";
         event.from = ctl;
+        event.source = ctl;
         if (!event.subject) event.subject = event.type;
         ctl.sense(event);
         if (!event.subject) event.preventDefault();    

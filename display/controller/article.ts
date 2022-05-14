@@ -1,12 +1,12 @@
-import { Markup } from "../../api/model.js";
+import {Markup} from "../../api/model.js";
 import {Signal} from "../../api/signal.js";
 import {Response} from "../../base/message.js";
 import {extend} from "../../base/util.js";
 
-import {Article, UserEvent} from "../display.js"
-import display from "./display.js";
+import {Article, UserEvent} from "../display.js";
+import editor from "./editor.js";
 
-export default extend(display, {
+export default extend(editor, {
 	open(this: Article, msg: Response<string>) {
 		this.model = msg.statusCode == 404 ? "" : msg.body;
 		this.dataset.file = msg.req.to;
@@ -19,7 +19,6 @@ export default extend(display, {
 			return;
 		}
 		signal.subject = "";
-//		let target = this.transform.target(this.element) as Element;
 		this.service.save(this.dataset.file, (this.model as Markup).markup, this);
 	},
 	draw(this: Article, msg: Signal) {

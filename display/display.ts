@@ -70,20 +70,25 @@ export class Frame extends DocumentOwner {
 }
 
 export interface UserEvent extends Signal, UIEvent {
-	direction: "up",
-	from: Display,
+	//all user events
+	direction: "up";
+	from: Display;
+	source: Display; //The sensor that sensed the event.
+	selection: Range;
 
-	selection: Range,
-	//keyboard & mouse
-    ctrlKey: boolean,
-    altKey: boolean,
-    shiftKey: boolean,
-	metaKey: boolean,
 	//clipboard events
-	clipboardData?: DataTransfer,
+	clipboardData?: DataTransfer;
+
+	//keyboard & mouse
+    ctrlKey: boolean;
+    altKey: boolean;
+    shiftKey: boolean;
+	metaKey: boolean;
+
 	//keyboard.
     shortcut: string;
-    key: string,
+    key: string;
+
 	//mouse support - to be reviewed.
     track: Display;
     x?: number;
@@ -157,10 +162,14 @@ export class Article extends Display {
 		this.#service = new RemoteFileService(this.owner.location.origin + conf.properties.sources);
 	}
 	#service: RemoteFileService;
-	readonly transform: transform<Content, Display>;
 	readonly buffer: CommandBuffer<Range>;
+	readonly transform: transform<Content, Display>;
 
 	get service(): RemoteFileService {
 		return this.#service;
 	}
+}
+
+export class Note extends Article {
+	declare readonly buffer: Editor;
 }
