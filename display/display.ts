@@ -156,29 +156,11 @@ export class Article extends Display {
 		this.transform = conf.properties.transform as transform<Content, Display>
 		this.#service = new RemoteFileService(this.owner.location.origin + conf.properties.sources);
 	}
- 	declare buffer: CommandBuffer<Range>;
-
 	#service: RemoteFileService;
-	protected transform: transform<Content, Display>;
+	readonly transform: transform<Content, Display>;
+	readonly buffer: CommandBuffer<Range>;
 
 	get service(): RemoteFileService {
 		return this.#service;
-	}
-	
-	navigateToText(range: Range, direction: "prior" | "next"): Range {
-		let node = range.commonAncestorContainer;
-		if (node == this.element) {
-			node = this.element.childNodes[range.startOffset];
-			if (!node) return null;
-			node = direction == "prior" ? text.lastText(node) : text.firstText(node);
-		} else {
-			node = direction == "prior" ? text.priorText(node) : text.nextText(node);
-		}
-		if (node?.nodeType == Node.TEXT_NODE) {
-			range.selectNodeContents(node);
-			range.collapse(direction == "prior" ? false : true);
-			return range;
-		}
-		return null;	
 	}
 }
