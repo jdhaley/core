@@ -1,10 +1,28 @@
 import {Controller} from "../../api/signal.js";
 import {controlOf, ownerOf} from "../../base/dom.js";
+import { Message } from "../../base/message.js";
 import {Display, Frame, UserEvent} from "../display.js";
 
 let TRACK: UserEvent = null;
+let SELECTION: UserEvent = null;
 
 export default {
+    selectionchange(event: UserEvent) {
+        //selectionchange comes from the Document, not the Window.
+        event.range = (event.target["$owner"] as Frame).selectionRange;
+        event.source = controlOf(event.range.commonAncestorContainer) as Display;
+        event.subject = "select";
+        if (SELECTION) {
+            if (SELECTION.source != event.source) {
+                SELECTION.subject = "unselect";
+                SELECTION.range = event.range;
+                sense(SELECTION);    
+            }
+            if (SELECTION.source == event.source) event.subject = "selecting";
+        }
+        SELECTION = event;
+        sense(event);
+    },
     input: sense,
     cut: sense,
     copy: sense,
@@ -108,28 +126,29 @@ function getModifiers(event: UserEvent) {
     return mod;
 }
 
+function sense(event: UserEvent) {
+    if (!event.source) event.source = controlOf(event.target) as Display;
+    if (event.source) {
+        event.direction = "up";
+        event.from = event.source.owner;
+        if (!event.subject) event.subject = event.type;
+
+        event.stopPropagation();
+        event.source.sense(event);
+        if (!event.subject) event.preventDefault();    
+    }
+}
+
 // function sense(event: UserEvent) {
-//     let ctl = controlOf(event.target) as Display;
+//     event.selection = (ownerOf(event.target as Node) as Frame).selectionRange;
+//     let ctl = controlOf(event.selection.commonAncestorContainer) as Display;
 //     if (ctl) {
+//         event.stopPropagation();
 //         event.direction = "up";
 //         event.from = ctl;
-//         event.stopPropagation();
+//         event.source = ctl;
 //         if (!event.subject) event.subject = event.type;
 //         ctl.sense(event);
 //         if (!event.subject) event.preventDefault();    
 //     }
 // }
-
-function sense(event: UserEvent) {
-    event.selection = (ownerOf(event.target as Node) as Frame).selectionRange;
-    let ctl = controlOf(event.selection.commonAncestorContainer) as Display;
-    if (ctl) {
-        event.stopPropagation();
-        event.direction = "up";
-        event.from = ctl;
-        event.source = ctl;
-        if (!event.subject) event.subject = event.type;
-        ctl.sense(event);
-        if (!event.subject) event.preventDefault();    
-    }
-}

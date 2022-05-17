@@ -6,6 +6,7 @@ import {RemoteFileService} from "../base/remote.js";
 import {FrameConf, ViewConf} from "./configuration.js";
 import {CommandBuffer, Editor} from "../base/command.js";
 import {extend} from "../base/util.js";
+import { Control } from "../base/control.js";
 
 export class Frame extends DocumentOwner {
 	constructor(window: Window, conf: FrameConf) {
@@ -16,20 +17,9 @@ export class Frame extends DocumentOwner {
 		if (conf.views) this.controls = conf.views;
 		for (let name in conf.controller) {
 			let listener = conf.controller[name];
-			this.#window.addEventListener(name, listener as any);
+			let target = name == "selectionchange" ? this.document : this.#window;
+			target.addEventListener(name, listener as any);
 		}
-		this.document.addEventListener("selectionchange", (event: UserEvent) => {
-			let range = this.selectionRange;
-			let view = controlOf(range.commonAncestorContainer);
-			if (view) {
-				event.subject = "selectionchange";
-				event["range"] = range;
-				//TODO may make more sense to sense but we would need to change the sense
-				//sending to the view itself.
-				//view.sense(event);
-				view.send(event);
-			}
-		});
 	}
 	#window: Window;
 	types = Object.create(null)
@@ -70,11 +60,14 @@ export class Frame extends DocumentOwner {
 }
 
 export interface UserEvent extends Signal, UIEvent {
+	target: Node;
 	//all user events
 	direction: "up";
-	from: Display;
-	source: Display; //The sensor that sensed the event.
-	selection: Range;
+	from: Control;
+	source: Display;
+
+	//selection change events.
+	range: Range;
 
 	//clipboard events
 	clipboardData?: DataTransfer;
@@ -112,6 +105,9 @@ export class Display extends DocumentControl {
 
 	get owner() {
 		return super.owner as Frame;
+	}
+	get content(): Iterable<Display> {
+		return super.content as Iterable<Display>;
 	}
 	get article() {
 		for (let part: ControlElement = this; part; part = part.partOf) {

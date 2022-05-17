@@ -5,6 +5,19 @@ import display from "./display.js";
 
 let UNDONE = false;
 export default extend(display, {
+	// select(event: UserEvent) {
+	// 	console.log(event.subject);
+	// 	this.getStyle().setProperty("background-color", "gainsboro");
+	// 	event.subject = "";
+	// },
+	// unselect(event: UserEvent) {
+	// 	console.log(event.subject);
+	// 	this.getStyle().removeProperty("background-color");
+	// 	event.subject = "";
+	// },
+	// selecting(event: UserEvent) {
+	// 	event.subject = "";
+	// },
 	input(event: UserEvent) {
 		/*
 		Input events should always be undone because the editor maintains its own
