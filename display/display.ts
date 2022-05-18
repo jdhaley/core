@@ -31,6 +31,9 @@ export class Frame extends DocumentOwner {
 	get activeElement() {
 		return this.document.activeElement;
 	}
+	get selection(): Selection {
+		return this.#window.getSelection();
+	}
 	get selectionRange() {
 		let selection = this.#window.getSelection();
 		let range: Range;
