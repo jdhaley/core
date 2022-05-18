@@ -117,6 +117,9 @@ export class Display extends DocumentControl {
 			if (part instanceof Article) return part;
 		}
 	}
+	get data() {
+		return this.view.dataset;
+	}
 	get view(): HTMLElement {
 		return this.element as HTMLElement;
 	}
@@ -125,9 +128,6 @@ export class Display extends DocumentControl {
 	}
 	get styles() {
 		return this.element.classList;
-	}
-	get dataset() {
-		return this.view.dataset;
 	}
 
 	getStyle(name?: string): CSSStyleDeclaration {

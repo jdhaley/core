@@ -9,7 +9,7 @@ import editor from "./editor.js";
 export default extend(editor, {
 	open(this: Article, msg: Response<string>) {
 		this.model = msg.statusCode == 404 ? "" : msg.body;
-		this.dataset.file = msg.req.to;
+		this.data.file = msg.req.to;
 		this.send("draw");
 		this.send("view");
 	},
@@ -19,7 +19,7 @@ export default extend(editor, {
 			return;
 		}
 		signal.subject = "";
-		this.service.save(this.dataset.file, (this.model as Markup).markup, this);
+		this.service.save(this.data.file, (this.model as Markup).markup, this);
 	},
 	draw(this: Article, msg: Signal) {
 		this.element["$editor"] = this;
