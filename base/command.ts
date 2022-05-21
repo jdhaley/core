@@ -27,15 +27,8 @@ export class CommandBuffer<T> {
 		command.prior = this.#command;
 		this.#command = command;
 	}
-	protected peek() {
+	peek() {
 		return this.#command;
 	}
 }
 
-export abstract class Editor extends CommandBuffer<Range> {
-	abstract edit(name: string, range: Range, replacement: string, offset: number): Range;
-	abstract replace(name: string, range: Range, replacement: string): Range;
-	abstract insert(range: Range): Range;
-	abstract split(range: Range): Range;
-	abstract level(name: "Promote" | "Demote", range: Range): Range;
-}

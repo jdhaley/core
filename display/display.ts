@@ -4,7 +4,7 @@ import {Content, bundle, transform} from "../api/model.js";
 import {DocumentControl, DocumentOwner, text, controlOf, ControlElement} from "../base/dom.js";
 import {RemoteFileService} from "../base/remote.js";
 import {FrameConf, ViewConf} from "./configuration.js";
-import {CommandBuffer, Editor} from "../base/command.js";
+import {CommandBuffer} from "../base/command.js";
 import {extend} from "../base/util.js";
 import { Control } from "../base/control.js";
 
@@ -156,7 +156,7 @@ export class Display extends DocumentControl {
 export class Article extends Display {
 	constructor(owner: Frame, conf: ViewConf) {
 		super(owner, conf);
- 		this.buffer = conf.properties.commands as Editor;
+ 		this.buffer = conf.properties.commands as CommandBuffer<Range>;
 		this.transform = conf.properties.transform as transform<Content, Display>
 		this.#service = new RemoteFileService(this.owner.location.origin + conf.properties.sources);
 	}
@@ -167,8 +167,20 @@ export class Article extends Display {
 	get service(): RemoteFileService {
 		return this.#service;
 	}
-}
 
-export class Note extends Article {
-	declare readonly buffer: Editor;
+	getItemRange(startId: string, endId: string) {
+		let range = this.owner.document.createRange();
+		range.selectNodeContents(this.view);
+		if (startId) {
+			let start = this.owner.document.getElementById(startId);
+			if (!start) throw new Error(`Start item.id '${startId}' not found.`);
+			range.setStartAfter(start);
+		}
+		if (endId) {
+			let end = this.owner.document.getElementById(endId);
+			if (!end) throw new Error(`End item.id '${endId}' not found.`);
+			range.setEndBefore(end);
+		}
+		return range;
+	}
 }
