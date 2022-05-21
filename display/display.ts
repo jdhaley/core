@@ -167,20 +167,4 @@ export class Article extends Display {
 	get service(): RemoteFileService {
 		return this.#service;
 	}
-
-	getItemRange(startId: string, endId: string) {
-		let range = this.owner.document.createRange();
-		range.selectNodeContents(this.view);
-		if (startId) {
-			let start = this.owner.document.getElementById(startId);
-			if (!start) throw new Error(`Start item.id '${startId}' not found.`);
-			range.setStartAfter(start);
-		}
-		if (endId) {
-			let end = this.owner.document.getElementById(endId);
-			if (!end) throw new Error(`End item.id '${endId}' not found.`);
-			range.setEndBefore(end);
-		}
-		return range;
-	}
 }
