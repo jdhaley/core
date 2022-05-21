@@ -107,6 +107,11 @@ export class DocumentOwner extends Owner {
 			return this.document.createElement(name);
 		}
 	}
+	/**
+	 * Returns a NOT LIVE array of nodes.
+	 * Useful for adding/removing nodes without the
+	 * problems of a live list.
+	 */
 	createNodes(source: string | Range): Node[] {
 		let list: NodeList;
 		if (typeof source == "string") {

@@ -22,6 +22,7 @@ export default extend(editor, {
 		this.service.save(this.data.file, (this.model as Markup).markup, this);
 	},
 	draw(this: Article, msg: Signal) {
+		this.styles.add("collection");
 		this.element["$editor"] = this;
 		this.view.contentEditable = "true";	
 	},
