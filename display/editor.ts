@@ -5,14 +5,15 @@ import {getElement, getItem, getId, getItemContent, getItemRange, mark, unmark, 
 
 let TRACK = null;
 
+export type replacer = (start: Element, content: any, end: Element) => string;
+
 export class Editor extends Article {
-	edit(name: string, range: Range, replacement: string) {
+	edit(name: string, range: Range, replacement: string, replacer?: replacer) {
 		TRACK = null;
 		let cmd = new EditCommand(this, name);
-		startEdit(cmd, range);
-		range = replace(cmd, replacement, true);
-		console.log(cmd.items);
 		this.buffer.add(cmd);
+		range = cmd.do(range, replacement, replacer);
+		console.log(cmd.items);
 		return range;
 	}
 	textEdit(name: string, range: Range, replacement: string, offset: number) {
@@ -40,17 +41,28 @@ class EditCommand extends Command<Range> {
 	}
 	article: Article;
 	items: Edit;
+
 	get name() {
 		return this.items?.name;
 	}
 
+	do(range: Range, replacement: string, replacer: replacer) {
+		startEdit(this, range);
+		let context = this.article.owner.document.getElementById(this.items.contextId);
+		let startContent = getItemContent(this.article, "start", context);
+		let endContent = getItemContent(this.article, "end", context);
+		if (!replacer) replacer = split;
+		this.items.after = replacer(startContent, replacement, endContent);
+		return this.exec(this.items.after);
+	}
 	undo() {
-		return this.replace(this.items.before);
+		return this.exec(this.items.before);
 	}
 	redo() {
-		return this.replace(this.items.after);
+		return this.exec(this.items.after);
 	}
-	replace(markup: string): Range {
+
+	protected exec(markup: string): Range {
 		let range = getItemRange(this.article.owner.document, this.items.contextId, this.items.startId, this.items.endId);
 		range.deleteContents();
 	
@@ -59,7 +71,9 @@ class EditCommand extends Command<Range> {
 			range.insertNode(nodes[i]);
 			range.collapse();
 		}
-		return unmark(range, "edit");
+		range = unmark(range, "edit");
+		if (range) this.article.owner.selectionRange = range;
+		return range;
 	}
 }
 
@@ -108,21 +122,6 @@ function startEdit(cmd: EditCommand, range: Range) {
 	if (end) cmd.items.endId = getId(end);
 }
 
-function replace(cmd: EditCommand, markupText: string, split: boolean): Range {
-	let owner = cmd.article.owner;
-	let doc = owner.document;
-	let context = doc.getElementById(cmd.items.contextId);
-	let startContent = getItemContent(cmd.article, "start", context);
-	let endContent = getItemContent(cmd.article, "end", context);
-	if (split) {
-		markupText = (startContent ? startContent.outerHTML : "<i id='start-edit'></i>") + markupText;
-		markupText += endContent ? endContent.outerHTML : "<i id='end-edit'></i>";
-		cmd.items.after = markupText;
-		return cmd.replace(cmd.items.after);
-	}
-	console.error("replace-join not implemented.");
-}
-
 function editText(range: Range, replacement: string, offset: number): string {
 	let munged = mungeText(replacement, offset);
 	let txt = range.commonAncestorContainer;
@@ -134,4 +133,11 @@ function editText(range: Range, replacement: string, offset: number): string {
 	unmark(range, "edit");
 	range.collapse();
 	return after;
+}
+
+/* split is the default replacer */
+function split(startContent: Element, markupText: string, endContent: Element) {
+	markupText = (startContent ? startContent.outerHTML : "<i id='start-edit'></i>") + markupText;
+	markupText += endContent ? endContent.outerHTML : "<i id='end-edit'></i>";
+	return markupText;
 }

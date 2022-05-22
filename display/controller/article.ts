@@ -38,13 +38,11 @@ export default extend(editor, {
 	},
 	undo(this: Article, event: UserEvent) {
 		event.subject = "";
-		let range = this.buffer.undo();
-		if (range) this.owner.selectionRange = range;
+		this.buffer.undo();
 	},
 	redo(this: Article, event: UserEvent) {
 		event.subject = "";
-		let range = this.buffer.redo();
-		if (range) this.owner.selectionRange = range;
+		this.buffer.redo();
 	}
 });
 
