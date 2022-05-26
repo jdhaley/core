@@ -52,7 +52,7 @@ export class ControlElement extends Control implements Content {
 		return content;
 	}
 
-	attributeNames() {
+	keys(): Iterable<string> {
 		return this.element.getAttributeNames();
 	}
 	at(name: string): string {
@@ -68,11 +68,13 @@ export class ControlElement extends Control implements Content {
 	}
 }
 
+let LAST_ID: number = 0;
 
 export class DocumentControl extends ControlElement {
 	constructor(owner: DocumentOwner, conf: ControlConf) {
 		super(owner, conf);
 		let ele = owner.createElement(conf.name || conf.type || "div");
+		ele.id = "" + ++LAST_ID;
 		ele["$control"] = this;
 		ele["$controller"] = conf.controller || EMPTY.object;
 		this.#element = ele;

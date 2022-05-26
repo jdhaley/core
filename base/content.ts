@@ -27,11 +27,11 @@ export class EmptyContent implements Content {
 		return Object.isFrozen(this);
 	}
 
+	keys(): Iterable<string> {
+		return EMPTY.array;
+	}
 	at(name: string): string {
 		return undefined;
-	}
-	attributeNames(): Iterable<string> {
-		return EMPTY.array;
 	}
 	close(): Content {
 		return Object.freeze(this);
@@ -77,15 +77,15 @@ export class Bag extends EmptyContent implements Consumer<string | Content> {
 		this.#content.push(new TextContent(text));
 	}
 
+	keys(): Iterable<string> {
+		return Object.keys(this.#attributes);
+	}
 	at(name: string): string {
 		return this.#attributes[name];
 	}
 	put(name: string, value: string | number | boolean) {
 		if (this.#attributes == EMPTY.object) this.#attributes = Object.create(null);
 		this.#attributes[name] = value;
-	}
-	attributeNames(): Iterable<string> {
-		return Object.keys(this.#attributes);
 	}
 	append(...values: (string | Content)[]): void {
 		for (let value of values) {
@@ -114,7 +114,7 @@ export class SourceContent extends Bag {
 
 function markupAttrs(entity: Entity) {
 	let markup = "";
-	for (let key of entity.attributeNames()) {
+	for (let key of entity.keys()) {
 		let value = markupText("" + entity.at(key), true);
 		markup += ` ${key}="${value}"`;
 	}

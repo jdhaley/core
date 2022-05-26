@@ -20,7 +20,7 @@ export interface Producer<I, O> extends Value {
 	at(input?: I): O; 
 }
 
-export interface Parcel<V> extends Producer<string, V> {
+export interface Parcel<T> extends Producer<string, T> {
 }
 
 /** A Sequence declares an ordinal (positional) collection of values.
@@ -34,10 +34,12 @@ export interface Sequence<T> extends Producer<number, T>, Iterable<T> {
 	concat(...values: T[]): Sequence<T>;
 }
 
+export type model = string | number | boolean | Parcel<model> | Iterable<model>;
 /** If an attribute is an Entity, the referenced entity must have an "id" attribute.*/
-export interface Entity extends Parcel<string | number | boolean | Entity> {
+//The above comment only applies to at() properties that are in fact attributes.
+export interface Entity extends Parcel<model> {
 	name?: string;
-	attributeNames(): Iterable<string>
+	keys(): Iterable<string>
 }
 
 export interface Markup {
