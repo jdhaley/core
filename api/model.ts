@@ -25,7 +25,7 @@ export interface Parcel<T> extends Producer<string, T> {
 
 /** A Sequence declares an ordinal (positional) collection of values.
 	There are no contracts on the mutability of the sequence.
-	Runtime strings and Arrays are assignable to Sequence.
+	Runtime strings and arrays are assignable to Sequence.
 */
 export interface Sequence<T> extends Producer<number, T>, Iterable<T> {
 	get length(): number;
@@ -34,10 +34,9 @@ export interface Sequence<T> extends Producer<number, T>, Iterable<T> {
 	concat(...values: T[]): Sequence<T>;
 }
 
-export type model = string | number | boolean | Parcel<model> | Iterable<model>;
 /** If an attribute is an Entity, the referenced entity must have an "id" attribute.*/
 //The above comment only applies to at() properties that are in fact attributes.
-export interface Entity extends Parcel<model> {
+export interface Entity extends Parcel<content> {
 	name?: string;
 	keys(): Iterable<string>
 }
@@ -66,6 +65,7 @@ export interface bundle<T> {
 
 export type key = string | number /*| symbol */;
 export type constant = key | boolean | null;
+export type content = string | number | boolean | Content;
 export type serial = constant | bundle<serial> | serial[];
 export type pure = constant | Function | bundle<pure> | pure[]
 
