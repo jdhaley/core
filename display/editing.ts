@@ -31,7 +31,7 @@ export function getItemRange(document: Document, contextId: string, startId: str
 
 export function getItem(node: Node | Range, context?: Element): Element {
 	if (node instanceof Range) node = node.commonAncestorContainer;
-	let items = getElement(context || node, "collection");
+	let items = getElement(context || node, "list");
 	if (items) while (node) {
 		if (node instanceof Element && node.parentElement == items) {
 			return node;

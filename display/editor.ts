@@ -90,23 +90,23 @@ interface Edit {
 }
 
 function startEdit(cmd: EditCommand, range: Range) {
-	let collection = getElement(range, "collection");
-	if (!collection) throw new Error("Range outside an editable region.");
-	cmd.items.contextId = getId(collection);
+	let list = getElement(range, "list");
+	if (!list) throw new Error("Range outside an editable region.");
+	cmd.items.contextId = getId(list);
 
-	let doc = collection.ownerDocument;
+	let doc = list.ownerDocument;
 
-	range = adjustRange(range, collection);
+	range = adjustRange(range, list);
 	mark(range, "edit");
 
 	/*
 	Expand the range to encompass the whole start/end items or markers (when 
-	a marker is a direct descendent of the collection).
+	a marker is a direct descendent of the list).
 	*/
-	let start = getItem(doc.getElementById("start-edit"), collection);
+	let start = getItem(doc.getElementById("start-edit"), list);
 	range.setStartBefore(start);
 
-	let end = getItem(doc.getElementById("end-edit"), collection);
+	let end = getItem(doc.getElementById("end-edit"), list);
 	range.setEndAfter(end);
 	
 	//Capture the before image for undo.
