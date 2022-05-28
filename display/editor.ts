@@ -5,14 +5,16 @@ import {getElement, getItem, getId, getItemContent, getItemRange, mark, unmark, 
 
 let TRACK = null;
 
-export type replacer = (start: Element, content: any, end: Element) => string;
+export type replacer = (start: Element, content: Element, end: Element) => string;
 
 export class Editor extends Article {
 	edit(name: string, range: Range, replacement: string, replacer?: replacer) {
 		TRACK = null;
 		let cmd = new EditCommand(this, name);
 		this.buffer.add(cmd);
-		range = cmd.do(range, replacement, replacer);
+		let ele = this.owner.createElement("div");
+		ele.innerHTML = replacement;
+		range = cmd.do(range, ele, replacer);
 		console.log(cmd.items);
 		return range;
 	}
@@ -46,7 +48,7 @@ class EditCommand extends Command<Range> {
 		return this.items?.name;
 	}
 
-	do(range: Range, replacement: string, replacer: replacer) {
+	do(range: Range, replacement: Element, replacer: replacer) {
 		startEdit(this, range);
 		let context = this.article.owner.document.getElementById(this.items.contextId);
 		let startContent = getItemContent(this.article, "start", context);
@@ -136,8 +138,8 @@ function editText(range: Range, replacement: string, offset: number): string {
 }
 
 /* split is the default replacer */
-function split(startContent: Element, markupText: string, endContent: Element) {
-	markupText = (startContent ? startContent.outerHTML : "<i id='start-edit'></i>") + markupText;
+function split(startContent: Element, replacement: Element, endContent: Element) {
+	let markupText = (startContent ? startContent.outerHTML : "<i id='start-edit'></i>") + replacement.innerHTML;
 	markupText += endContent ? endContent.outerHTML : "<i id='end-edit'></i>";
 	return markupText;
 }
