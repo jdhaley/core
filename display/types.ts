@@ -4,14 +4,14 @@ import {bundle, Type, Value} from "../api/model.js";
 
 export type content = string | number | boolean | Iterable<content> | object;
 
-let NEXT_ID = 0;
+let LAST_ID = 1;
 
 export class ContentType implements Type {
 	name: string;
 	types: bundle<ContentType>;
 	toView(model: content, context: HTMLElement, level?: number): HTMLElement {
 		let view = context.ownerDocument.createElement("div") as HTMLElement;
-		view.id = "" + ++NEXT_ID;
+		view.id = "" + LAST_ID++;
 		view["$type"] = this;
 		view["$model"] = model;
 		if (this.name) view.dataset.type = this.name;

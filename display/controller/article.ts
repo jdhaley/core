@@ -14,6 +14,7 @@ export default extend(display, {
 	},
 	draw(this: Article, msg: Signal) {
 		this.styles.add("list");
+		this.view.id = "1";
 		this.view.contentEditable = "true";	
 	},
 	view(this: Article, msg: Signal) {
