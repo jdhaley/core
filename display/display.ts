@@ -1,12 +1,12 @@
 import {Signal} from "../api/signal.js";
-import {Content, bundle, transform} from "../api/model.js";
+import {bundle} from "../api/model.js";
 
-import {DocumentControl, DocumentOwner, text, controlOf, ControlElement} from "../base/dom.js";
+import {DocumentControl, DocumentOwner, controlOf, ControlElement} from "../base/dom.js";
 import {RemoteFileService} from "../base/remote.js";
 import {FrameConf, ViewConf} from "./configuration.js";
-import {CommandBuffer} from "../base/command.js";
 import {extend} from "../base/util.js";
-import { Control } from "../base/control.js";
+import {Control} from "../base/control.js";
+import {CollectionType, ContentType, RecordType, TextType} from "./types.js";
 
 export class Frame extends DocumentOwner {
 	constructor(window: Window, conf: FrameConf) {
@@ -156,15 +156,9 @@ export class Display extends DocumentControl {
 export class Article extends Display {
 	constructor(owner: Frame, conf: ViewConf) {
 		super(owner, conf);
- 		this.buffer = conf.properties.commands as CommandBuffer<Range>;
-		this.transform = conf.properties.transform as transform<Content, Display>
-		this.#service = new RemoteFileService(this.owner.location.origin + conf.properties.sources);
+		this.type = conf.properties.type as CollectionType;
+		this.service = new RemoteFileService(this.owner.location.origin + conf.properties.sources);
 	}
-	#service: RemoteFileService;
-	readonly buffer: CommandBuffer<Range>;
-	readonly transform: transform<Content, Display>;
-
-	get service(): RemoteFileService {
-		return this.#service;
-	}
+	readonly service: RemoteFileService;
+	readonly type: CollectionType;
 }

@@ -10,9 +10,6 @@ export class ControlElement extends Control implements Content {
 	get owner() {
 		return ownerOf(this.element);
 	}
-	get service(): Transmitter {
-		return this.partOf?.service;
-	}
 	get name() {
 		return this.element.tagName;
 	}

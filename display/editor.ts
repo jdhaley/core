@@ -1,4 +1,4 @@
-import {Command} from "../base/command.js";
+import {Command, CommandBuffer} from "../base/command.js";
 import { markup } from "../base/dom.js";
 import {Article} from "./display.js";
 import {getElement, getItem, getId, getItemContent, getItemRange, mark, unmark,  adjustRange, mungeText} from "./editing.js";
@@ -8,6 +8,7 @@ let TRACK = null;
 export type replacer = (start: Element, content: Element, end: Element) => string;
 
 export class Editor extends Article {
+	readonly buffer = new CommandBuffer<Range>();
 	edit(name: string, range: Range, replacement: string, replacer?: replacer) {
 		TRACK = null;
 		let cmd = new EditCommand(this, name);

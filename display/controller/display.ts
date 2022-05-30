@@ -17,3 +17,36 @@ export default extend(null, {
 		}
 	}
 });
+
+/*
+	selectionchange(this: Display, msg: UserEvent) {
+		for (let ele of this.owner.document.getElementsByClassName("active")) {
+			if (ele.getAttribute("class") == "active") {
+				ele.removeAttribute("class");
+			} else {
+				(ele as HTMLElement).classList.remove("active");
+			}
+		}		
+		let range = this.owner.selectionRange;
+		if (range.collapsed) {
+			let ele = range.commonAncestorContainer as HTMLElement;
+			while (ele && ele.nodeType != Node.ELEMENT_NODE) ele = ele.parentElement;
+			ele?.classList.add("active");
+			ele?.scrollIntoView({behavior: "auto", block: "nearest", inline: "nearest"});
+		}
+	},
+*/
+
+	// select(event: UserEvent) {
+	// 	console.log(event.subject);
+	// 	this.getStyle().setProperty("background-color", "gainsboro");
+	// 	event.subject = "";
+	// },
+	// unselect(event: UserEvent) {
+	// 	console.log(event.subject);
+	// 	this.getStyle().removeProperty("background-color");
+	// 	event.subject = "";
+	// },
+	// selecting(event: UserEvent) {
+	// 	event.subject = "";
+	// },
