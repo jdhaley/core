@@ -18,7 +18,7 @@ export default extend(article, {
 		}
 		let model = this.type.toModel(this.view, null);
 		console.log(model);
-		this.service.save(this.data.file, JSON.stringify(model), this);
+		this.service.save(this.data.file, JSON.stringify(model, null, 2), this);
 	},
 	input(event: UserEvent) {
 		/*
