@@ -1,13 +1,25 @@
 import {Article} from "./display.js";
 
-let LAST_ID = 0;
-
-export function getId(ele: Element): string {
-	if (ele.nodeType != Node.ELEMENT_NODE) ele = ele.parentElement;
-	if (ele && !ele.id) {
-		ele.id = "" + ++LAST_ID;;
+export function getElement(node: Node | Range, type: string): Element {
+	console.log(type);
+	if (node instanceof Range) node = node.commonAncestorContainer;
+	while (node) {
+		if (node instanceof HTMLElement && type == node.dataset.model) {
+			return node as Element;
+		}
+		node = node.parentNode;
 	}
-	return ele ? ele.id : "";
+}
+
+export function getItem(node: Node | Range, context?: Element): Element {
+	if (node instanceof Range) node = node.commonAncestorContainer;
+	let items = getElement(context || node, "list");
+	if (items) while (node) {
+		if (node instanceof Element && node.parentElement == items) {
+			return node;
+		}
+		node = node.parentElement;
+	}
 }
 
 export function getItemRange(document: Document, contextId: string, startId: string, endId: string) {
@@ -27,27 +39,6 @@ export function getItemRange(document: Document, contextId: string, startId: str
 		range.setEndBefore(end);
 	}
 	return range;
-}
-
-export function getItem(node: Node | Range, context?: Element): Element {
-	if (node instanceof Range) node = node.commonAncestorContainer;
-	let items = getElement(context || node, "list");
-	if (items) while (node) {
-		if (node instanceof Element && node.parentElement == items) {
-			return node;
-		}
-		node = node.parentElement;
-	}
-}
-
-export function getElement(node: Node | Range, type: string): Element {
-	if (node instanceof Range) node = node.commonAncestorContainer;
-	while (node) {
-		if (node instanceof HTMLElement && node.classList.contains(type)) {
-			return node as Element;
-		}  
-		node = node.parentNode;
-	}
 }
 
 export function getItemContent(article: Article, point: "start" | "end", context: Element): Element {
@@ -78,9 +69,9 @@ export function mark(range: Range, suffix: string) {
 	let doc = range.commonAncestorContainer.ownerDocument;
 	//Patch the replacement points.
 	let pt = patchPoint(doc.getElementById("start-" + suffix));
-	range.setStart(pt.startContainer, pt.startOffset);
+	if (pt) range.setStart(pt.startContainer, pt.startOffset);
 	pt = patchPoint(doc.getElementById("end-" + suffix));
-	range.setEnd(pt.startContainer, pt.startOffset);
+	if (pt) range.setEnd(pt.startContainer, pt.startOffset);
 	return range;
 }
 
@@ -149,7 +140,7 @@ function adj(context: Element, child: Node, offset: number): Range {
 }
 
 function patchPoint(point: ChildNode) {
-	if (!point) debugger;
+	if (!point) return;
 	let range = point.ownerDocument.createRange();
 	if (point.previousSibling && point.previousSibling.nodeType == Node.TEXT_NODE &&
 		point.nextSibling && point.nextSibling.nodeType == Node.TEXT_NODE

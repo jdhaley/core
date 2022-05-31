@@ -1,7 +1,7 @@
 import {Command, CommandBuffer} from "../base/command.js";
 import { markup } from "../base/dom.js";
 import {Article} from "./display.js";
-import {getElement, getItem, getId, getItemContent, getItemRange, mark, unmark,  adjustRange, mungeText} from "./editing.js";
+import {getElement, getItem, getItemContent, getItemRange, mark, unmark,  adjustRange, mungeText} from "./editing.js";
 
 let TRACK = null;
 
@@ -93,7 +93,7 @@ interface Edit {
 function startEdit(cmd: EditCommand, range: Range) {
 	let list = getElement(range, "list");
 	if (!list) throw new Error("Range outside an editable region.");
-	cmd.items.contextId = getId(list);
+	cmd.items.contextId = list.id;
 
 	let doc = list.ownerDocument;
 
@@ -119,10 +119,10 @@ function startEdit(cmd: EditCommand, range: Range) {
 	If the range is at the start or end of the collect they will be undefined.
 	*/
 	start = start.previousElementSibling;
-	if (start) cmd.items.startId = getId(start);
+	if (start) cmd.items.startId = start.id;
 
 	end = end.nextElementSibling;
-	if (end) cmd.items.endId = getId(end);
+	if (end) cmd.items.endId = end.id;
 }
 
 function editText(range: Range, replacement: string, offset: number): string {
@@ -140,6 +140,12 @@ function editText(range: Range, replacement: string, offset: number): string {
 
 /* split is the default replacer */
 function split(startContent: Element, replacement: Element, endContent: Element) {
+	if (startContent) {
+		let type = startContent["$type"];
+		let model = type.toModel(startContent);
+		console.log(model);
+		startContent = type.toView(model, startContent);
+	}
 	let markupText = (startContent ? startContent.outerHTML : "<i id='start-edit'></i>") + replacement.innerHTML;
 	markupText += endContent ? endContent.outerHTML : "<i id='end-edit'></i>";
 	return markupText;

@@ -13,7 +13,7 @@ export default extend(display, {
 		this.send("view");
 	},
 	draw(this: Article, msg: Signal) {
-		this.styles.add("list");
+		this.data.model = "list";
 		this.view.id = "1";
 		this.view.contentEditable = "true";	
 	},
