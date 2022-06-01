@@ -20,7 +20,7 @@ class Markup {
 The context is "this" argument. You would either call the transforms with the desired
 context or Function.bind them to the context.
 */
-type transform<From, To> = (from: From) => To;
+type transform<From, To> = (this: any, from: From) => To;
 
 export class ContentType implements Type {
 	name: string;
@@ -76,7 +76,7 @@ export class TextType extends ContentType {
 		return context;
 	}
 	toModel(view: HTMLElement, context: any): content {
-		return view.textContent == "\u200b" ? undefined : new Markup(view.textContent);
+		return view.textContent == "\u200b" ? undefined : view.textContent;
 	}
 }
 

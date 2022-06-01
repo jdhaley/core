@@ -9,6 +9,11 @@ export type replacer = (start: Element, content: Element, end: Element) => strin
 
 export class Editor extends Article {
 	readonly buffer = new CommandBuffer<Range>();
+	toModel(range: Range) {
+		let temp = this.owner.createElement("div");
+		temp.innerHTML = markup(range);
+		return this.type.toModel(temp as HTMLElement, null);
+	}	
 	edit(name: string, range: Range, replacement: string, replacer?: replacer) {
 		TRACK = null;
 		let cmd = new EditCommand(this, name);
@@ -145,6 +150,12 @@ function split(startContent: Element, replacement: Element, endContent: Element)
 		let model = type.toModel(startContent);
 		console.log(model);
 		startContent = type.toView(model, startContent);
+	}
+	if (endContent) {
+		let type = endContent["$type"];
+		let model = type.toModel(endContent);
+		console.log(model);
+		endContent = type.toView(model, endContent);
 	}
 	let markupText = (startContent ? startContent.outerHTML : "<i id='start-edit'></i>") + replacement.innerHTML;
 	markupText += endContent ? endContent.outerHTML : "<i id='end-edit'></i>";

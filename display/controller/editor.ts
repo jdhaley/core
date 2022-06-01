@@ -7,6 +7,7 @@ import {Editor} from "../editor.js";
 import article from "./article.js";
 
 import {adjustRange, getElement} from "../editing.js";
+import { markup } from "../../base/dom.js";
 
 let UNDONE = false;
 export default extend(article, {
@@ -50,25 +51,26 @@ export default extend(article, {
 	copy(this: Editor, event: UserEvent) {
 		event.subject = "";
 		let range = this.owner.selectionRange;
-		range = adjustRange(range, getElement(range, "list"))
-		let nodes = this.owner.createNodes(range);
-		event.clipboardData.setData("text/html", removeIds(nodes));
+		range = adjustRange(range, getElement(range, "list"));
+		event.clipboardData.setData("text/json", JSON.stringify(this.toModel(range)));
 	},
 	cut(this: Editor, event: UserEvent) {
 		event.subject = "";
 		let range = this.owner.selectionRange;
 		if (range.collapsed) return;
-
-		let nodes = this.owner.createNodes(range);
-		event.clipboardData.setData("text/html", removeIds(nodes));
+		range = adjustRange(range, getElement(range, "list"));
+		event.clipboardData.setData("text/json", JSON.stringify(this.toModel(range)));
 		range = this.edit("Cut", range, "");
 		range.collapse();
 	},
 	paste(this: Editor, event: UserEvent) {
 		event.subject = "";
 		let range = this.owner.selectionRange;
-		let data = event.clipboardData.getData("text/html");
-		range = this.edit("Paste", range, data);
+		let data = event.clipboardData.getData("text/json");
+		console.log(data);
+		let model = JSON.parse(data);
+		let view = this.type.toView(model, this.view);
+		range = this.edit("Paste", range, view.innerHTML);
 		range.collapse();
 	},
 
@@ -89,16 +91,3 @@ export default extend(article, {
 		if ((event.target as Element).classList.contains("form")) event.subject = "";
 	},
 });
-
-
-function removeIds(nodes: Node[]) {
-	let out = "";
-	for (let node of nodes) {
-		if (node instanceof HTMLElement) {
-			delete node.id;
-			console.log(node.nodeName);
-			out += node.outerHTML;
-		}
-	}
-	return out;
-}
