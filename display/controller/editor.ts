@@ -7,7 +7,6 @@ import {Editor} from "../editor.js";
 import article from "./article.js";
 
 import {adjustRange, getElement} from "../editing.js";
-import { markup } from "../../base/dom.js";
 
 let UNDONE = false;
 export default extend(article, {
@@ -17,7 +16,7 @@ export default extend(article, {
 			console.log("Saved: ", signal);
 			return;
 		}
-		let model = this.type.toModel(this.view, null);
+		let model = this.type.toModel(this.view);
 		console.log(model);
 		this.service.save(this.data.file, JSON.stringify(model, null, 2), this);
 	},

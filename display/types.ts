@@ -2,7 +2,7 @@
 
 import {bundle, Type, Value} from "../api/model.js";
 
-export type content = string | number | boolean | Iterable<content> | object;
+export type content = string | number | boolean | Iterable<content> | bundle<content>;
 
 let LAST_ID = 1;
 
@@ -34,16 +34,8 @@ export class ContentType implements Type {
 		if (level) view.setAttribute("aria-level", "" + level);
 		return view;
 	}
-	toModel(view: HTMLElement, context: any): content {
+	toModel(view: HTMLElement): content {
 		return undefined;
-	}
-	jsonToXml(model: content): Element {
-		let doc = document.implementation.createDocument(null, typeOf(model));
-		toXmlContent(model, doc.documentElement)
-		return doc.documentElement;
-	}
-	viewToXml(view: HTMLElement, model: Element): Element {
-		return null;
 	}
 	generalizes(type: Type): boolean {
 		return type instanceof ContentType;
@@ -60,10 +52,11 @@ export class MarkupType extends ContentType {
 		view.innerHTML = "" + (model || "\u200b");
 		return view;
 	}
-	toModel(view: HTMLElement, context: any): content {
+	toModel(view: HTMLElement): content {
 		return view.textContent == "\u200b" ? undefined : view.innerHTML;
 	}
 }
+
 export class TextType extends ContentType {
 	toView(model: content, context: HTMLElement, level?: number): HTMLElement {
 		let view = super.toView(model, context, level);
@@ -71,11 +64,11 @@ export class TextType extends ContentType {
 		view.textContent = "" + (model || "\u200b");
 		return view;
 	}
-	viewToXml(view: HTMLElement, context: Element) {
-		context.innerHTML = view.innerHTML;
-		return context;
-	}
-	toModel(view: HTMLElement, context: any): content {
+	// viewToXml(view: HTMLElement, context: Element) {
+	// 	context.innerHTML = view.innerHTML;
+	// 	return context;
+	// }
+	toModel(view: HTMLElement): content {
 		return view.textContent == "\u200b" ? undefined : view.textContent;
 	}
 }
@@ -84,12 +77,12 @@ export class RecordType extends ContentType {
 	keys() {
 		return Object.keys(this.types);
 	}
-	toView(model: object, context: HTMLElement, level?: number): HTMLElement {
+	toView(model: bundle<content>, context: HTMLElement, level?: number): HTMLElement {
 		let view = super.toView(model, context, level);
 		view.dataset.model = "record";
 		for (let name in this.types) {
 			let value = model ? model[name] : null;
-			if (this.types[name] instanceof MarkupType) value = new Markup(value);
+			//if (this.types[name] instanceof MarkupType) value = new Markup(value);
 			let member = this.types[name].toView(value, view);
 			member.dataset.name = name;
 			member.classList.add("member");
@@ -97,7 +90,7 @@ export class RecordType extends ContentType {
 		}
 		return view;
 	}
-	toModel(view: HTMLElement, context: any): content {
+	toModel(view: HTMLElement): content {
 		let model = Object.create(null);
 		model.type$ = this.name;
 		for (let child of view.children) {
@@ -105,16 +98,16 @@ export class RecordType extends ContentType {
 				let propertyName = child.dataset.name;
 				let type = this.types[propertyName];
 				if (!type) debugger;
-				let value = type.toModel(child, this);
+				let value = type.toModel(child);
 				if (value) model[propertyName] = value;
 			}
 		}
 		return model;
 	}
-	viewToXml(view: HTMLElement, context: Element) {
-		context.innerHTML = view.innerHTML;
-		return null;
-	}
+	// viewToXml(view: HTMLElement, context: Element) {
+	// 	context.innerHTML = view.innerHTML;
+	// 	return null;
+	// }
 	generalizes(type: Type): boolean {
 		if (type instanceof RecordType) {
 			for (let name in this.types) {
@@ -134,14 +127,14 @@ export class CollectionType extends ContentType {
 		this.viewContent(model, view, level);
 		return view;
 	}
-	toModel(view: HTMLElement, context: any): content {
+	toModel(view: HTMLElement): content {
 		let model = [];
 		for (let child of view.children) {
 			if (child instanceof HTMLElement) {
 				let typeName = child.dataset.type;
 				let type = this.types[typeName];
 				if (!type) debugger;
-				model.push(type.toModel(child, this));
+				model.push(type.toModel(child));
 			}
 		}
 		return model.length ? model : undefined;
@@ -156,7 +149,6 @@ export class CollectionType extends ContentType {
 		return false;
 	}
 	viewContent(model: Iterable<content>, view: HTMLElement, level: number): void {
-		console.log(this.jsonToXml(model))
 		if (model && model[Symbol.iterator]) for (let value of model) {
 			let type = this.types[typeOf(value)] || this.defaultType;
 			if (type.name == "tree") level++;
@@ -167,10 +159,12 @@ export class CollectionType extends ContentType {
 	}
 }
 
-function typeOf(value: any): string {
+export function typeOf(value: any): string {
 	if (value && typeof value == "object") value = value.valueOf(value);
 	switch (typeof value) {
 		case "string":
+			//using STX/ETX control codes...
+			//if (value.substring(0, 1) == "\u0002") return "markup";
 		case "number":
 		case "boolean":
 			return "text";
@@ -245,88 +239,33 @@ function createType(name: string, value: bundle<any>, types: bundle<ContentType>
 	return type;
 }
 
-function toXmlContent(model: content, element: Element) {
-	let type = typeOf(model);
-	switch (type) {
-		case "null":
-			break;
-		case "text":
-			if (typeof model != "string") element.setAttribute("type", typeof model);
-			element.textContent = "" + model;
-			break;
-		case "list":
-			for (let value of model as Iterable<content>) {
-				let ele = element.ownerDocument.createElement(typeOf(value));
-				element.append(ele);
-				toXmlContent(value, ele);
-			}
-			break;
-		default:
-			if (type != element.nodeName) element.setAttribute("type", type);
-			for (let name in model as object) {
-				if (name == "type$") continue;
-				let prop = element.ownerDocument.createElement(name);
-				element.append(prop);
-				toXmlContent(model[name], prop);
-			}
-			break;
-	}
-}
 
-function toView(model: content, element: Element) {
-	let type = typeOf(model);
-	switch (type) {
-		case "null":
-			break;
-		case "text":
-			element.setAttribute("data-type", typeof model);
-			element.textContent = "" + model;
-			break;
-		case "list":
-			for (let value of model as Iterable<content>) {
-				let ele = element.ownerDocument.createElement(typeOf(value));
-				element.append(ele);
-				toXmlContent(value, ele);
-			}
-			break;
-		default:
-			if (type != element.nodeName) element.setAttribute("data-type", type);
-			for (let name in model as object) {
-				if (name == "type$") continue;
-				let prop = element.ownerDocument.createElement(name);
-				element.append(prop);
-				toXmlContent(model[name], prop);
-			}
-			break;
-	}
-}
+// function toModel(view: HTMLElement, context: Element): void {
+// 	view = view.firstElementChild as HTMLElement;
+// 	while (view) {
+// 		let model = createModel(view, context);
+// 		context.append(model);
+// 		view = loadChildren(view, model);
+// 	}
+// }
 
-function toModel(view: HTMLElement, context: Element): void {
-	view = view.firstElementChild as HTMLElement;
-	while (view) {
-		let model = createModel(view, context);
-		context.append(model);
-		view = loadChildren(view, model);
-	}
-}
+// function loadChildren(view: HTMLElement, context: Element): HTMLElement {
+// 	let level = view.getAttribute("aria-level") as any * 1 || 0;
+// 	view = view.nextElementSibling as HTMLElement;
+// 	while (view) {
+// 		let nextLevel = view.getAttribute("aria-level") as any * 1 || 0;
+// 		if (nextLevel > level) {
+// 			let model = createModel(view, context);
+// 			context.append(model);
+// 			view = loadChildren(view, model);
+// 		}  else {
+// 			return view;
+// 		}
+// 	}
+// 	return view;
+// }
 
-function loadChildren(view: HTMLElement, context: Element): HTMLElement {
-	let level = view.getAttribute("aria-level") as any * 1 || 0;
-	view = view.nextElementSibling as HTMLElement;
-	while (view) {
-		let nextLevel = view.getAttribute("aria-level") as any * 1 || 0;
-		if (nextLevel > level) {
-			let model = createModel(view, context);
-			context.append(model);
-			view = loadChildren(view, model);
-		}  else {
-			return view;
-		}
-	}
-	return view;
-}
-
-function createModel(view: HTMLElement, context: Element): Element {
-	let type = view["$type"] as ContentType;
-	return type.viewToXml(view, context);
-}
+// function createModel(view: HTMLElement, context: Element): Element {
+// 	let type = view["$type"] as ContentType;
+// 	return type.viewToXml(view, context);
+// }

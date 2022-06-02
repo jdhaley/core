@@ -12,7 +12,7 @@ export class Editor extends Article {
 	toModel(range: Range) {
 		let temp = this.owner.createElement("div");
 		temp.innerHTML = markup(range);
-		return this.type.toModel(temp as HTMLElement, null);
+		return this.type.toModel(temp as HTMLElement);
 	}	
 	edit(name: string, range: Range, replacement: string, replacer?: replacer) {
 		TRACK = null;
