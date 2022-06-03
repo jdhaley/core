@@ -45,6 +45,24 @@ export class ContentType implements Type {
 	for(value: Value): boolean {
 		throw new Error("Method not implemented.");
 	}
+	loadChildren(view: HTMLElement, context: Element): HTMLElement {
+		let level = view.getAttribute("aria-level") as any * 1 || 0;
+		view = view.nextElementSibling as HTMLElement;
+		while (view) {
+			let nextLevel = view.getAttribute("aria-level") as any * 1 || 0;
+			if (nextLevel > level) {
+				let type = view["type$"];
+				let model = type.viewToXml(view, context);
+				context.append(model);
+				context = model.ownerDocument.createElement("content$");
+				model.append(context);
+				view = this.loadChildren(view, context);
+			}  else {
+				return view;
+			}
+		}
+		return view;
+	}
 }
 
 export class MarkupType extends ContentType {
@@ -84,15 +102,15 @@ export class RecordType extends ContentType {
 	}
 	viewToXml(view: HTMLElement, xml: Element): void {
 		for (let child of view.children) {
-			if (child instanceof HTMLElement) {
+			//Don't generate child if there is no content.
+			if (child instanceof HTMLElement && child.childNodes.length && child.textContent != "\u200b") {
 				let propertyName = child.dataset.name;
 				let type = this.types[propertyName];
 				if (!type) throw new Error(`Property "${propertyName}" not found.`);
-
 				let property = xml.ownerDocument.createElement(propertyName);
 				xml.append(property);
 				type.viewToXml(child, property);
-			}
+			}	
 		}
 	}
 	toModel(view: HTMLElement): content {
@@ -171,7 +189,7 @@ export class CollectionType extends ContentType {
 		} else {
 			view.textContent = "\u200b";
 		}
-		let xml = document.implementation.createDocument(null, "stuff");
+		let xml = document.implementation.createDocument(null, "list");
 		this.viewToXml(view, xml.documentElement);
 		console.log(xml.documentElement);
 	}

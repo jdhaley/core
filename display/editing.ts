@@ -1,7 +1,6 @@
 import {Article} from "./display.js";
 
 export function getElement(node: Node | Range, type: string): Element {
-	console.log(type);
 	if (node instanceof Range) node = node.commonAncestorContainer;
 	while (node) {
 		if (node instanceof HTMLElement && type == node.dataset.model) {
