@@ -25,12 +25,8 @@ export class ContentType implements Type {
 	name: string;
 	types: bundle<ContentType>;
 	toView(model: content, context: HTMLElement, level?: number): HTMLElement {
-		let view = context.ownerDocument.createElement("div") as HTMLElement;
-		view.id = "" + LAST_ID++;
-		view["$type"] = this;
+		let view = this.createView(context, level);
 		view["$model"] = model;
-		if (this.name) view.dataset.type = this.name;
-		if (level) view.setAttribute("aria-level", "" + level);
 		return view;
 	}
 	toModel(view: HTMLElement): content {
@@ -38,6 +34,12 @@ export class ContentType implements Type {
 	}
 	viewToXml(view: HTMLElement, xml: Element): void {
 		xml.innerHTML = view.textContent == "\u200b" ? "" : view.innerHTML;
+	}
+	xmlToView(xml: Element, view: HTMLElement, level?: number): HTMLElement {
+		view = this.createView(view, level);
+		view["$model"] = xml;
+//		view.innerHTML = xml.innerHTML || "\u200b";
+		return view;
 	}
 	generalizes(type: Type): boolean {
 		return type instanceof ContentType;
@@ -63,6 +65,14 @@ export class ContentType implements Type {
 		}
 		return view;
 	}
+	createView(context: HTMLElement, level: number): HTMLElement {
+		let view = context.ownerDocument.createElement("div") as HTMLElement;
+		view.id = "" + LAST_ID++;
+		view["$type"] = this;
+		if (this.name) view.dataset.type = this.name;
+		if (level) view.setAttribute("aria-level", "" + level);
+		return view;
+	}
 }
 
 export class MarkupType extends ContentType {
@@ -81,19 +91,25 @@ export class TextType extends ContentType {
 		view.textContent = "" + (model || "\u200b");
 		return view;
 	}
+	xmlToView(xml: Element, view: HTMLElement, level?: number): HTMLElement {
+		view = super.xmlToView(xml, view, level);
+		view.dataset.model = "text";
+		view.textContent = xml.textContent || "\u200b";
+		return view;
+	}
 	toModel(view: HTMLElement): content {
 		return view.textContent == "\u200b" ? undefined : view.textContent;
 	}
 }
 
 export class RecordType extends ContentType {
-	toView(model: bundle<content>, context: HTMLElement, level?: number): HTMLElement {
-		let view = super.toView(model, context, level);
+	xmlToView(xml: Element, view: HTMLElement, level?: number): HTMLElement {
+		view = super.xmlToView(xml, view, level);
 		view.dataset.model = "record";
 		for (let name in this.types) {
-			let value = model ? model[name] : null;
-			//if (this.types[name] instanceof MarkupType) value = new Markup(value);
-			let member = this.types[name].toView(value, view);
+			let value = xml.getElementsByTagName(name)[0];
+			if (!value) value = xml.ownerDocument.createElement(name);
+			let member = this.types[name].xmlToView(value, view);
 			member.dataset.name = name;
 			member.classList.add("member");
 			view.append(member);
@@ -112,6 +128,19 @@ export class RecordType extends ContentType {
 				type.viewToXml(child, property);
 			}	
 		}
+	}
+	toView(model: bundle<content>, context: HTMLElement, level?: number): HTMLElement {
+		let view = super.toView(model, context, level);
+		view.dataset.model = "record";
+		for (let name in this.types) {
+			let value = model ? model[name] : null;
+			//if (this.types[name] instanceof MarkupType) value = new Markup(value);
+			let member = this.types[name].toView(value, view);
+			member.dataset.name = name;
+			member.classList.add("member");
+			view.append(member);
+		}
+		return view;
 	}
 	toModel(view: HTMLElement): content {
 		let model = Object.create(null);
@@ -140,10 +169,10 @@ export class RecordType extends ContentType {
 
 export class CollectionType extends ContentType {
 	defaultType: ContentType;
-	toView(model: Iterable<content>, context: HTMLElement, level?: number): HTMLElement {
-		let view = super.toView(model, context, level);
+	xmlToView(xml: Element, view: HTMLElement, level?: number): HTMLElement {
+		view = super.xmlToView(xml, view, level);
 		view.dataset.model = "list";
-		this.viewContent(model, view, level);
+		this.viewXmlContent(xml, view, level);
 		return view;
 	}
 	viewToXml(view: HTMLElement, xml: Element): void {
@@ -159,6 +188,12 @@ export class CollectionType extends ContentType {
 				type.viewToXml(child, ele);
 			}
 		}
+	}
+	toView(model: Iterable<content>, context: HTMLElement, level?: number): HTMLElement {
+		let view = super.toView(model, context, level);
+		view.dataset.model = "list";
+		this.viewContent(model, view, level);
+		return view;
 	}
 	toModel(view: HTMLElement): content {
 		let model = [];
@@ -181,6 +216,14 @@ export class CollectionType extends ContentType {
 		}
 		return false;
 	}
+	viewXmlContent(model: Element, view: HTMLElement, level: number): void {
+		for (let value of model.children) {
+			let type = this.types[value.tagName] || this.defaultType;
+			if (type.name == "tree") level++;
+			let child = type.xmlToView(value, view)
+			view.append(child);
+		}
+	}
 	viewContent(model: Iterable<content>, view: HTMLElement, level: number): void {
 		if (model && model[Symbol.iterator]) for (let value of model) {
 			let type = this.types[typeOf(value)] || this.defaultType;
@@ -189,9 +232,10 @@ export class CollectionType extends ContentType {
 		} else {
 			view.textContent = "\u200b";
 		}
-		let xml = document.implementation.createDocument(null, "list");
-		this.viewToXml(view, xml.documentElement);
-		console.log(xml.documentElement);
+		let xml = document.implementation.createDocument(null, "list").documentElement;
+		this.viewToXml(view, xml);
+		console.log(xml);
+		console.log(this.xmlToView(xml, view.ownerDocument.createElement("article")));
 	}
 }
 
