@@ -4,8 +4,6 @@ import {bundle, Type, Value} from "../api/model.js";
 
 export type content = string | number | boolean | Iterable<content> | bundle<content>;
 
-let LAST_ID = 1;
-
 class Markup {
 	constructor(markup: string) {
 		this.#markup = markup;
@@ -22,6 +20,7 @@ context or Function.bind them to the context.
 */
 type transform<From, To> = (this: any, from: From) => To;
 
+let LAST_ID = 1;
 export class ContentType implements Type {
 	name: string;
 	types: bundle<ContentType>;
@@ -35,7 +34,10 @@ export class ContentType implements Type {
 		return view;
 	}
 	toModel(view: HTMLElement): content {
-		return undefined;
+		return view.textContent == "\u200b" ? undefined : view.innerHTML;
+	}
+	viewToXml(view: HTMLElement, xml: Element): void {
+		xml.innerHTML = view.textContent == "\u200b" ? "" : view.innerHTML;
 	}
 	generalizes(type: Type): boolean {
 		return type instanceof ContentType;
@@ -52,9 +54,6 @@ export class MarkupType extends ContentType {
 		view.innerHTML = "" + (model || "\u200b");
 		return view;
 	}
-	toModel(view: HTMLElement): content {
-		return view.textContent == "\u200b" ? undefined : view.innerHTML;
-	}
 }
 
 export class TextType extends ContentType {
@@ -64,19 +63,12 @@ export class TextType extends ContentType {
 		view.textContent = "" + (model || "\u200b");
 		return view;
 	}
-	// viewToXml(view: HTMLElement, context: Element) {
-	// 	context.innerHTML = view.innerHTML;
-	// 	return context;
-	// }
 	toModel(view: HTMLElement): content {
 		return view.textContent == "\u200b" ? undefined : view.textContent;
 	}
 }
 
 export class RecordType extends ContentType {
-	keys() {
-		return Object.keys(this.types);
-	}
 	toView(model: bundle<content>, context: HTMLElement, level?: number): HTMLElement {
 		let view = super.toView(model, context, level);
 		view.dataset.model = "record";
@@ -90,6 +82,19 @@ export class RecordType extends ContentType {
 		}
 		return view;
 	}
+	viewToXml(view: HTMLElement, xml: Element): void {
+		for (let child of view.children) {
+			if (child instanceof HTMLElement) {
+				let propertyName = child.dataset.name;
+				let type = this.types[propertyName];
+				if (!type) throw new Error(`Property "${propertyName}" not found.`);
+
+				let property = xml.ownerDocument.createElement(propertyName);
+				xml.append(property);
+				type.viewToXml(child, property);
+			}
+		}
+	}
 	toModel(view: HTMLElement): content {
 		let model = Object.create(null);
 		model.type$ = this.name;
@@ -97,17 +102,13 @@ export class RecordType extends ContentType {
 			if (child instanceof HTMLElement) {
 				let propertyName = child.dataset.name;
 				let type = this.types[propertyName];
-				if (!type) debugger;
+				if (!type) throw new Error(`Property "${propertyName}" not found.`);
 				let value = type.toModel(child);
 				if (value) model[propertyName] = value;
 			}
 		}
 		return model;
 	}
-	// viewToXml(view: HTMLElement, context: Element) {
-	// 	context.innerHTML = view.innerHTML;
-	// 	return null;
-	// }
 	generalizes(type: Type): boolean {
 		if (type instanceof RecordType) {
 			for (let name in this.types) {
@@ -127,13 +128,27 @@ export class CollectionType extends ContentType {
 		this.viewContent(model, view, level);
 		return view;
 	}
+	viewToXml(view: HTMLElement, xml: Element): void {
+		for (let child of view.children) {
+			if (child instanceof HTMLElement) {
+				let typeName = child.dataset.type;
+				if (!typeName) typeName = "text";
+				let type = this.types[typeName];
+				if (!type) throw new Error(`Type "${typeName}" not found.`);
+
+				let ele = xml.ownerDocument.createElement(typeName);
+				xml.append(ele);
+				type.viewToXml(child, ele);
+			}
+		}
+	}
 	toModel(view: HTMLElement): content {
 		let model = [];
 		for (let child of view.children) {
 			if (child instanceof HTMLElement) {
 				let typeName = child.dataset.type;
 				let type = this.types[typeName];
-				if (!type) debugger;
+				if (!type) throw new Error(`Type "${typeName}" not found.`);
 				model.push(type.toModel(child));
 			}
 		}
@@ -156,6 +171,9 @@ export class CollectionType extends ContentType {
 		} else {
 			view.textContent = "\u200b";
 		}
+		let xml = document.implementation.createDocument(null, "stuff");
+		this.viewToXml(view, xml.documentElement);
+		console.log(xml.documentElement);
 	}
 }
 
