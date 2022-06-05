@@ -72,13 +72,21 @@ export default extend(article, {
 		range = this.edit("Paste", range, view.innerHTML);
 		range.collapse();
 	},
-
-	charpress(this: Editor, event: UserEvent) {
-		if ((event.target as Element).classList.contains("form")) event.subject = "";
-	},
 	promote(this: Editor, event: UserEvent) {
 	},
 	demote(this: Editor, event: UserEvent) {
+	},
+
+	charpress(this: Editor, event: UserEvent) {
+		event.subject = ""
+		let range = this.owner.selectionRange;
+		let node = range.commonAncestorContainer;
+		if (node.nodeType != Node.TEXT_NODE) return;
+
+		let offset = range.startOffset;
+		let text = range.commonAncestorContainer.textContent;
+		text = text.substring(0, offset) + event.key + text.substring(offset);
+		this.textEdit("Enter-Text", range, text, offset + 1);
 	},
 	delete(this: Editor, event: UserEvent) {
 		if ((event.target as Element).classList.contains("form")) event.subject = "";

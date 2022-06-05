@@ -2,6 +2,7 @@ import {Command, CommandBuffer} from "../base/command.js";
 import { markup } from "../base/dom.js";
 import {Article} from "./display.js";
 import {getElement, getItem, getItemContent, getItemRange, mark, unmark,  adjustRange, mungeText} from "./editing.js";
+import { ContentType } from "./types.js";
 
 let TRACK = null;
 
@@ -10,10 +11,15 @@ export type replacer = (start: Element, content: Element, end: Element) => strin
 export class Editor extends Article {
 	readonly buffer = new CommandBuffer<Range>();
 	toModel(range: Range) {
-		let temp = this.owner.createElement("div");
+		let temp = this.owner.createElement("div") as HTMLElement;
 		temp.innerHTML = markup(range);
-		return this.type.toModel(temp as HTMLElement);
-	}	
+		let item = getItem(range) as HTMLElement;
+		if (item) {
+			return [item["$type"].toModel(temp)];
+		} else {
+			return this.type.toModel(temp);
+		}
+	}
 	edit(name: string, range: Range, replacement: string, replacer?: replacer) {
 		TRACK = null;
 		let cmd = new EditCommand(this, name);
@@ -25,11 +31,13 @@ export class Editor extends Article {
 		return range;
 	}
 	textEdit(name: string, range: Range, replacement: string, offset: number) {
+		if (range.commonAncestorContainer.nodeType != Node.TEXT_NODE) throw new Error("NOT TEXT");
 		let cmd = this.buffer.peek() as EditCommand;
 		if (cmd.name == name && TRACK == range.commonAncestorContainer) {
 		} else {
 			TRACK = range.commonAncestorContainer;
 			cmd = new EditCommand(this, name);
+			startEdit(cmd, range);
 			this.buffer.add(cmd);
 			unmark(range, "edit");
 			range.collapse(); //TODO more analysis of the unmark logic.
