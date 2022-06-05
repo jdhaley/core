@@ -1,10 +1,19 @@
 import {content, ContentType, typeOf} from "../types.js";
 
 
-export function toXml(model: content): Element {
+export function modelToXml(model: content): Element {
 	let doc = document.implementation.createDocument(null, typeOf(model));
 	toXmlContent(model, doc.documentElement)
 	return doc.documentElement;
+}
+
+export function viewToXml(view: HTMLElement, context: Element): void {
+	view = view.firstElementChild as HTMLElement;
+	while (view) {
+		let model = createModel(view, context);
+		context.append(model);
+		view = loadChildren(view, model);
+	}
 }
 
 function toXmlContent(model: content, element: Element) {
@@ -35,15 +44,6 @@ function toXmlContent(model: content, element: Element) {
 	}
 }
 
-export function viewToXml(view: HTMLElement, context: Element): void {
-	view = view.firstElementChild as HTMLElement;
-	while (view) {
-		let model = createModel(view, context);
-		context.append(model);
-		view = loadChildren(view, model);
-	}
-}
-
 function loadChildren(view: HTMLElement, context: Element): HTMLElement {
 	let level = view.getAttribute("aria-level") as any * 1 || 0;
 	view = view.nextElementSibling as HTMLElement;
@@ -61,8 +61,6 @@ function loadChildren(view: HTMLElement, context: Element): HTMLElement {
 }
 
 function createModel(view: HTMLElement, context: Element): Element {
-	// let model = context.ownerDocument.createElement()
-	// let type = view["$type"] as ContentType;
-	// return type.viewToXml(view, context);
-	return null;
+	let type = view["type$"] as ContentType;
+	return type.viewToXml(view, context);
 }
