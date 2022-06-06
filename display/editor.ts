@@ -1,8 +1,7 @@
 import {Command, CommandBuffer} from "../base/command.js";
-import { markup } from "../base/dom.js";
+import {markup} from "../base/dom.js";
 import {Article} from "./display.js";
 import {getElement, getItem, getItemContent, getItemRange, mark, unmark,  adjustRange, mungeText} from "./editing.js";
-import { ContentType } from "./types.js";
 
 let TRACK = null;
 
