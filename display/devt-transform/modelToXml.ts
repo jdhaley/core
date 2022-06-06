@@ -61,6 +61,7 @@ function loadChildren(view: HTMLElement, context: Element): HTMLElement {
 }
 
 function createModel(view: HTMLElement, context: Element): Element {
-	let type = view["type$"] as ContentType;
-	return type.viewToXml(view, context);
+	// let type = view["type$"] as ContentType;
+	// return type.viewToXml(view, context);
+	return null;
 }
