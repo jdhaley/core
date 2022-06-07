@@ -1,12 +1,11 @@
 import {Signal} from "../api/signal.js";
-import {bundle} from "../api/model.js";
+import {bundle, Type} from "../api/model.js";
 
 import {DocumentControl, DocumentOwner, controlOf, ControlElement} from "../base/dom.js";
 import {RemoteFileService} from "../base/remote.js";
 import {FrameConf, ViewConf} from "./configuration.js";
 import {extend} from "../base/util.js";
 import {Control} from "../base/control.js";
-import {CollectionType, ContentType, RecordType, TextType} from "./types.js";
 
 export class Frame extends DocumentOwner {
 	constructor(window: Window, conf: FrameConf) {
@@ -153,12 +152,17 @@ export class Display extends DocumentControl {
  * independent Articles opened.  Each Article has it's own CommandBuffer.
  */
 
+interface DisplayType extends Type {
+	toView(model: any, context: HTMLElement, level?: number): HTMLElement;
+	toModel(view: HTMLElement): any;
+	viewContent(model: any, view: HTMLElement, level?: number): void;
+}
 export class Article extends Display {
 	constructor(owner: Frame, conf: ViewConf) {
 		super(owner, conf);
-		this.type = conf.properties.type as CollectionType;
+		this.type = conf.properties.type as DisplayType;
 		this.service = new RemoteFileService(this.owner.location.origin + conf.properties.sources);
 	}
 	readonly service: RemoteFileService;
-	readonly type: CollectionType;
+	readonly type: DisplayType;
 }
