@@ -73,8 +73,10 @@ export default extend(article, {
 		range.collapse();
 	},
 	promote(this: Editor, event: UserEvent) {
+		event.subject = "";
 	},
 	demote(this: Editor, event: UserEvent) {
+		event.subject = "";
 	},
 
 	charpress(this: Editor, event: UserEvent) {
@@ -89,12 +91,38 @@ export default extend(article, {
 		this.textEdit("Enter-Text", range, text, offset + 1);
 	},
 	delete(this: Editor, event: UserEvent) {
-		if ((event.target as Element).classList.contains("form")) event.subject = "";
+		event.subject = "";
+		let range = this.owner.selectionRange;
+		if (!range.collapsed) {
+			range = adjustRange(range, getElement(range, "list"));
+			range = this.edit("Delete", range, "");
+			range.collapse();
+			return;
+		} 
+		let node = range.commonAncestorContainer;
+		if (node.nodeType != Node.TEXT_NODE) return;
+		let offset = range.startOffset;
+		let text = range.commonAncestorContainer.textContent;
+		if (offset >= text.length) return;
+		text = text.substring(0, offset) + text.substring(offset + 1);
+		this.textEdit("Delete-Text", range, text, offset);
 	},
 	erase(this: Editor, event: UserEvent) {
-		if ((event.target as Element).classList.contains("form")) event.subject = "";
+		event.subject = "";
+		let range = this.owner.selectionRange;
+		if (!range.collapsed) {
+			this.edit("Delete", range, "");
+			return;
+		} 
+		let node = range.commonAncestorContainer;
+		if (node.nodeType != Node.TEXT_NODE) return;
+		let offset = range.startOffset;
+		let text = range.commonAncestorContainer.textContent;
+		if (offset < 1) return;
+		text = text.substring(0, offset - 1) + text.substring(offset);
+		this.textEdit("Erase-Text", range, text, offset - 1);
 	},
 	enter(this: Editor, event: UserEvent) {
-		if ((event.target as Element).classList.contains("form")) event.subject = "";
+		event.subject = "";
 	},
 });
