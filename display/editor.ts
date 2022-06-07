@@ -109,7 +109,7 @@ function startEdit(cmd: EditCommand, range: Range) {
 
 	let doc = list.ownerDocument;
 
-	range = adjustRange(range, list);
+//	range = adjustRange(range, list);
 	mark(range, "edit");
 
 	/*
