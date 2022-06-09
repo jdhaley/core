@@ -14,6 +14,7 @@ export default extend(display, {
 	},
 	draw(this: Article, msg: Signal) {
 		this.data.model = "list";
+		this.view["$type"] = this.type;
 		this.view.id = "1";
 		this.view.contentEditable = "true";	
 	},
